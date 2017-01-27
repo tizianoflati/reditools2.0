@@ -74,7 +74,7 @@ def update_reads(pos, reads):
             if read["positions"][read["index"]] < i:
                 read["index"] += 1
 
-def get_edits(reads):
+def get_column(reads):
     
     edits_no = 0
 #     edits = {"T": [], "A": [], "C": [], "G": [], "N": []}
@@ -112,7 +112,7 @@ def filter_read(read):
     if read.is_unmapped: return False
     
     # Se la read ha un MAPQ < di 30
-    if read.mapping_quality < 30: return False
+    if read.mapping_quality < MIN_QUALITY: return False
     
     # Se la read ha una lunghezza < XX
     if read.query_length < XX: return False
@@ -124,14 +124,16 @@ def filter_read(read):
     if read.is_duplicate: return False
     
     # TODO: Se la read non passa i quality controls (FLAG 512)
-    if read.mapping_quality < MIN_QUALITY: return False
+    if read.is_qcfail: return False
     
     # TODO: Se la read non mappa in modo proprio (FLAG 99/147 o 83/163)
     if read.is_paired and not read.is_proper_pair: return False
     
     return True
     
-def filter_base(read, pos):
+def filter_base(read):
+    
+    pos = read["index"]
     
     # TODO: Se il  carattere e' nelle  prime X posizioni della read
     if pos < MIN_BASE_POSITION: return False
@@ -184,6 +186,10 @@ if __name__ == '__main__':
     MIN_COLUMN_LENGTH = 10
     MIN_EDITS_SINGLE = 7
     MIN_TRUE_EDITS = 8
+
+    # Constants
+    LAST_READ = None
+    LOG_INTERVAL = 100000
     
     # Take the time
     tic = datetime.datetime.now()
@@ -194,8 +200,9 @@ if __name__ == '__main__':
     reads = dict()
     reads_list = []
     
+    # Open the iterator
     iterator = samfile.fetch()
-    next_read = next(iterator, None)
+    next_read = next(iterator, LAST_READ)
     next_pos = next_read.get_reference_positions()
     i = next_pos[0]
     total += 1
@@ -209,7 +216,7 @@ if __name__ == '__main__':
     started = False
     while not finished:
     
-        if next_read is None:
+        if next_read is LAST_READ:
                 print("NO MORE READS!")
                 finished = True
                 break
@@ -220,17 +227,17 @@ if __name__ == '__main__':
             i = next_pos[0]
                    
         # Get all the next read(s)
-        while next_read is not None and next_pos[0] == i:
+        while next_read is not LAST_READ and next_pos[0] == i:
     
             read = next_read
             pos = next_pos
     
             next_read = next(iterator, None)
-            if next_read is not None:
+            if next_read is not LAST_READ:
                 total += 1
                 next_pos = next_read.get_reference_positions()
                 
-                if total % 100000 == 0:
+                if total % LOG_INTERVAL == 0:
                     print("Total reads loaded: " + str(total) + " ["+str(datetime.datetime.now())+"]")
                 
             # Check that the read passes the filters
@@ -261,8 +268,8 @@ if __name__ == '__main__':
         # Remove old reads
         removed = reads.pop(i-1, None)
     
-        update_reads(i, reads);
-        get_edits(reads)
+        update_reads(i, reads)
+        get_column(reads)
 
         # When changing chromosome print some statistics
         if read.reference_name != last_chr:
