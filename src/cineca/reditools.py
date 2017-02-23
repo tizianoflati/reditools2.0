@@ -7,11 +7,12 @@ Created on 09 gen 2017
 import pysam
 import sys
 import datetime
-import collections
+from collections import Counter
 import gzip
 from sortedcontainers import SortedSet
+import numpy
 
-DEBUG = True
+DEBUG = False
 
 def delta(t2, t1):
     delta = t2 - t1
@@ -42,23 +43,22 @@ def update_reads(pos, reads):
 
 def get_column(reads):
     
-    if i in splice_positions[last_chr]:
-#         sys.stderr.write("[DEBUG] [SPLICE_SITE] Discarding position ({}, {}) because in splice site\n".format(last_chr, i))
-        return False
-    
-#     for position in splice_positions[last_chr]:
-#         if last_chr == position[0] and i >= position[1] and i <= position[2]:
-#             sys.stderr.write("[DEBUG] [SPLICE_SITE] Discarding position ({}, {}) because in splice site (in region {})\n".format(last_chr, i, position))
-#             return False
-    
+    if splice_positions:
+        if i in splice_positions[last_chr]:
+    #         sys.stderr.write("[DEBUG] [SPLICE_SITE] Discarding position ({}, {}) because in splice site\n".format(last_chr, i))
+            return None
+
+#     edits = {"T": [], "A": [], "C": [], "G": [], "N": []}    
     edits_no = 0
-#     edits = {"T": [], "A": [], "C": [], "G": [], "N": []}
     edits = []
-    edits_info = {"edits": edits, "ref": None}
+    ref = None
     
-    found = False
     for key in reads:
         for read in reads[key]:
+            
+            # Filter the reads by positions
+            if not filter_base(read): continue
+            
             j = read["index"]
             if j >= len(read["reference"]): 
                 print("[DEBUG] \t" + str(read["reference"]) + " [" + str(j) + "]")
@@ -66,21 +66,23 @@ def get_column(reads):
                                 
             ref = read["reference"][j]
             
-            edits_info["ref"] = ref
-            
             if not ref.islower():
                 continue
             
+            ref = ref.upper()
+            
             alt = read["sequence"][j]
             edits.append(alt)
-            if not found: edits_info["ref"] = ref.upper()
             
-            if alt != ref.upper(): edits_no += 1
-            
-    edits_info["true_edits"] = edits_no
+            if alt != ref.upper():
+                edits_no += 1
+    
+    counter = Counter(edits)
+    
+    edits_info = {"edits": edits, "counter": counter, "true_edits": edits_no, "ref": ref, "mean_quality": 0, "most_frequent_edit": counter.get(0), "frequency": numpy.mean(counter.values())}
 
     # Check that the column passes the filters
-    if not filter_column(edits_info): return False
+    if not filter_column(edits_info): return None
 
 #     if edits_no > 5:
 #         print(str(i) + ":" + str(edits_info))
@@ -89,9 +91,9 @@ def get_column(reads):
     for position in omopolymeric_positions:
         if last_chr == position[0] and i >= position[1] and i <= position[2]:
 #             sys.stderr.write("[DEBUG] [OMOPOLYMERIC] Discarding position ({}, {}) because omopolymeric (in region {})\n".format(last_chr, i, position))
-            return False
+            return None
 
-    return True
+    return edits_info;
 
 def filter_read(read):
     
@@ -140,13 +142,19 @@ def filter_base(read):
     pos = read["index"]
     
     # Se il  carattere e' nelle prime X posizioni della read
-    if pos < MIN_BASE_POSITION: return False
+    if pos < MIN_BASE_POSITION:
+        if DEBUG: print("[DEBUG] APPLIED BASE FILTER [MIN_BASE_POSITION]")
+        return False
     
     # Se il  carattere e' nelle ultime Y posizioni della read
-    if pos > MAX_BASE_POSITION: return False
+    if pos > MAX_BASE_POSITION:
+        if DEBUG: print("[DEBUG] APPLIED BASE FILTER [MAX_BASE_POSITION]")
+        return False
     
     # Se la qualita' e' < Q
-    if read["query_qualities"][pos] < MIN_BASE_QUALITY: return False
+    if read["query_qualities"][pos] < MIN_BASE_QUALITY:
+        if DEBUG: print("[DEBUG] APPLIED BASE FILTER [MIN_BASE_QUALITY]")
+        return False
     
     return True
     
@@ -157,7 +165,7 @@ def filter_column(column):
     # TODO: Se il numero di caratteri e' < X
     if len(edits) < MIN_COLUMN_LENGTH: return False
     
-    counter = collections.Counter(edits)
+    counter = column["counter"]
     ref = column["ref"]
     
     # TODO: (per ogni variazione) se singolarmente il numero delle basi che supportano la variazione e' < X
@@ -368,7 +376,8 @@ if __name__ == '__main__':
     if not omopolymeric_positions:
         reference_file = sys.argv[3]
         omopolymeric_positions = create_omopolymeric_positions(reference_file, omopolymeric_file)
-        
+    
+    splice_positions = []  
     splicing_file = None
     if len(sys.argv) > 4: splicing_file = sys.argv[4]
     splice_positions = load_splicing_file(splicing_file)
@@ -381,13 +390,20 @@ if __name__ == '__main__':
     tic = datetime.datetime.now()
     
     total = 0
-    last_chr = ""
     
     reads = dict()
     reads_list = []
     
+    chromosome_of_interest = "chr1"
+    strand = 0
+    
+    outputfile = chromosome_of_interest + "_reditools2_table.gz"
+    
+    if outputfile.endswith("gz"): writer = gzip.open(outputfile, "w")
+    else: writer = open(outputfile, "w")
+    
     # Open the iterator
-    iterator = samfile.fetch()
+    iterator = samfile.fetch(chromosome_of_interest)
     
     next_read = next(iterator, LAST_READ)
     next_pos = next_read.get_reference_positions()
@@ -399,8 +415,6 @@ if __name__ == '__main__':
     pos = None
     finished = False
     
-#     working_chromosome = "4"
-            
     started = False
     while not finished:
     
@@ -409,10 +423,10 @@ if __name__ == '__main__':
                 finished = True
                 break
     
-#         # Jump if we consumed all the reads
-#         if len(reads) == 0:
-#             #print("[INFO] READ SET IS EMPTY. JUMP TO "+str(next_read.get_reference_positions()[0])+"!")
-#             i = next_pos[0]
+        # Jump if we consumed all the reads
+        if len(reads) == 0:
+            #print("[INFO] READ SET IS EMPTY. JUMP TO "+str(next_read.get_reference_positions()[0])+"!")
+            i = next_pos[0]
                    
         # Get all the next read(s)
         while next_read is not LAST_READ and (next_pos[0] == i or next_pos[-1] == i):
@@ -446,9 +460,6 @@ if __name__ == '__main__':
 #             print(item)
 #             raw_input("Press enter to continue...")
             
-            # Filter the reads by positions
-            if not filter_base(item): continue
-            
 #             print(item)
 #             if i > 15400000:
 #             print(read.reference_name, i)
@@ -470,7 +481,16 @@ if __name__ == '__main__':
         removed = reads.pop(i-1, None)
     
         update_reads(i, reads)
-        get_column(reads)
+        column = get_column(reads)
+        
+        if column is not None:
+            # head='Region\tPosition\tReference\tStrand\tCoverage-q%i\tMeanQ\tBaseCount[A,C,G,T]\t
+            #       AllSubs\tFrequency\t
+            #       gCoverage-q%i\tgMeanQ\tgBaseCount[A,C,G,T]\tgAllSubs\tgFrequency\n' %(MQUAL,gMQUAL)
+            # cov,bcomp,subs,freq=BaseCount(seq,ref,MINIMUM_EDITS_FREQUENCY,MIN_EDITS_SINGLE)
+            # mqua=meanq(qual,len(seq))
+            # line='\t'.join([chr,str(pileupcolumn.pos+1),ref,mystrand,str(cov),mqua,str(bcomp),subs,freq]+['-','-','-','-','-'])+'\n'
+            writer.write("\t".join([last_chr, str(i), column["ref"], str(strand), str(len(reads)), str(column["mean_quality"]), str(column["edits"]), str(column["most_frequent_edit"]), str(column["frequency"]), str(['-','-','-','-','-'])]) + "\n")
         
         # When changing chromosome print some statistics
         if read.reference_name != last_chr:
@@ -484,6 +504,7 @@ if __name__ == '__main__':
             tic = tac
     
     samfile.close()
+    writer.close()
     
     print("[INFO] TOTAL READS=" + str(total))
     tac = datetime.datetime.now()
