@@ -11,6 +11,7 @@ from collections import Counter
 import gzip
 from sortedcontainers import SortedSet
 import numpy
+import os
 
 DEBUG = False
 
@@ -114,20 +115,20 @@ def get_column(reads):
     if most_common is not None:
         ratio = (float)(most_common[1]) / (most_common[1] + ref_count)
 
-    if passed > 0:
-        print("REF=" + ref)
-        print(passed)
-        print(edits)
-        print(counter)
-        print("MOST FREQUENT EDITS=" + str(counter.most_common()))
-        print("MOST COMMON=" + str(most_common))
-        print(numpy.mean(counter.values()))
-        print(distribution)
-        print(qualities)
-        print(mean_q)
-        print("REF COUNT=" + str(ref_count))
-        print("ALT/REF % = " + str(ratio))
-        raw_input("Press a key:")
+#     if passed > 0:
+#         print("REF=" + ref)
+#         print(passed)
+#         print(edits)
+#         print(counter)
+#         print("MOST FREQUENT EDITS=" + str(counter.most_common()))
+#         print("MOST COMMON=" + str(most_common))
+#         print(numpy.mean(counter.values()))
+#         print(distribution)
+#         print(qualities)
+#         print(mean_q)
+#         print("REF COUNT=" + str(ref_count))
+#         print("ALT/REF % = " + str(ratio))
+#         raw_input("Press a key:")
     
     edits_info = {
         "edits": edits,
@@ -454,10 +455,16 @@ if __name__ == '__main__':
     reads = dict()
     reads_list = []
     
-    chromosome_of_interest = "chr1"
+    chromosome_of_interest = None
+    if len(sys.argv) > 5:
+        chromosome_of_interest = sys.argv[5]
+    
     strand = 2
     
-    outputfile = chromosome_of_interest + "_reditools2_table.gz"
+    prefix = os.path.basename(bamfile)
+    if chromosome_of_interest is not None:
+        prefix += "_" + chromosome_of_interest 
+    outputfile = prefix + "_reditools2_table.gz"
     
     if outputfile.endswith("gz"): writer = gzip.open(outputfile, "w")
     else: writer = open(outputfile, "w")
@@ -500,7 +507,7 @@ if __name__ == '__main__':
                 next_pos = next_read.get_reference_positions()
                 
                 if total % LOG_INTERVAL == 0:
-                    print("Total reads loaded: " + str(total) + " ["+str(datetime.datetime.now())+"]")
+                    print("["+last_chr+"] Total reads loaded: " + str(total) + " ["+str(datetime.datetime.now())+"]")
                 
             #print("[INFO] Adding a read to the set=" + str(read.get_reference_positions()))            
             
