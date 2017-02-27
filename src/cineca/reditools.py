@@ -53,6 +53,8 @@ def get_column(reads):
     edits = []
     ref = None
     
+    passed= 0
+    qualities = []
     for key in reads:
         for read in reads[key]:
             
@@ -66,20 +68,78 @@ def get_column(reads):
                                 
             ref = read["reference"][j]
             
-            if not ref.islower():
-                continue
+#             if not ref.islower():
+#                 continue
             
             ref = ref.upper()
             
             alt = read["sequence"][j]
             edits.append(alt)
+
+            passed += 1
+            q = read["query_qualities"][j]
+            qualities.append(q)
             
             if alt != ref.upper():
                 edits_no += 1
-    
+                
     counter = Counter(edits)
+    mean_q = 0
+    if len(qualities) > 0:
+        mean_q = numpy.mean(qualities)
     
-    edits_info = {"edits": edits, "counter": counter, "true_edits": edits_no, "ref": ref, "mean_quality": 0, "most_frequent_edit": counter.get(0), "frequency": numpy.mean(counter.values())}
+    # If all the reads are concordant
+    if counter[ref] > 0 and len(counter) == 1:
+        return None
+    
+    if len(counter) == 0:
+        return None
+    
+    # [A,C,G,T]
+    distribution = [counter['A'], counter['C'], counter['G'], counter['T']]
+    ref_count = counter[ref]
+    
+    non_zero = 0
+    for el in counter:
+        if el != ref and counter[el] > 0:
+            non_zero += 1
+
+    most_common = None
+    most_commons = counter.most_common()
+    for el in most_commons:
+        if el[0] != ref:
+            most_common = el
+            
+    ratio = 0.0
+    if most_common is not None:
+        ratio = (float)(most_common[1]) / (most_common[1] + ref_count)
+
+    if passed > 0:
+        print("REF=" + ref)
+        print(passed)
+        print(edits)
+        print(counter)
+        print("MOST FREQUENT EDITS=" + str(counter.most_common()))
+        print("MOST COMMON=" + str(most_common))
+        print(numpy.mean(counter.values()))
+        print(distribution)
+        print(qualities)
+        print(mean_q)
+        print("REF COUNT=" + str(ref_count))
+        print("ALT/REF % = " + str(ratio))
+        raw_input("Press a key:")
+    
+    edits_info = {
+        "edits": edits,
+        "distribution": distribution,
+        "mean_quality": mean_q,
+        "counter": counter,
+        "non_zero": non_zero,
+        "edits_no": edits_no,
+        "ref": ref,
+        "most_frequent_edit": counter.most_common(1),
+        "frequency": ratio
+    }
 
     # Check that the column passes the filters
     if not filter_column(edits_info): return None
@@ -176,7 +236,7 @@ def filter_column(column):
     if len(counter.keys()) > 1: return False
     
     # TODO: Se tutte le sostituzioni sono < Y
-    if column["true_edits"] < MIN_TRUE_EDITS: return False
+    if column["edits_no"] < MIN_EDITS_NO: return False
     
     return True
     
@@ -363,7 +423,7 @@ if __name__ == '__main__':
     MAX_BASE_POSITION = 6 # 76
     MIN_COLUMN_LENGTH = 1 # 10
     MIN_EDITS_SINGLE = 1
-    MIN_TRUE_EDITS = 1
+    MIN_EDITS_NO = 1
     omopolymeric_positions = []
     
     bamfile = sys.argv[1]
@@ -395,7 +455,7 @@ if __name__ == '__main__':
     reads_list = []
     
     chromosome_of_interest = "chr1"
-    strand = 0
+    strand = 2
     
     outputfile = chromosome_of_interest + "_reditools2_table.gz"
     
@@ -490,7 +550,19 @@ if __name__ == '__main__':
             # cov,bcomp,subs,freq=BaseCount(seq,ref,MINIMUM_EDITS_FREQUENCY,MIN_EDITS_SINGLE)
             # mqua=meanq(qual,len(seq))
             # line='\t'.join([chr,str(pileupcolumn.pos+1),ref,mystrand,str(cov),mqua,str(bcomp),subs,freq]+['-','-','-','-','-'])+'\n'
-            writer.write("\t".join([last_chr, str(i), column["ref"], str(strand), str(len(reads)), str(column["mean_quality"]), str(column["edits"]), str(column["most_frequent_edit"]), str(column["frequency"]), str(['-','-','-','-','-'])]) + "\n")
+            writer.write("\t".join([
+                last_chr,
+                str(i),
+                column["ref"],
+                str(strand),
+                str(len(reads)),
+                "{0:.2f}".format(column["mean_quality"]),
+                str(column["distribution"]),
+                str(column["ref"] + column["most_frequent_edit"][0][0]) if column["non_zero"] > 1 else "-",
+                "{0:.2f}".format(column["frequency"]),
+                "\t".join(['-','-','-','-','-'])
+                ]) + "\n")
+            writer.flush()
         
         # When changing chromosome print some statistics
         if read.reference_name != last_chr:
