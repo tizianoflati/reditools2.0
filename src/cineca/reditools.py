@@ -27,7 +27,7 @@ def print_reads(reads):
     total = 0
     for key in reads:
         total += len(reads[key])
-        print("[INFO] E[i="+str(key)+"]")
+        print("[INFO] E[i="+str(key)+"]["+str(len(reads[key]))+"]")
         for read in reads[key]:
             index = read["index"]
             
@@ -41,13 +41,15 @@ def update_reads(pos, reads):
     
     for ending_position in reads:
         for read in reads[ending_position]:
-            index = read["index"] - (read["length"] - read["reference_len"])
+#             index = read["index"] - (read["length"] - read["reference_len"])
 
 #             print("ref_len=" +str(read["reference_len"]) + " len="+str(read["length"]) + " diff=" + str(read["reference_len"]-read["length"]));
-            if read["positions"][index] < i:
+#             if read["positions"][index] < i:
 
-#             if read["index"] < read["length"]-1:
+            if read["positions"][read["index"]] < i:
                 read["index"] += 1
+                read["alignment_index"] += 1
+                read["reference_index"] += 1
 
 def get_column(reads):
     
@@ -67,32 +69,39 @@ def get_column(reads):
         for read in reads[key]:
             
             # Filter the reads by positions
-            if not filter_base(read): continue
-            else: passed += 1
+            if not filter_base(read):
+                continue
+            elif read["positions"][read["index"]] != i:
+                if DEBUG:
+                    print("[OUT_OF_RANGE] SKIPPING READ i=" + str(i) + " but READ=" + str(read["positions"]))
+                continue
+            else:
+                passed += 1
             
-            j = read["index"]
+            j = read["alignment_index"]
             
             if DEBUG:
                 if j >= len(read["reference"]): 
                     sys.stderr.write("[DEBUG] \t" + str(read["reference"]) + " [" + str(j) + "]")
                     sys.stderr.write("[DEBUG] \t" + str(read["sequence"]))
 
-            length = read["length"]            
-            reference_len = read["reference_len"]
+#             length = read["length"]
+#             reference_len = read["reference_len"]
             
-            ref = read["reference"][j-(length-reference_len)]
+            ref = read["reference"][read["reference_index"]]
             
             ref = ref.upper()
             
             alt = read["sequence"][j]
+            
             edits.append(alt)
 
-            if DEBUG:
-                print(read["reference"])
-                print(read["sequence"])
-                print(j)
-                print(ref)
-                print(alt)
+#             if DEBUG:
+#                 print(read["reference"])
+#                 print(read["sequence"])
+#                 print(j)
+#                 print(ref)
+#                 print(alt)
             
             q = read["query_qualities"][j]
             qualities.append(q)
@@ -129,7 +138,8 @@ def get_column(reads):
     for el in most_commons:
         if el[0] != ref:
             most_common = el
-            
+            break
+        
     ratio = 0.0
     if most_common is not None:
         ratio = (float)(most_common[1]) / (most_common[1] + ref_count)
@@ -157,7 +167,7 @@ def get_column(reads):
         "non_zero": non_zero,
         "edits_no": edits_no,
         "ref": ref,
-        "most_frequent_edit": counter.most_common(1),
+        "most_frequent_edit": most_common,
         "frequency": ratio,
         "passed": passed
     }
@@ -169,61 +179,64 @@ def get_column(reads):
 #         print(str(i) + ":" + str(edits_info))
 #         raw_input("[ALERT] Press enter to continue...")
 
-    for position in omopolymeric_positions:
-        if last_chr == position[0] and i >= position[1] and i <= position[2]:
-#             sys.stderr.write("[DEBUG] [OMOPOLYMERIC] Discarding position ({}, {}) because omopolymeric (in region {})\n".format(last_chr, i, position))
-            return None
+    if i in omopolymeric_positions:
+#     for position in omopolymeric_positions:
+#         if last_chr == position[0] and i >= position[1] and i < position[2]:
+    #         sys.stderr.write("[DEBUG] [OMOPOLYMERIC] Discarding position ({}, {}) because omopolymeric (in region {})\n".format(last_chr, i, position))
+        sys.stderr.write("[DEBUG] [OMOPOLYMERIC] Discarding position ({}, {}) because omopolymeric\n".format(last_chr, i))
+        return None
 
     return edits_info;
 
 def filter_read(read):
     
+#     if DEBUG:
+#         print("[FILTER_READ] F={} QC={} MP={} LEN={} SECOND={} SUPPL={} DUPL={} READ={}".format(read.flag, read.is_qcfail, read.mapping_quality, read.query_length, read.is_secondary, read.is_supplementary, read.is_duplicate, read))
+    
     # Get the flag of the read
     f = read.flag
-    
+     
     # Se la read non e' mappata (FLAG 77 o 141)
     if f == 77 or f == 141:
         if DEBUG: print("[DEBUG] APPLIED FILTER [NOT_MAPPED] f=" + str(f))
         return False 
-    
+     
     # Se la read non passa i quality controls (FLAG 512)
     if read.is_qcfail:
         if DEBUG: print("[DEBUG] APPLIED FILTER [QC_FAIL]")
         return False
-    
+     
     # Se la read ha un MAPQ < di 30
     if read.mapping_quality < MIN_QUALITY:
         if DEBUG: print("[DEBUG] APPLIED FILTER [MAPQ] " + str(read.mapping_quality) + " MIN="+str(MIN_QUALITY))
         return False
-  
+   
     # Se la read ha una lunghezza < XX
     if read.query_length < MIN_READ_LENGTH:
         if DEBUG: print("[DEBUG] APPLIED FILTER [MIN_READ_LENGTH] " + str(read.query_length) + " MIN=" + str(MIN_READ_LENGTH))
         return False
-
+ 
     # Se la read non mappa in modo unico (FLAG 256 o 2048)
     if read.is_secondary or read.is_supplementary:
         if DEBUG: print("[DEBUG] APPLIED FILTER [IS_SECONDARY][IS_SUPPLEMENTARY]")
         return False
-    
+     
     # Se la read e' un duplicato di PCR (FLAG 1024)
     if read.is_duplicate:
         if DEBUG: print("[DEBUG] APPLIED FILTER [IS_DUPLICATE]")
         return False
-
+ 
     # Se la read e' paired-end ma non mappa in modo proprio (FLAG diversi da 99/147(+-) o 83/163(-+))
     # 99 = 1+2+32+64 = PAIRED+PROPER_PAIR+MREVERSE+READ1 (+-)
     if read.is_paired and not (f == 99 or f == 147 or f == 83 or f == 163):
+        if DEBUG: print("[DEBUG] APPLIED FILTER [NOT_PROPER]")
         return False 
-
+ 
     return True
     
 def filter_base(read):
     
     pos = read["index"]
-    
-    if DEBUG:
-        print(read["query_qualities"][pos], type(read["query_qualities"][pos]), MIN_BASE_QUALITY, read, pos, read["query_qualities"])
     
     # Se il carattere e' nelle prime X posizioni della read
     if pos < MIN_BASE_POSITION:
@@ -236,7 +249,7 @@ def filter_base(read):
         return False
     
     # Se la qualita' e' < Q
-    if read["query_qualities"][pos] < MIN_BASE_QUALITY:
+    if read["query_qualities"][read["alignment_index"]] < MIN_BASE_QUALITY:
         if DEBUG: print("[DEBUG] APPLIED BASE FILTER [MIN_BASE_QUALITY]", read["query_qualities"], pos, read["query_qualities"][pos], MIN_BASE_QUALITY)
         return False
     
@@ -250,7 +263,7 @@ def filter_column(column):
         if DEBUG: print("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(column) + " [MIN_MEAN_COLUMN_QUALITY]")
         return False
     
-    # TODO: Se il numero di caratteri e' < X
+    # Se il numero di caratteri e' < X
     if len(edits) < MIN_COLUMN_LENGTH:
         if DEBUG: print("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(len(edits)) + " [MIN_COLUMN_LENGTH]")
         return False
@@ -258,25 +271,25 @@ def filter_column(column):
     counter = column["counter"]
     ref = column["ref"]
     
-    # TODO: (per ogni variazione) se singolarmente il numero delle basi che supportano la variazione e' < X
+    # (per ogni variazione) se singolarmente il numero delle basi che supportano la variazione e' < X
     for edit in counter:
         if edit != ref and counter[edit] < MIN_EDITS_SINGLE:
             if DEBUG: print("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(counter[edit]) + " [MIN_EDITS_SINGLE]")
             return False
         
-    # TODO: Se esistono  multipli cambi rispetto al reference
+    # Se esistono  multipli cambi rispetto al reference
     if len(counter.keys()) > MAX_CHANGES:
         if DEBUG: print("[DEBUG] DISCARDING COLUMN i=" + str(i) + " changes=" + str(len(counter.keys())) + " [MULTIPLE_CHANGES] " + str(column))
         return False
     
-    # TODO: Se tutte le sostituzioni sono < Y
+    # Se tutte le sostituzioni sono < Y
     if column["edits_no"] < MIN_EDITS_NO:
         if DEBUG: print("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(column["edits_no"]) + " [MIN_EDITS_NO]")
         return False
     
     return True
     
-def load_omopolymeric_positions(positions, input_file):
+def load_omopolymeric_positions(positions, input_file, chromosome):
     if input_file is None: return
     
     sys.stderr.write("Loading omopolymeric positions from file {}\n".format(input_file))
@@ -285,7 +298,16 @@ def load_omopolymeric_positions(positions, input_file):
         reader = open(input_file, "r")
         
         for line in reader:
-            positions.append(tuple(line.split("\t")))
+            if line.startswith("#"):
+                continue
+            
+            fields = line.rstrip().split("\t")
+            if fields[0] == chromosome:
+#                 positions.append(tuple([fields[0], int(fields[1]), int(fields[2])]))
+                for i in range(int(fields[1]), int(fields[2])):
+                    positions.add(i)
+            elif positions:
+                break 
             
         reader.close()
     except IOError:
@@ -368,12 +390,15 @@ def create_omopolymeric_positions(reference_file, omopolymeric_file):
 
         for chromosome in chromosomes:
             sys.stderr.write("Loading reference sequence for chromosome {}\n".format(chromosome))
-            sequence = fasta_reader.fetch(chromosome)
+            sequence = fasta_reader.fetch(chromosome).lower()
             sys.stderr.write("Reference sequence for chromosome {} loaded (len: {})\n".format(chromosome, len(sequence)))
-                
+            
             equals = 0
             last = None
             for i, b in enumerate(sequence):
+                
+#                 if chromosome == "chr18" and i > 190450 and i < 190500:
+#                     print(i, b, last, OMOPOLYMERIC_SPAN, sequence[190450:190480])
                 
                 if b == last:
                     equals += 1
@@ -383,7 +408,7 @@ def create_omopolymeric_positions(reference_file, omopolymeric_file):
                         positions.append((chromosome, i-equals, i, equals, last))
                         
                     equals = 1
-                     
+
                 last = b
         
         # Closing
@@ -411,7 +436,8 @@ def create_omopolymeric_positions(reference_file, omopolymeric_file):
     return positions
 
 # -i /marconi_scratch/userexternal/tflati00/test_picardi/reditools_test/SRR1413602.bam
-# -o editing18_test -f /marconi_scratch/userinternal/tcastign/test_picardi/hg19.fa -c1,1 -m20,20 -v1 -q30,30 -e -n0.0 -N0.0 -u -l -p --gzip -H -Y chr18:1-78077248 -F chr18_1_78077248
+# -o editing18_test -f /marconi_scratch/userinternal/tcastign/test_picardi/hg19.fa -c1,1
+# -m20,20 -v1 -q30,30 -e -n0.0 -N0.0 -u -l -p --gzip -H -Y chr18:1-78077248 -F chr18_1_78077248
 if __name__ == '__main__':
 
     print("START=" + str(datetime.datetime.now()))
@@ -457,7 +483,7 @@ if __name__ == '__main__':
     MIN_READ_LENGTH = 30 # 100
     SPLICING_SPAN = 5
     OMOPOLYMERIC_SPAN = 5
-    MIN_QUALITY = 30 # 20
+    MIN_QUALITY = 20 # 20
     MIN_BASE_QUALITY = 30 # 30
     MIN_BASE_POSITION = 6
     MAX_BASE_POSITION = 6 # 76
@@ -465,7 +491,7 @@ if __name__ == '__main__':
     MIN_EDITS_SINGLE = 1
     MIN_EDITS_NO = 0
     MAX_CHANGES = 100
-    omopolymeric_positions = []
+    omopolymeric_positions = set()
     
 #     MIN_BASE_QUALITY = 20
     MAX_BASE_POSITION = 0
@@ -487,12 +513,14 @@ if __name__ == '__main__':
     splicing_file = args.splicing_file
     chromosome_of_interest = args.region
     
+#     create_omopolymeric_positions(reference_file, omopolymeric_file)
+    
     splice_positions = []
     
     print("Opening BAM file="+bamfile)
     samfile = pysam.AlignmentFile(bamfile, "rb")
     
-    load_omopolymeric_positions(omopolymeric_positions, omopolymeric_file)
+    load_omopolymeric_positions(omopolymeric_positions, omopolymeric_file, chromosome_of_interest)
     if not omopolymeric_positions and omopolymeric_file is not None:
         omopolymeric_positions = create_omopolymeric_positions(reference_file, omopolymeric_file)
     
@@ -538,17 +566,16 @@ if __name__ == '__main__':
     pos = None
     finished = False
     
+    DEBUG_START = -1
+    DEBUG_END = -1
+    STOP = -1
+    
     started = False
     while not finished:
     
-        if i > 14285:
-            DEBUG = True
-             
-        if i > 14287:
-            DEBUG = False
-            
-        if i > 50000:
-            break
+        if DEBUG_START > 0 and i > DEBUG_START: DEBUG = True
+        if DEBUG_END > 0 and i > DEBUG_END: DEBUG = False
+        if STOP > 0 and i > STOP: break
     
         if next_read is LAST_READ:
                 print("NO MORE READS!")
@@ -558,7 +585,6 @@ if __name__ == '__main__':
         # Jump if we consumed all the reads
         if len(reads) == 0:
             # print("[INFO] READ SET IS EMPTY. JUMP TO "+str(next_read.get_reference_positions()[0])+"!")
-            print("setting i=" + str(next_pos[0]))
             i = next_pos[0]
                    
         # Get all the next read(s)
@@ -578,19 +604,40 @@ if __name__ == '__main__':
             #print("[INFO] Adding a read to the set=" + str(read.get_reference_positions()))            
             
             # Check that the read passes the filters
-#             if not filter_read(read): continue
+            if not filter_read(read): continue
+            
+            ref_seq = read.get_reference_sequence()
+            
+#             if  len(ref_seq) != len(read.query_sequence) or len(pos) != len(read.query_sequence) or len(pos) != len(ref_seq):
+#                 print("=== DETAILS ===")
+#                 print("i="+str(i))
+#                 print("ref_seq="+str(len(ref_seq)))
+#                 print("seq="+str(len(read.query_sequence)))
+#                 print("pos="+str(len(pos)))
+#                 print("qual="+str(len(read.query_qualities)))
+#                 print("index="+str(read.query_alignment_start))
+#                 print(ref_seq)
+#                 print(read.query_sequence)
+#                 print(pos)
+#                 print(read.query_qualities)
             
             item = {
-                    "index": 0 + (76-len(read.get_reference_sequence())),
+                    "index": 0,
+                    "alignment_index": read.query_alignment_start,
+                    "reference_index": 0,
                     "object": read,
-                    "reference": read.get_reference_sequence(),
-                    "reference_len": len(read.get_reference_sequence()),
+                    "reference": ref_seq,
+                    "reference_len": len(ref_seq),
                     "sequence": read.query_sequence,
                     "positions": pos,
                     "chromosome": read.reference_name,
                     "query_qualities": read.query_qualities,
                     "length": read.query_length
                  }
+            
+#             if read.query_sequence == "CACGGACTTTTCCTGAAATTTATTTTTATGTATGTATATCAAACATTGAATTTCTGTTTTCTTCTTTACTGGAATT" and pos[0] == 14233 and pos[-1] == 14308:
+#                 print("[FILTER_READ] F={} QC={} MP={} LEN={} SECOND={} SUPPL={} DUPL={} PAIRED={} READ={}".format(read.flag, read.is_qcfail, read.mapping_quality, read.query_length, read.is_secondary, read.is_supplementary, read.is_duplicate, read.is_paired, read))
+#                 raw_input("SPECIAL READ...")
             
 #             print(item)
 #             raw_input("Press enter to continue...")
