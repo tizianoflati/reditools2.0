@@ -600,6 +600,8 @@ def within_interval(i, region):
 # -o editing18_test -f /marconi_scratch/userinternal/tcastign/test_picardi/hg19.fa -c1,1
 # -m20,20 -v1 -q30,30 -e -n0.0 -N0.0 -u -l -p --gzip -H -Y chr18:1-78077248 -F chr18_1_78077248
 #
+# -f /home/flati/data/reditools/SRR1413602.bam -r /home/flati/data/reditools/hg19.fa -g chr18:14237-14238 -m /home/flati/data/reditools/omopolymeric_positions.txt
+#
 # -f /home/flati/data/reditools/SRR1413602.bam
 # -r /home/flati/data/reditools/hg19.fa
 # -g chr18:14237-14238
@@ -629,6 +631,7 @@ if __name__ == '__main__':
     # Options parsing
     parser = argparse.ArgumentParser(description='REDItools 2.0')
     parser.add_argument('-f', '--file', help='The bam file to be analyzed')
+    parser.add_argument('-o', '--output-file', help='The output statistics file')
     parser.add_argument('-r', '--reference', help='The reference FASTA file')
     parser.add_argument('-g', '--region', help='The region of the bam file to be analyzed')
     parser.add_argument('-m', '--omopolymeric-file', help='The file containing the omopolymeric positions')
@@ -639,6 +642,7 @@ if __name__ == '__main__':
     bamfile = args.file
     omopolymeric_file = args.omopolymeric_file
     reference_file = args.reference
+    output = args.output_file
     splicing_file = args.splicing_file
     
     region = re.split("[:-]", args.region)
@@ -677,10 +681,15 @@ if __name__ == '__main__':
     
     print("Selected region=" + str(region))
     
-    prefix = os.path.basename(bamfile)
-    if region is not None:
-        prefix += "_" + '_'.join([str(x) for x in region])
-    outputfile = prefix + "_reditools2_table.gz"
+    outputfile = None
+    
+    if output is not None:
+        outputfile = output
+    else:
+        prefix = os.path.basename(bamfile)
+        if region is not None:
+            prefix += "_" + '_'.join([str(x) for x in region])
+        outputfile = prefix + "_reditools2_table.gz"
     
     if outputfile.endswith("gz"): writer = gzip.open(outputfile, "w")
     else: writer = open(outputfile, "w")
