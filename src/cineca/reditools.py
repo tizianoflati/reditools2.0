@@ -13,6 +13,7 @@ from sortedcontainers import SortedSet
 import numpy
 import os
 import argparse
+import re
 
 DEBUG = False
 
@@ -29,13 +30,14 @@ def print_reads(reads):
         total += len(reads[key])
         print("[INFO] E[i="+str(key)+"]["+str(len(reads[key]))+"]")
         for read in reads[key]:
-            index = read["index"]
+#             index = read["index"]
+            index = read["alignment_index"]
             
-            print("[INFO] \tR:" + str(read["reference"]) + " [" + str(index) + ", "+ str(len(read["object"].get_reference_positions())) + ", " + str(len(read["query_qualities"]))+ ", " + str(read["object"].get_reference_positions()) + ", " + str(read["query_qualities"]) + "]")
+            print("[INFO] \tR:" + str(read["reference"]) + " [pos="+str(read["pos"])+", alignment_index=" + str(index) + ", reference_start="+str(read["object"].reference_start)+" , align_start="+str(read["object"].query_alignment_start) + ", cigar=" + str(read["cigar"])+ ", cigar_list=" + str(read["cigar_list"]) + ", "+ str(len(read["query_qualities"]))+ ", " + str(read["query_qualities"]) + "]")
             print("[INFO] \tQ:" + str(read["sequence"]))
     print("READS[i="+str(i)+"] = " + str(total))
 
-def update_reads(pos, reads):
+def update_reads(reads):
     if DEBUG:
         print("[INFO] UPDATING READS IN POSITION " + str(i))
     
@@ -46,11 +48,135 @@ def update_reads(pos, reads):
 #             print("ref_len=" +str(read["reference_len"]) + " len="+str(read["length"]) + " diff=" + str(read["reference_len"]-read["length"]));
 #             if read["positions"][index] < i:
 
-            if read["positions"][read["index"]] < i:
-                read["index"] += 1
-                read["alignment_index"] += 1
-                read["reference_index"] += 1
 
+#             # Original
+#             if read["positions"][read["index"]] < i:
+#                 read["index"] += 1
+#                 read["alignment_index"] += 1
+#                 read["reference_index"] += 1
+
+            cigar_list = read["cigar_list"]
+            if len(cigar_list) == 0:
+                # print("EXCEPTION: CIGAR LIST IS EMPTY")
+                continue
+            
+            if read["pos"] >= i:
+                # print("READ POSITION " + str(read["pos"]) + " IS GREATER THAN i=" + str(i))
+                continue
+            
+#             if read["alignment_index"] >= read["length"]:
+#                 print("READ FINISHED = " + read["sequence"])
+            
+            block = cigar_list[0]
+            op = block[1]
+            
+            if op == "S":
+                
+#                 print(read["object"].reference_start, read)
+                
+                del cigar_list[0]
+#                 if read["sequence"] == "TGGACTTTTCCTGAAATTTATTTTTATGTATGTATATCAAACATTGAATTTCTGTTTTCTTCTTTACTGGAATTGT":
+#                     print("[SOFT i="+str(i)+"] S=" + str(block[0])+ " Updating pos from " + str(read["pos"])+ " to " + str(read["pos"] + (block[0])), read["pos"], read)
+                
+#                 read["pos"] += block[0]
+                
+#                 if read["reference_index"] >= 0:
+#                     read["pos"] += block[0]
+#                 else:
+#                 read["pos"] += block[0]
+                
+#                 read["pos"] += block[0]-1
+#                 
+#                 read["alt"] = read["sequence"][read["alignment_index"]]
+#                 read["ref"] = None
+#                 #read["qual"] = None
+#                 read["qual"] = read["query_qualities"][read["alignment_index"]]
+#                 read["alignment_index"] += block[0]
+                
+                # continue
+                
+                if not cigar_list:
+                    block = None
+                else:
+                    block = cigar_list[0]
+                    op = block[1]
+                    
+            elif op == "N":
+#                 if read["sequence"] == "ATTTTTCTGTTTCTCCCTCAATATCCACCTCATGGAAGTAGATATTCACTAGGTGATATTTTCTAGGCTCTCTTAA":
+#                     print("[NNNN i="+str(i)+"] N=" + str(block[0])+ " Updating pos from " + str(read["pos"])+ " to " + str(read["pos"] + (block[0]-1)), read["pos"], read)
+                read["pos"] += block[0]
+                del cigar_list[0]
+                
+                read["ref"] = None
+                read["alt"] = None
+                read["qual"] = None
+                
+                continue
+                
+#                 if not cigar_list:
+#                     block = None
+#                 else:
+#                     block = cigar_list[0]
+#                     op = block[1]
+                    
+#             else:
+#                 if read["sequence"] == "ATTTTTCTGTTTCTCCCTCAATATCCACCTCATGGAAGTAGATATTCACTAGGTGATATTTTCTAGGCTCTCTTAA":
+#                     print("[NORMAL i="+str(i)+"] NORMAL=" + str(block[0])+ " Updating pos from " + str(read["pos"])+ " to " + str(read["pos"] + 1), read["pos"], read)
+#                 read["pos"] += 1
+            
+            if block is not None:
+                n = block[0]
+                
+                # D I M N S
+                if op == "M":
+                    
+                    if read["sequence"] == "TGGACTTTTCCTGAAATTTATTTTTATGTATGTATATCAAACATTGAATTTCTGTTTTCTTCTTTACTGGAATTGT":
+                        print("[MATCH i="+str(i)+"] M=" + str(n)+ " Updating alignment_index from " + str(read["alignment_index"]) + " to " + str(read["alignment_index"] + 1), read["pos"], read)
+                        
+                    read["pos"] += 1
+
+                    block[0] -= 1
+                    read["reference_index"] += 1
+                    read["alignment_index"] += 1
+                    
+                    if DEBUG:
+                        print(str(read["reference_index"]), read["reference"][read["reference_index"]], read)
+                    
+                    read["ref"] = read["reference"][read["reference_index"]]
+                    read["alt"] = read["sequence"][read["alignment_index"]]
+    
+#                     if read["sequence"] == "ATTTTTCTGTTTCTCCCTCAATATCCACCTCATGGAAGTAGATATTCACTAGGTGATATTTTCTAGGCTCTCTTAA":
+#                         print("[MATCH i="+str(i)+"]", "pos="+str(read["pos"]), "ref=" + str(read["ref"]), "alt=" + str(read["alt"]), read)
+    
+                    if block[0] == 0:
+                        del cigar_list[0]
+                    
+                elif op == "I":
+#                     if read["sequence"] == "ATTTTTCTGTTTCTCCCTCAATATCCACCTCATGGAAGTAGATATTCACTAGGTGATATTTTCTAGGCTCTCTTAA":
+#                         print("[INSERTION i="+str(i)+"] I=" + str(n)+ " Updating alignment_index from " + str(read["alignment_index"]) + " to " + str(read["alignment_index"] + n), read["pos"], read)
+                    
+                    read["pos"] += n
+                    read["alignment_index"] += n
+                    read["ref"] = None
+                    #read["alt"] = read["sequence"][read["alignment_index"]]
+                    read["alt"] = None
+                    del cigar_list[0]
+                    
+                elif op == "D":
+                    if read["sequence"] == "GAAATTTGAAGGTAGAATTGAATACAGATGAACCTCCAATGGTATTCAAGGCTCAGCTGTTTGCGTTGACTGGAGT":
+                        print("[DELETION i="+str(i)+"] D=" + str(n)+ " Updating reference_index from " + str(read["reference_index"])+ " to " + str(read["reference_index"] + n), read["pos"], read)
+                    
+                    read["reference_index"] += n
+
+                    read["pos"] += n                    
+#                     read["alignment_index"] += 1
+                    read["ref"] = None
+                    # read["ref"] = read["reference"][read["reference_index"]]
+                    read["alt"] = None
+                    del cigar_list[0]
+                
+                read["qual"] = read["query_qualities"][read["alignment_index"]]
+            
 def get_column(reads):
     
     if splice_positions:
@@ -68,42 +194,39 @@ def get_column(reads):
     for key in reads:
         for read in reads[key]:
             
+#             if DEBUG:
+#                 print("GET_COLUMN    i="+str(i) + " READ=" + str(read))
+            
             # Filter the reads by positions
             if not filter_base(read):
                 continue
-            elif read["positions"][read["index"]] != i:
+#             elif read["positions"][read["index"]] != i:
+            elif read["pos"] != i:
                 if DEBUG:
-                    print("[OUT_OF_RANGE] SKIPPING READ i=" + str(i) + " but READ=" + str(read["positions"]))
+                    print("[OUT_OF_RANGE] SKIPPING READ i=" + str(i) + " but READ=" + str(read["pos"]))
                 continue
-            else:
-                passed += 1
             
-            j = read["alignment_index"]
+#             j = read["alignment_index"]
+#             if DEBUG:
+#                 print("GET_COLUMN_OK i="+str(i) + " ALT="+read["sequence"][j]+" READ=" + str(read))
             
-            if DEBUG:
-                if j >= len(read["reference"]): 
-                    sys.stderr.write("[DEBUG] \t" + str(read["reference"]) + " [" + str(j) + "]")
-                    sys.stderr.write("[DEBUG] \t" + str(read["sequence"]))
+#             ref = read["reference"][read["reference_index"]].upper()
+#             if j >= len(read["sequence"]):
+#                 print("GET_COLUMN_STRANGE i="+str(i) + " j="+str(j)+" orig="+str(read["alignment_index"])+" READ=" + str(read))
+#             alt = read["sequence"][j]
 
-#             length = read["length"]
-#             reference_len = read["reference_len"]
+            if read["ref"] == None: continue
+            if read["alt"] == None: continue
             
-            ref = read["reference"][read["reference_index"]]
-            
-            ref = ref.upper()
-            
-            alt = read["sequence"][j]
-            
+            passed += 1
+
+            ref = read["ref"].upper()
+            alt = read["alt"].upper()
+
             edits.append(alt)
 
-#             if DEBUG:
-#                 print(read["reference"])
-#                 print(read["sequence"])
-#                 print(j)
-#                 print(ref)
-#                 print(alt)
-            
-            q = read["query_qualities"][j]
+            # q = read["query_qualities"][read["alignment_index"]]
+            q = read["qual"]
             qualities.append(q)
             
             if alt != ref:
@@ -180,10 +303,7 @@ def get_column(reads):
 #         raw_input("[ALERT] Press enter to continue...")
 
     if i in omopolymeric_positions:
-#     for position in omopolymeric_positions:
-#         if last_chr == position[0] and i >= position[1] and i < position[2]:
-    #         sys.stderr.write("[DEBUG] [OMOPOLYMERIC] Discarding position ({}, {}) because omopolymeric (in region {})\n".format(last_chr, i, position))
-        sys.stderr.write("[DEBUG] [OMOPOLYMERIC] Discarding position ({}, {}) because omopolymeric\n".format(last_chr, i))
+        #sys.stderr.write("[DEBUG] [OMOPOLYMERIC] Discarding position ({}, {}) because omopolymeric\n".format(last_chr, i))
         return None
 
     return edits_info;
@@ -236,7 +356,8 @@ def filter_read(read):
     
 def filter_base(read):
     
-    pos = read["index"]
+#     pos = read["index"]
+    pos = read["alignment_index"]
     
     # Se il carattere e' nelle prime X posizioni della read
     if pos < MIN_BASE_POSITION:
@@ -249,8 +370,9 @@ def filter_base(read):
         return False
     
     # Se la qualita' e' < Q
-    if read["query_qualities"][read["alignment_index"]] < MIN_BASE_QUALITY:
-        if DEBUG: print("[DEBUG] APPLIED BASE FILTER [MIN_BASE_QUALITY]", read["query_qualities"], pos, read["query_qualities"][pos], MIN_BASE_QUALITY)
+    # if read["query_qualities"][read["alignment_index"]] < MIN_BASE_QUALITY:
+    if read["qual"] < MIN_BASE_QUALITY:
+        if DEBUG: print("[DEBUG] APPLIED BASE FILTER [MIN_BASE_QUALITY]", read["query_qualities"], pos, read["query_qualities"][pos], MIN_BASE_QUALITY, read)
         return False
     
     return True
@@ -529,7 +651,7 @@ if __name__ == '__main__':
     
     # Constants
     LAST_READ = None
-    LOG_INTERVAL = 100000
+    LOG_INTERVAL = 25000
     
     # Take the time
     tic = datetime.datetime.now()
@@ -573,8 +695,8 @@ if __name__ == '__main__':
     started = False
     while not finished:
     
-        if DEBUG_START > 0 and i > DEBUG_START: DEBUG = True
-        if DEBUG_END > 0 and i > DEBUG_END: DEBUG = False
+        if DEBUG_START > 0 and i >= DEBUG_START: DEBUG = True
+        if DEBUG_END > 0 and i >= DEBUG_END: DEBUG = False
         if STOP > 0 and i > STOP: break
     
         if next_read is LAST_READ:
@@ -622,9 +744,13 @@ if __name__ == '__main__':
 #                 print(read.query_qualities)
             
             item = {
-                    "index": 0,
-                    "alignment_index": read.query_alignment_start,
-                    "reference_index": 0,
+#                     "index": 0,
+                    "pos": read.reference_start - 1,
+#                     "pos": i-1,
+                    "alignment_index": read.query_alignment_start - 1,
+#                     "alignment_index": -1,
+                    "reference_index": -1,
+                    "query_alignment_start": read.query_alignment_start,
                     "object": read,
                     "reference": ref_seq,
                     "reference_len": len(ref_seq),
@@ -632,8 +758,33 @@ if __name__ == '__main__':
                     "positions": pos,
                     "chromosome": read.reference_name,
                     "query_qualities": read.query_qualities,
-                    "length": read.query_length
+                    "qualities_len": len(read.query_qualities),
+                    "length": read.query_length,
+                    "cigar": read.cigarstring
                  }
+
+            cigar_list = [[int(c), op] for (c, op) in re.findall('(\d+)(.)', item["cigar"])]
+#             if read.is_reverse:
+#                 cigar_list.reverse()
+            item["cigar_list"] = cigar_list
+            
+#             if read.query_sequence == "AGGCTCTCTTAATGTAATAAAAGCCATCTATGACAAACCCACAGCCAACATAATACTGAATGGGGAAAAGGTGAAA":
+#                 print(i, read.reference_start, item, read)
+            
+#             item["ref"] = item["reference"][item["reference_index"]]
+#             item["alt"] = item["sequence"][item["alignment_index"]]
+#             item["qual"] = item["query_qualities"][item["alignment_index"]]
+            
+#             print(item["cigar"])
+#             print(item["cigar_list"])
+#             print(read.get_aligned_pairs())
+#             print("REF START = " + str(read.reference_start))
+#             print("REF POS[0] = " + str(item["positions"][0]))
+#             print("ALIGN START = " + str(item["alignment_index"]))
+#             raw_input("CIGAR STRING PARSED...")
+            
+#             if item["cigar"] != "76M":
+#                 item["pairs"] = read.get_aligned_pairs()
             
 #             if read.query_sequence == "CACGGACTTTTCCTGAAATTTATTTTTATGTATGTATATCAAACATTGAATTTCTGTTTTCTTCTTTACTGGAATT" and pos[0] == 14233 and pos[-1] == 14308:
 #                 print("[FILTER_READ] F={} QC={} MP={} LEN={} SECOND={} SUPPL={} DUPL={} PAIRED={} READ={}".format(read.flag, read.is_qcfail, read.mapping_quality, read.query_length, read.is_secondary, read.is_supplementary, read.is_duplicate, read.is_paired, read))
@@ -657,11 +808,10 @@ if __name__ == '__main__':
             
         # Debug purposes
         if DEBUG:
-            print("BEFORE UPDATE:");
+            print("BEFORE UPDATE (i="+str(i)+"):")
             print_reads(reads)
-            raw_input("Press enter to continue...")
     
-        update_reads(i, reads)
+        update_reads(reads)
         
         column = get_column(reads)
         
@@ -673,6 +823,7 @@ if __name__ == '__main__':
         
         # Go the next position
         i += 1
+#         print("Position i"+str(i))
         
         if DEBUG:
             print("[DEBUG] WRITING COLUMN IN POSITION {}: {}".format(i, column is not None))
