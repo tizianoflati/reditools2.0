@@ -130,8 +130,8 @@ def update_reads(reads):
                 # D I M N S
                 if op == "M":
                     
-                    if read["sequence"] == "TGGACTTTTCCTGAAATTTATTTTTATGTATGTATATCAAACATTGAATTTCTGTTTTCTTCTTTACTGGAATTGT":
-                        print("[MATCH i="+str(i)+"] M=" + str(n)+ " Updating alignment_index from " + str(read["alignment_index"]) + " to " + str(read["alignment_index"] + 1), read["pos"], read)
+#                     if read["sequence"] == "TGGACTTTTCCTGAAATTTATTTTTATGTATGTATATCAAACATTGAATTTCTGTTTTCTTCTTTACTGGAATTGT":
+#                         print("[MATCH i="+str(i)+"] M=" + str(n)+ " Updating alignment_index from " + str(read["alignment_index"]) + " to " + str(read["alignment_index"] + 1), read["pos"], read)
                         
                     read["pos"] += 1
 
@@ -139,8 +139,8 @@ def update_reads(reads):
                     read["reference_index"] += 1
                     read["alignment_index"] += 1
                     
-                    if DEBUG:
-                        print(str(read["reference_index"]), read["reference"][read["reference_index"]], read)
+#                     if DEBUG:
+#                         print(str(read["reference_index"]), read["reference"][read["reference_index"]], read)
                     
                     read["ref"] = read["reference"][read["reference_index"]]
                     read["alt"] = read["sequence"][read["alignment_index"]]
@@ -163,8 +163,8 @@ def update_reads(reads):
                     del cigar_list[0]
                     
                 elif op == "D":
-                    if read["sequence"] == "GAAATTTGAAGGTAGAATTGAATACAGATGAACCTCCAATGGTATTCAAGGCTCAGCTGTTTGCGTTGACTGGAGT":
-                        print("[DELETION i="+str(i)+"] D=" + str(n)+ " Updating reference_index from " + str(read["reference_index"])+ " to " + str(read["reference_index"] + n), read["pos"], read)
+#                     if read["sequence"] == "GAAATTTGAAGGTAGAATTGAATACAGATGAACCTCCAATGGTATTCAAGGCTCAGCTGTTTGCGTTGACTGGAGT":
+#                         print("[DELETION i="+str(i)+"] D=" + str(n)+ " Updating reference_index from " + str(read["reference_index"])+ " to " + str(read["reference_index"] + n), read["pos"], read)
                     
                     read["reference_index"] += n
 
@@ -411,10 +411,21 @@ def filter_column(column):
     
     return True
     
-def load_omopolymeric_positions(positions, input_file, chromosome):
+def load_omopolymeric_positions(positions, input_file, region):
     if input_file is None: return
     
     sys.stderr.write("Loading omopolymeric positions from file {}\n".format(input_file))
+    
+    chromosome = None
+    start = None
+    end = None
+    
+    if len(region) >= 1:
+        chromosome = region[0]
+    if len(region) >= 2:
+        start = region[1]
+    if len(region) >= 3:
+        end = region[2]        
     
     try:
         reader = open(input_file, "r")
@@ -424,16 +435,21 @@ def load_omopolymeric_positions(positions, input_file, chromosome):
                 continue
             
             fields = line.rstrip().split("\t")
-            if fields[0] == chromosome:
-#                 positions.append(tuple([fields[0], int(fields[1]), int(fields[2])]))
-                for i in range(int(fields[1]), int(fields[2])):
+            if chromosome is None or fields[0] == chromosome:
+                f = int(fields[1])
+                t = int(fields[1])
+                
+                if start is not None: f = max(start, f)
+                if end is not None: t = min(t, end)
+                
+                for i in range(start, end):
                     positions.add(i)
             elif positions:
                 break 
             
         reader.close()
-    except IOError:
-        sys.stderr.write("Omopolymeric positions file not found at {}\n".format(input_file))
+    except IOError as e:
+        sys.stderr.write("Omopolymeric positions file not found at {}. Error: {}\n".format(input_file, e))
     
     if not positions:
         sys.stderr.write("Omopolymeric positions file at {} seems to be empty!\n".format(input_file))
@@ -557,51 +573,42 @@ def create_omopolymeric_positions(reference_file, omopolymeric_file):
 
     return positions
 
+def init(samfile, region):
+    
+    print("Opening bamfile within region=" + str(region))
+    
+    if len(region) == 0:
+        return samfile.fetch()
+    
+    if len(region) == 1:
+        return samfile.fetch(region[0])
+    
+    else:
+        return samfile.fetch(region[0], region[1], region[2])
+
+def within_interval(i, region):
+    
+    if len(region) <= 1:
+        return True
+    
+    else:
+        start = region[1]
+        end = region[2]
+        return i >= start and i <= end
+
 # -i /marconi_scratch/userexternal/tflati00/test_picardi/reditools_test/SRR1413602.bam
 # -o editing18_test -f /marconi_scratch/userinternal/tcastign/test_picardi/hg19.fa -c1,1
 # -m20,20 -v1 -q30,30 -e -n0.0 -N0.0 -u -l -p --gzip -H -Y chr18:1-78077248 -F chr18_1_78077248
+#
+# -f /home/flati/data/reditools/SRR1413602.bam
+# -r /home/flati/data/reditools/hg19.fa
+# -g chr18:14237-14238
+# -m /home/flati/data/reditools/omopolymeric_positions.txt
 if __name__ == '__main__':
 
     print("START=" + str(datetime.datetime.now()))
 
     # Options
-    #'-c', '1,1',
-    #    INCOV=int(a.split(',')[1])
-    #    gMINCOV=int(a.split(',')[0])
-    #'-m', '20,20',
-    #    MAPQ=int(a.split(',')[1])
-    #    gMAPQ=int(a.split(',')[0])
-    #'-v', '1',
-    #    vnuc=int(a)
-    #'-q', '30,30',
-    #    MQUAL=int(a.split(',')[1])
-    #    gMQUAL=int(a.split(',')[0])
-    #'-p',
-    #    conc=1
-    #'--gzip',
-    #    gziptab=1
-    #'-S',
-    #    corrstr=1
-    #'-s',
-    #    getstrand=1
-    #    if int(a)==1: unchange1,unchange2=1,0
-    #    elif int(a)==0: unchange1,unchange2=0,0
-    #    elif int(a)==2: unchange1,unchange2=0,1
-    #    elif int(a)==12: unchange1,unchange2=1,1
-    #'-g',
-    #    if a=='2': useconf=1
-    #'-e',
-    #    exh=1
-    #'-n', '0.0',
-    #    mmf=float(a)
-    #'-N', '0.0',
-    #    gmmf=float(a)
-    #'-u',
-    #    mq=1
-    #'-l',
-    #    rmsh=1
-    #'-H',
-    #    noheader=1
     MIN_READ_LENGTH = 30 # 100
     SPLICING_SPAN = 5
     OMOPOLYMERIC_SPAN = 5
@@ -633,18 +640,23 @@ if __name__ == '__main__':
     omopolymeric_file = args.omopolymeric_file
     reference_file = args.reference
     splicing_file = args.splicing_file
-    chromosome_of_interest = args.region
     
-#     create_omopolymeric_positions(reference_file, omopolymeric_file)
-    
+    region = re.split("[:-]", args.region)
+    if not region or len(region) == 2 or (len(region) == 3 and region[1] == region[2]):
+        sys.stderr.write("[ERROR] Please provide a region of the form chrom:start-end (with end > start). Region provided: {}".format(region))
+        exit(1)
+    if len(region) >= 2:
+        region[1] = int(region[1])
+        region[2] = int(region[2])
+        
     splice_positions = []
     
     print("Opening BAM file="+bamfile)
     samfile = pysam.AlignmentFile(bamfile, "rb")
     
-    load_omopolymeric_positions(omopolymeric_positions, omopolymeric_file, chromosome_of_interest)
-    if not omopolymeric_positions and omopolymeric_file is not None:
-        omopolymeric_positions = create_omopolymeric_positions(reference_file, omopolymeric_file)
+    load_omopolymeric_positions(omopolymeric_positions, omopolymeric_file, region)
+#     if not omopolymeric_positions and omopolymeric_file is not None:
+#         omopolymeric_positions = create_omopolymeric_positions(reference_file, omopolymeric_file)
     
     if splicing_file:
         splice_positions = load_splicing_file(splicing_file)
@@ -663,9 +675,11 @@ if __name__ == '__main__':
     
     strand = 2
     
+    print("Selected region=" + str(region))
+    
     prefix = os.path.basename(bamfile)
-    if chromosome_of_interest is not None:
-        prefix += "_" + chromosome_of_interest 
+    if region is not None:
+        prefix += "_" + '_'.join([str(x) for x in region])
     outputfile = prefix + "_reditools2_table.gz"
     
     if outputfile.endswith("gz"): writer = gzip.open(outputfile, "w")
@@ -673,10 +687,9 @@ if __name__ == '__main__':
     
     # Open the iterator
     print("[INFO] Fetching data from bam {}".format(bamfile))
-    if chromosome_of_interest is not None:
-        print("[INFO] Narrowing REDItools to region {}".format(chromosome_of_interest))
-        
-    iterator = samfile.fetch(chromosome_of_interest)
+    print("[INFO] Narrowing REDItools to region {}".format(region))
+    
+    iterator = init(samfile, region)
     
     next_read = next(iterator, LAST_READ)
     next_pos = next_read.get_reference_positions()
@@ -830,7 +843,7 @@ if __name__ == '__main__':
             print(column)
             print_reads(reads)
         
-        if column is not None:
+        if column is not None and within_interval(i, region):
             # head='Region\tPosition\tReference\tStrand\tCoverage-q%i\tMeanQ\tBaseCount[A,C,G,T]\t
             #       AllSubs\tFrequency\t
             #       gCoverage-q%i\tgMeanQ\tgBaseCount[A,C,G,T]\tgAllSubs\tgFrequency\n' %(MQUAL,gMQUAL)
