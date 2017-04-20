@@ -442,7 +442,7 @@ def load_omopolymeric_positions(positions, input_file, region):
                 if start is not None: f = max(start, f)
                 if end is not None: t = min(t, end)
                 
-                for i in range(start, end):
+                for i in range(f, t):
                     positions.add(i)
             elif positions:
                 break 
