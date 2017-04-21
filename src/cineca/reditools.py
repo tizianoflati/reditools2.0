@@ -123,6 +123,25 @@ def update_reads(reads):
 #                 if read["sequence"] == "ATTTTTCTGTTTCTCCCTCAATATCCACCTCATGGAAGTAGATATTCACTAGGTGATATTTTCTAGGCTCTCTTAA":
 #                     print("[NORMAL i="+str(i)+"] NORMAL=" + str(block[0])+ " Updating pos from " + str(read["pos"])+ " to " + str(read["pos"] + 1), read["pos"], read)
 #                 read["pos"] += 1
+
+            if block is not None and op == "I":
+                n = block[0]
+                
+#                 if read["sequence"] == "GTTAATTTTAGAACATTATCATTCCAAAAAAGCAACTTCATAACATCTAGCAGTCACCTCCTTTCCCATTTCTAGC":
+#                     print("[INSERTION i="+str(i)+"] I=" + str(n)+ " Updating alignment_index from " + str(read["alignment_index"]) + " to " + str(read["alignment_index"] + n), read)
+                    
+#                 read["pos"] += n
+                read["alignment_index"] += n
+                read["ref"] = None
+                read["alt"] = read["sequence"][read["alignment_index"]]
+#                 read["alt"] = None
+                del cigar_list[0]
+                
+                if not cigar_list:
+                    block = None
+                else:
+                    block = cigar_list[0]
+                    op = block[1]
             
             if block is not None:
                 n = block[0]
@@ -130,7 +149,7 @@ def update_reads(reads):
                 # D I M N S
                 if op == "M":
                     
-#                     if read["sequence"] == "TGGACTTTTCCTGAAATTTATTTTTATGTATGTATATCAAACATTGAATTTCTGTTTTCTTCTTTACTGGAATTGT":
+#                     if read["sequence"] == "GTTAATTTTAGAACATTATCATTCCAAAAAAGCAACTTCATAACATCTAGCAGTCACCTCCTTTCCCATTTCTAGC":
 #                         print("[MATCH i="+str(i)+"] M=" + str(n)+ " Updating alignment_index from " + str(read["alignment_index"]) + " to " + str(read["alignment_index"] + 1), read["pos"], read)
                         
                     read["pos"] += 1
@@ -150,17 +169,6 @@ def update_reads(reads):
     
                     if block[0] == 0:
                         del cigar_list[0]
-                    
-                elif op == "I":
-#                     if read["sequence"] == "ATTTTTCTGTTTCTCCCTCAATATCCACCTCATGGAAGTAGATATTCACTAGGTGATATTTTCTAGGCTCTCTTAA":
-#                         print("[INSERTION i="+str(i)+"] I=" + str(n)+ " Updating alignment_index from " + str(read["alignment_index"]) + " to " + str(read["alignment_index"] + n), read["pos"], read)
-                    
-                    read["pos"] += n
-                    read["alignment_index"] += n
-                    read["ref"] = None
-                    #read["alt"] = read["sequence"][read["alignment_index"]]
-                    read["alt"] = None
-                    del cigar_list[0]
                     
                 elif op == "D":
 #                     if read["sequence"] == "GAAATTTGAAGGTAGAATTGAATACAGATGAACCTCCAATGGTATTCAAGGCTCAGCTGTTTGCGTTGACTGGAGT":
@@ -184,6 +192,11 @@ def get_column(reads):
             if DEBUG: sys.stderr.write("[DEBUG] [SPLICE_SITE] Discarding position ({}, {}) because in splice site\n".format(last_chr, i))
             return None
 
+    if i in omopolymeric_positions:
+        if DEBUG:
+            sys.stderr.write("[DEBUG] [OMOPOLYMERIC] Discarding position ({}, {}) because omopolymeric\n".format(last_chr, i))
+        return None
+
 #     edits = {"T": [], "A": [], "C": [], "G": [], "N": []}    
     edits_no = 0
     edits = []
@@ -199,6 +212,7 @@ def get_column(reads):
             
             # Filter the reads by positions
             if not filter_base(read):
+                
                 continue
 #             elif read["positions"][read["index"]] != i:
             elif read["pos"] != i:
@@ -215,8 +229,14 @@ def get_column(reads):
 #                 print("GET_COLUMN_STRANGE i="+str(i) + " j="+str(j)+" orig="+str(read["alignment_index"])+" READ=" + str(read))
 #             alt = read["sequence"][j]
 
-            if read["ref"] == None: continue
-            if read["alt"] == None: continue
+            if read["ref"] == None:
+                if DEBUG:
+                    print("[INVALID] SKIPPING READ i=" + str(i) + " BECAUSE REF is None", read)
+                continue
+            if read["alt"] == None:
+                if DEBUG:
+                    print("[INVALID] SKIPPING READ i=" + str(i) + " BECAUSE ALT is None", read)
+                continue
             
             passed += 1
 
@@ -256,16 +276,20 @@ def get_column(reads):
         if el != ref and counter[el] > 0:
             non_zero += 1
 
-    most_common = None
-    most_commons = counter.most_common()
-    for el in most_commons:
-        if el[0] != ref:
-            most_common = el
-            break
-        
+    variants = []
+#     most_common = None
     ratio = 0.0
-    if most_common is not None:
-        ratio = (float)(most_common[1]) / (most_common[1] + ref_count)
+    for el in counter.most_common():
+        if el[0] == ref: continue
+        else:
+            variants.append(el[0])
+#             most_common = el
+            if ratio == 0.0:
+                ratio = (float)(el[1]) / (el[1] + ref_count)
+        
+#     ratio = 0.0
+#     if most_common is not None:
+#         ratio = (float)(most_common[1]) / (most_common[1] + ref_count)
 
 #     if passed > 0:
 #         print("REF=" + ref)
@@ -290,7 +314,7 @@ def get_column(reads):
         "non_zero": non_zero,
         "edits_no": edits_no,
         "ref": ref,
-        "most_frequent_edit": most_common,
+        "variants": variants,
         "frequency": ratio,
         "passed": passed
     }
@@ -301,10 +325,6 @@ def get_column(reads):
 #     if edits_no > 5:
 #         print(str(i) + ":" + str(edits_info))
 #         raw_input("[ALERT] Press enter to continue...")
-
-    if i in omopolymeric_positions:
-        #sys.stderr.write("[DEBUG] [OMOPOLYMERIC] Discarding position ({}, {}) because omopolymeric\n".format(last_chr, i))
-        return None
 
     return edits_info;
 
@@ -437,10 +457,12 @@ def load_omopolymeric_positions(positions, input_file, region):
             fields = line.rstrip().split("\t")
             if chromosome is None or fields[0] == chromosome:
                 f = int(fields[1])
-                t = int(fields[1])
+                t = int(fields[2])
                 
                 if start is not None: f = max(start, f)
                 if end is not None: t = min(t, end)
+                
+#                 print("POSITION {} {} {} {} {} {}".format(str(fields), chromosome, f, t, start, end))
                 
                 for i in range(f, t):
                     positions.add(i)
@@ -721,10 +743,10 @@ if __name__ == '__main__':
         if DEBUG_END > 0 and i >= DEBUG_END: DEBUG = False
         if STOP > 0 and i > STOP: break
     
-        if next_read is LAST_READ:
-                print("NO MORE READS!")
-                finished = True
-                break
+        if next_read is LAST_READ and len(reads) == 0:
+            print("NO MORE READS!")
+            finished = True
+            break
     
         # Jump if we consumed all the reads
         if len(reads) == 0:
@@ -733,7 +755,7 @@ if __name__ == '__main__':
                    
         # Get all the next read(s)
         while next_read is not LAST_READ and (next_pos[0] == i or next_pos[-1] == i):
-    
+        
             read = next_read
             pos = next_pos
 
@@ -867,7 +889,7 @@ if __name__ == '__main__':
                 str(column["passed"]),
                 "{0:.2f}".format(column["mean_quality"]),
                 str(column["distribution"]),
-                str(column["ref"] + column["most_frequent_edit"][0][0]) if column["non_zero"] >= 1 else "-",
+                " ".join([column["ref"] + el for el in column["variants"]]) if column["non_zero"] >= 1 else "-",
                 "{0:.2f}".format(column["frequency"]),
                 "\t".join(['-','-','-','-','-'])
                 ]) + "\n")
