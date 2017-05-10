@@ -723,191 +723,192 @@ if __name__ == '__main__':
     iterator = init(samfile, region)
     
     next_read = next(iterator, LAST_READ)
-    next_pos = next_read.get_reference_positions()
-    i = next_pos[0]
-    last_chr = next_read.reference_name
-    total += 1
-    
-    read = None
-    pos = None
-    finished = False
-    
-    DEBUG_START = -1
-    DEBUG_END = -1
-    STOP = -1
-    
-    started = False
-    while not finished:
-    
-        if DEBUG_START > 0 and i >= DEBUG_START: DEBUG = True
-        if DEBUG_END > 0 and i >= DEBUG_END: DEBUG = False
-        if STOP > 0 and i > STOP: break
-    
-        if next_read is LAST_READ and len(reads) == 0:
-            print("NO MORE READS!")
-            finished = True
-            break
-    
-        # Jump if we consumed all the reads
-        if len(reads) == 0:
-            # print("[INFO] READ SET IS EMPTY. JUMP TO "+str(next_read.get_reference_positions()[0])+"!")
-            i = next_pos[0]
-                   
-        # Get all the next read(s)
-        while next_read is not LAST_READ and (next_pos[0] == i or next_pos[-1] == i):
+    if next_read is not None:
+        next_pos = next_read.get_reference_positions()
+        i = next_pos[0]
+        last_chr = next_read.reference_name
+        total += 1
         
-            read = next_read
-            pos = next_pos
-
-            next_read = next(iterator, LAST_READ)
-            if next_read is not LAST_READ:
-                total += 1
-                next_pos = next_read.get_reference_positions()
+        read = None
+        pos = None
+        finished = False
+        
+        DEBUG_START = -1
+        DEBUG_END = -1
+        STOP = -1
+        
+        started = False
+        while not finished:
+        
+            if DEBUG_START > 0 and i >= DEBUG_START: DEBUG = True
+            if DEBUG_END > 0 and i >= DEBUG_END: DEBUG = False
+            if STOP > 0 and i > STOP: break
+        
+            if next_read is LAST_READ and len(reads) == 0:
+                print("NO MORE READS!")
+                finished = True
+                break
+        
+            # Jump if we consumed all the reads
+            if len(reads) == 0:
+                # print("[INFO] READ SET IS EMPTY. JUMP TO "+str(next_read.get_reference_positions()[0])+"!")
+                i = next_pos[0]
+                       
+            # Get all the next read(s)
+            while next_read is not LAST_READ and (next_pos[0] == i or next_pos[-1] == i):
+            
+                read = next_read
+                pos = next_pos
+    
+                next_read = next(iterator, LAST_READ)
+                if next_read is not LAST_READ:
+                    total += 1
+                    next_pos = next_read.get_reference_positions()
+                    
+                    if total % LOG_INTERVAL == 0:
+                        print("["+last_chr+"] Total reads loaded: " + str(total) + " ["+str(datetime.datetime.now())+"]")
+                    
+                #print("[INFO] Adding a read to the set=" + str(read.get_reference_positions()))            
                 
-                if total % LOG_INTERVAL == 0:
-                    print("["+last_chr+"] Total reads loaded: " + str(total) + " ["+str(datetime.datetime.now())+"]")
+                # Check that the read passes the filters
+                if not filter_read(read): continue
                 
-            #print("[INFO] Adding a read to the set=" + str(read.get_reference_positions()))            
-            
-            # Check that the read passes the filters
-            if not filter_read(read): continue
-            
-            ref_seq = read.get_reference_sequence()
-            
-#             if  len(ref_seq) != len(read.query_sequence) or len(pos) != len(read.query_sequence) or len(pos) != len(ref_seq):
-#                 print("=== DETAILS ===")
-#                 print("i="+str(i))
-#                 print("ref_seq="+str(len(ref_seq)))
-#                 print("seq="+str(len(read.query_sequence)))
-#                 print("pos="+str(len(pos)))
-#                 print("qual="+str(len(read.query_qualities)))
-#                 print("index="+str(read.query_alignment_start))
-#                 print(ref_seq)
-#                 print(read.query_sequence)
-#                 print(pos)
-#                 print(read.query_qualities)
-            
-            item = {
-#                     "index": 0,
-                    "pos": read.reference_start - 1,
-#                     "pos": i-1,
-                    "alignment_index": read.query_alignment_start - 1,
-#                     "alignment_index": -1,
-                    "reference_index": -1,
-                    "query_alignment_start": read.query_alignment_start,
-                    "object": read,
-                    "reference": ref_seq,
-                    "reference_len": len(ref_seq),
-                    "sequence": read.query_sequence,
-                    "positions": pos,
-                    "chromosome": read.reference_name,
-                    "query_qualities": read.query_qualities,
-                    "qualities_len": len(read.query_qualities),
-                    "length": read.query_length,
-                    "cigar": read.cigarstring
-                 }
-
-            cigar_list = [[int(c), op] for (c, op) in re.findall('(\d+)(.)', item["cigar"])]
-#             if read.is_reverse:
-#                 cigar_list.reverse()
-            item["cigar_list"] = cigar_list
-            
-#             if read.query_sequence == "AGGCTCTCTTAATGTAATAAAAGCCATCTATGACAAACCCACAGCCAACATAATACTGAATGGGGAAAAGGTGAAA":
-#                 print(i, read.reference_start, item, read)
-            
-#             item["ref"] = item["reference"][item["reference_index"]]
-#             item["alt"] = item["sequence"][item["alignment_index"]]
-#             item["qual"] = item["query_qualities"][item["alignment_index"]]
-            
-#             print(item["cigar"])
-#             print(item["cigar_list"])
-#             print(read.get_aligned_pairs())
-#             print("REF START = " + str(read.reference_start))
-#             print("REF POS[0] = " + str(item["positions"][0]))
-#             print("ALIGN START = " + str(item["alignment_index"]))
-#             raw_input("CIGAR STRING PARSED...")
-            
-#             if item["cigar"] != "76M":
-#                 item["pairs"] = read.get_aligned_pairs()
-            
-#             if read.query_sequence == "CACGGACTTTTCCTGAAATTTATTTTTATGTATGTATATCAAACATTGAATTTCTGTTTTCTTCTTTACTGGAATT" and pos[0] == 14233 and pos[-1] == 14308:
-#                 print("[FILTER_READ] F={} QC={} MP={} LEN={} SECOND={} SUPPL={} DUPL={} PAIRED={} READ={}".format(read.flag, read.is_qcfail, read.mapping_quality, read.query_length, read.is_secondary, read.is_supplementary, read.is_duplicate, read.is_paired, read))
-#                 raw_input("SPECIAL READ...")
-            
-#             print(item)
-#             raw_input("Press enter to continue...")
-            
-#             print(item)
-#             if i > 15400000:
-#             print(read.reference_name, i)
-#             raw_input("Press enter to continue...")
-            
-            end_position = pos[-1]
-            if end_position not in reads:
-                reads[end_position] = []
+                ref_seq = read.get_reference_sequence()
                 
+    #             if  len(ref_seq) != len(read.query_sequence) or len(pos) != len(read.query_sequence) or len(pos) != len(ref_seq):
+    #                 print("=== DETAILS ===")
+    #                 print("i="+str(i))
+    #                 print("ref_seq="+str(len(ref_seq)))
+    #                 print("seq="+str(len(read.query_sequence)))
+    #                 print("pos="+str(len(pos)))
+    #                 print("qual="+str(len(read.query_qualities)))
+    #                 print("index="+str(read.query_alignment_start))
+    #                 print(ref_seq)
+    #                 print(read.query_sequence)
+    #                 print(pos)
+    #                 print(read.query_qualities)
+                
+                item = {
+    #                     "index": 0,
+                        "pos": read.reference_start - 1,
+    #                     "pos": i-1,
+                        "alignment_index": read.query_alignment_start - 1,
+    #                     "alignment_index": -1,
+                        "reference_index": -1,
+                        "query_alignment_start": read.query_alignment_start,
+                        "object": read,
+                        "reference": ref_seq,
+                        "reference_len": len(ref_seq),
+                        "sequence": read.query_sequence,
+                        "positions": pos,
+                        "chromosome": read.reference_name,
+                        "query_qualities": read.query_qualities,
+                        "qualities_len": len(read.query_qualities),
+                        "length": read.query_length,
+                        "cigar": read.cigarstring
+                     }
+    
+                cigar_list = [[int(c), op] for (c, op) in re.findall('(\d+)(.)', item["cigar"])]
+    #             if read.is_reverse:
+    #                 cigar_list.reverse()
+                item["cigar_list"] = cigar_list
+                
+    #             if read.query_sequence == "AGGCTCTCTTAATGTAATAAAAGCCATCTATGACAAACCCACAGCCAACATAATACTGAATGGGGAAAAGGTGAAA":
+    #                 print(i, read.reference_start, item, read)
+                
+    #             item["ref"] = item["reference"][item["reference_index"]]
+    #             item["alt"] = item["sequence"][item["alignment_index"]]
+    #             item["qual"] = item["query_qualities"][item["alignment_index"]]
+                
+    #             print(item["cigar"])
+    #             print(item["cigar_list"])
+    #             print(read.get_aligned_pairs())
+    #             print("REF START = " + str(read.reference_start))
+    #             print("REF POS[0] = " + str(item["positions"][0]))
+    #             print("ALIGN START = " + str(item["alignment_index"]))
+    #             raw_input("CIGAR STRING PARSED...")
+                
+    #             if item["cigar"] != "76M":
+    #                 item["pairs"] = read.get_aligned_pairs()
+                
+    #             if read.query_sequence == "CACGGACTTTTCCTGAAATTTATTTTTATGTATGTATATCAAACATTGAATTTCTGTTTTCTTCTTTACTGGAATT" and pos[0] == 14233 and pos[-1] == 14308:
+    #                 print("[FILTER_READ] F={} QC={} MP={} LEN={} SECOND={} SUPPL={} DUPL={} PAIRED={} READ={}".format(read.flag, read.is_qcfail, read.mapping_quality, read.query_length, read.is_secondary, read.is_supplementary, read.is_duplicate, read.is_paired, read))
+    #                 raw_input("SPECIAL READ...")
+                
+    #             print(item)
+    #             raw_input("Press enter to continue...")
+                
+    #             print(item)
+    #             if i > 15400000:
+    #             print(read.reference_name, i)
+    #             raw_input("Press enter to continue...")
+                
+                end_position = pos[-1]
+                if end_position not in reads:
+                    reads[end_position] = []
+                    
+                if DEBUG:
+                    print("Adding item="+str(item))
+                reads[end_position].append(item)
+                
+            # Debug purposes
             if DEBUG:
-                print("Adding item="+str(item))
-            reads[end_position].append(item)
+                print("BEFORE UPDATE (i="+str(i)+"):")
+                print_reads(reads)
+        
+            update_reads(reads)
             
-        # Debug purposes
-        if DEBUG:
-            print("BEFORE UPDATE (i="+str(i)+"):")
-            print_reads(reads)
-    
-        update_reads(reads)
-        
-        column = get_column(reads)
-        
-        # Debug purposes
-        if DEBUG:
-            print("AFTER UPDATE:");
-            print_reads(reads)
-            raw_input("Press enter to continue...")
-        
-        # Go the next position
-        i += 1
-#         print("Position i"+str(i))
-        
-        if DEBUG:
-            print("[DEBUG] WRITING COLUMN IN POSITION {}: {}".format(i, column is not None))
-            print(column)
-            print_reads(reads)
-        
-        if column is not None and within_interval(i, region):
-            # head='Region\tPosition\tReference\tStrand\tCoverage-q%i\tMeanQ\tBaseCount[A,C,G,T]\t
-            #       AllSubs\tFrequency\t
-            #       gCoverage-q%i\tgMeanQ\tgBaseCount[A,C,G,T]\tgAllSubs\tgFrequency\n' %(MQUAL,gMQUAL)
-            # cov,bcomp,subs,freq=BaseCount(seq,ref,MINIMUM_EDITS_FREQUENCY,MIN_EDITS_SINGLE)
-            # mqua=meanq(qual,len(seq))
-            # line='\t'.join([chr,str(pileupcolumn.pos+1),ref,mystrand,str(cov),mqua,str(bcomp),subs,freq]+['-','-','-','-','-'])+'\n'
-            writer.write("\t".join([
-                last_chr,
-                str(i),
-                column["ref"],
-                str(strand),
-                str(column["passed"]),
-                "{0:.2f}".format(column["mean_quality"]),
-                str(column["distribution"]),
-                " ".join([column["ref"] + el for el in column["variants"]]) if column["non_zero"] >= 1 else "-",
-                "{0:.2f}".format(column["frequency"]),
-                "\t".join(['-','-','-','-','-'])
-                ]) + "\n")
-            writer.flush()
-        
-        # Remove old reads
-        removed = reads.pop(i-1, None)
-        
-        # When changing chromosome print some statistics
-        if read.reference_name != last_chr:
-            last_chr = read.reference_name
+            column = get_column(reads)
             
-            # if last_chr == "chr2": break
-    
-            # Take the time
-            tac = datetime.datetime.now()
-            print("[INFO] REFERENCE NAME=" + last_chr + " (" + str(tac) + ")\t["+delta(tac, tic)+"]")
-            tic = tac
+            # Debug purposes
+            if DEBUG:
+                print("AFTER UPDATE:");
+                print_reads(reads)
+                raw_input("Press enter to continue...")
+            
+            # Go the next position
+            i += 1
+    #         print("Position i"+str(i))
+            
+            if DEBUG:
+                print("[DEBUG] WRITING COLUMN IN POSITION {}: {}".format(i, column is not None))
+                print(column)
+                print_reads(reads)
+            
+            if column is not None and within_interval(i, region):
+                # head='Region\tPosition\tReference\tStrand\tCoverage-q%i\tMeanQ\tBaseCount[A,C,G,T]\t
+                #       AllSubs\tFrequency\t
+                #       gCoverage-q%i\tgMeanQ\tgBaseCount[A,C,G,T]\tgAllSubs\tgFrequency\n' %(MQUAL,gMQUAL)
+                # cov,bcomp,subs,freq=BaseCount(seq,ref,MINIMUM_EDITS_FREQUENCY,MIN_EDITS_SINGLE)
+                # mqua=meanq(qual,len(seq))
+                # line='\t'.join([chr,str(pileupcolumn.pos+1),ref,mystrand,str(cov),mqua,str(bcomp),subs,freq]+['-','-','-','-','-'])+'\n'
+                writer.write("\t".join([
+                    last_chr,
+                    str(i),
+                    column["ref"],
+                    str(strand),
+                    str(column["passed"]),
+                    "{0:.2f}".format(column["mean_quality"]),
+                    str(column["distribution"]),
+                    " ".join([column["ref"] + el for el in column["variants"]]) if column["non_zero"] >= 1 else "-",
+                    "{0:.2f}".format(column["frequency"]),
+                    "\t".join(['-','-','-','-','-'])
+                    ]) + "\n")
+                writer.flush()
+            
+            # Remove old reads
+            removed = reads.pop(i-1, None)
+            
+            # When changing chromosome print some statistics
+            if read.reference_name != last_chr:
+                last_chr = read.reference_name
+                
+                # if last_chr == "chr2": break
+        
+                # Take the time
+                tac = datetime.datetime.now()
+                print("[INFO] REFERENCE NAME=" + last_chr + " (" + str(tac) + ")\t["+delta(tac, tic)+"]")
+                tic = tac
     
     samfile.close()
     writer.close()
