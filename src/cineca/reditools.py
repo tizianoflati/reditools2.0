@@ -239,6 +239,9 @@ def get_column(reads):
                 continue
             
             passed += 1
+            
+#             if passed > 8000:
+#                 break
 
             ref = read["ref"].upper()
             alt = read["alt"].upper()
@@ -654,6 +657,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='REDItools 2.0')
     parser.add_argument('-f', '--file', help='The bam file to be analyzed')
     parser.add_argument('-o', '--output-file', help='The output statistics file')
+    parser.add_argument('-a', '--append-file', action='store_true', help='Appends results to file (and creates if not existing)')
     parser.add_argument('-r', '--reference', help='The reference FASTA file')
     parser.add_argument('-g', '--region', help='The region of the bam file to be analyzed')
     parser.add_argument('-m', '--omopolymeric-file', help='The file containing the omopolymeric positions')
@@ -665,6 +669,7 @@ if __name__ == '__main__':
     omopolymeric_file = args.omopolymeric_file
     reference_file = args.reference
     output = args.output_file
+    append = args.append_file
     splicing_file = args.splicing_file
     
     region = re.split("[:-]", args.region)
@@ -713,8 +718,10 @@ if __name__ == '__main__':
             prefix += "_" + '_'.join([str(x) for x in region])
         outputfile = prefix + "_reditools2_table.gz"
     
-    if outputfile.endswith("gz"): writer = gzip.open(outputfile, "w")
-    else: writer = open(outputfile, "w")
+    mode = "a" if append else "w"
+    
+    if outputfile.endswith("gz"): writer = gzip.open(outputfile, mode)
+    else: writer = open(outputfile, mode)
     
     # Open the iterator
     print("[INFO] Fetching data from bam {}".format(bamfile))
