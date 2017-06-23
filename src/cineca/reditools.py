@@ -10,12 +10,27 @@ import datetime
 from collections import Counter
 import gzip
 from sortedcontainers import SortedSet
-import numpy
 import os
 import argparse
 import re
 
+# Options
 DEBUG = False
+MIN_READ_LENGTH = 30 # 100
+SPLICING_SPAN = 5
+OMOPOLYMERIC_SPAN = 5
+MIN_QUALITY = 20 # 20
+MIN_BASE_QUALITY = 30 # 30
+MIN_BASE_POSITION = 6
+MAX_BASE_POSITION = 6 # 76
+MIN_COLUMN_LENGTH = 1 # 10
+MIN_EDITS_SINGLE = 1
+MIN_EDITS_NO = 0
+MAX_CHANGES = 100
+
+# MIN_BASE_QUALITY = 20
+MAX_BASE_POSITION = 0
+MIN_BASE_POSITION = 0
 
 def delta(t2, t1):
     delta = t2 - t1
@@ -24,7 +39,7 @@ def delta(t2, t1):
      
     return "%02d:%02d:%02d" % (hours, minutes, seconds)
 
-def print_reads(reads):
+def print_reads(reads, i):
     total = 0
     for key in reads:
         total += len(reads[key])
@@ -37,7 +52,7 @@ def print_reads(reads):
             print("[INFO] \tQ:" + str(read["sequence"]))
     print("READS[i="+str(i)+"] = " + str(total))
 
-def update_reads(reads):
+def update_reads(reads, i):
     if DEBUG:
         print("[INFO] UPDATING READS IN POSITION " + str(i))
     
@@ -185,7 +200,7 @@ def update_reads(reads):
                 
                 read["qual"] = read["query_qualities"][read["alignment_index"]]
             
-def get_column(reads):
+def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
     
     if splice_positions:
         if i in splice_positions[last_chr]:
@@ -261,7 +276,8 @@ def get_column(reads):
         print("Qualities[i="+str(i)+"]="+str(qualities))
         
     if len(qualities) > 0:
-        mean_q = numpy.mean(qualities)
+        #mean_q = numpy.mean(qualities)
+        mean_q = float(sum(qualities)) / max(len(qualities), 1)
     
     # If all the reads are concordant
     #if counter[ref] > 0 and len(counter) == 1:
@@ -323,7 +339,7 @@ def get_column(reads):
     }
 
     # Check that the column passes the filters
-    if not filter_column(edits_info): return None
+    if not filter_column(edits_info, i): return None
 
 #     if edits_no > 5:
 #         print(str(i) + ":" + str(edits_info))
@@ -400,7 +416,7 @@ def filter_base(read):
     
     return True
     
-def filter_column(column):
+def filter_column(column, i):
     
     edits = column["edits"]
     
@@ -505,25 +521,25 @@ def load_splicing_file(splicing_file):
     
     for i in f:
             l=(i.strip()).split()
-            chr = l[0]
+            chrom = l[0]
                 
-            if chr not in splice_positions:
-                splice_positions[chr] = SortedSet()
-                total_array[chr] = 0           
+            if chrom not in splice_positions:
+                splice_positions[chrom] = SortedSet()
+                total_array[chrom] = 0           
             
             st,tp,cc = l[4], l[3], int(l[1])
             
             total += SPLICING_SPAN
-            total_array[chr] += SPLICING_SPAN
+            total_array[chrom] += SPLICING_SPAN
             
             if st=='+' and tp=='D':
-                for j in range(SPLICING_SPAN): splice_positions[chr].add(cc+(j+1))
+                for j in range(SPLICING_SPAN): splice_positions[chrom].add(cc+(j+1))
             if st=='+' and tp=='A':
-                for j in range(SPLICING_SPAN): splice_positions[chr].add(cc-(j+1))
+                for j in range(SPLICING_SPAN): splice_positions[chrom].add(cc-(j+1))
             if st=='-' and tp=='D':         
-                for j in range(SPLICING_SPAN): splice_positions[chr].add(cc-(j+1))
+                for j in range(SPLICING_SPAN): splice_positions[chrom].add(cc-(j+1))
             if st=='-' and tp=='A':
-                for j in range(SPLICING_SPAN): splice_positions[chr].add(cc+(j+1))
+                for j in range(SPLICING_SPAN): splice_positions[chrom].add(cc+(j+1))
             
     f.close()
     
@@ -621,70 +637,16 @@ def within_interval(i, region):
         end = region[2]
         return i >= start and i <= end
 
-# -i /marconi_scratch/userexternal/tflati00/test_picardi/reditools_test/SRR1413602.bam
-# -o editing18_test -f /marconi_scratch/userinternal/tcastign/test_picardi/hg19.fa -c1,1
-# -m20,20 -v1 -q30,30 -e -n0.0 -N0.0 -u -l -p --gzip -H -Y chr18:1-78077248 -F chr18_1_78077248
-#
-# -f /home/flati/data/reditools/SRR1413602.bam -r /home/flati/data/reditools/hg19.fa -g chr18:14237-14238 -m /home/flati/data/reditools/omopolymeric_positions.txt
-#
-# -f /home/flati/data/reditools/SRR1413602.bam
-# -r /home/flati/data/reditools/hg19.fa
-# -g chr18:14237-14238
-# -m /home/flati/data/reditools/omopolymeric_positions.txt
-if __name__ == '__main__':
-
-    print("START=" + str(datetime.datetime.now()))
-
-    # Options
-    MIN_READ_LENGTH = 30 # 100
-    SPLICING_SPAN = 5
-    OMOPOLYMERIC_SPAN = 5
-    MIN_QUALITY = 20 # 20
-    MIN_BASE_QUALITY = 30 # 30
-    MIN_BASE_POSITION = 6
-    MAX_BASE_POSITION = 6 # 76
-    MIN_COLUMN_LENGTH = 1 # 10
-    MIN_EDITS_SINGLE = 1
-    MIN_EDITS_NO = 0
-    MAX_CHANGES = 100
-    omopolymeric_positions = set()
+def analyze(bamfile, region, reference_file, output, append, omopolymeric_file, splicing_file):
     
-#     MIN_BASE_QUALITY = 20
-    MAX_BASE_POSITION = 0
-    MIN_BASE_POSITION = 0
+    global DEBUG
     
-    # Options parsing
-    parser = argparse.ArgumentParser(description='REDItools 2.0')
-    parser.add_argument('-f', '--file', help='The bam file to be analyzed')
-    parser.add_argument('-o', '--output-file', help='The output statistics file')
-    parser.add_argument('-a', '--append-file', action='store_true', help='Appends results to file (and creates if not existing)')
-    parser.add_argument('-r', '--reference', help='The reference FASTA file')
-    parser.add_argument('-g', '--region', help='The region of the bam file to be analyzed')
-    parser.add_argument('-m', '--omopolymeric-file', help='The file containing the omopolymeric positions')
-    parser.add_argument('-s', '--splicing-file', help='The file containing the splicing sites positions')
-    args = parser.parse_args()
-    print(args)
-    
-    bamfile = args.file
-    omopolymeric_file = args.omopolymeric_file
-    reference_file = args.reference
-    output = args.output_file
-    append = args.append_file
-    splicing_file = args.splicing_file
-    
-    region = re.split("[:-]", args.region)
-    if not region or len(region) == 2 or (len(region) == 3 and region[1] == region[2]):
-        sys.stderr.write("[ERROR] Please provide a region of the form chrom:start-end (with end > start). Region provided: {}".format(region))
-        exit(1)
-    if len(region) >= 2:
-        region[1] = int(region[1])
-        region[2] = int(region[2])
-        
     splice_positions = []
     
     print("Opening BAM file="+bamfile)
     samfile = pysam.AlignmentFile(bamfile, "rb")
     
+    omopolymeric_positions = set()
     load_omopolymeric_positions(omopolymeric_positions, omopolymeric_file, region)
 #     if not omopolymeric_positions and omopolymeric_file is not None:
 #         omopolymeric_positions = create_omopolymeric_positions(reference_file, omopolymeric_file)
@@ -702,7 +664,6 @@ if __name__ == '__main__':
     total = 0
     
     reads = dict()
-    reads_list = []
     
     strand = 2
     
@@ -744,7 +705,6 @@ if __name__ == '__main__':
         DEBUG_END = -1
         STOP = -1
         
-        started = False
         while not finished:
         
             if DEBUG_START > 0 and i >= DEBUG_START: DEBUG = True
@@ -861,16 +821,16 @@ if __name__ == '__main__':
             # Debug purposes
             if DEBUG:
                 print("BEFORE UPDATE (i="+str(i)+"):")
-                print_reads(reads)
+                print_reads(reads, i)
         
-            update_reads(reads)
+            update_reads(reads, i)
             
-            column = get_column(reads)
+            column = get_column(reads, splice_positions, last_chr, omopolymeric_positions, i)
             
             # Debug purposes
             if DEBUG:
                 print("AFTER UPDATE:");
-                print_reads(reads)
+                print_reads(reads, i)
                 raw_input("Press enter to continue...")
             
             # Go the next position
@@ -880,7 +840,7 @@ if __name__ == '__main__':
             if DEBUG:
                 print("[DEBUG] WRITING COLUMN IN POSITION {}: {}".format(i, column is not None))
                 print(column)
-                print_reads(reads)
+                print_reads(reads, i)
             
             if column is not None and within_interval(i, region):
                 # head='Region\tPosition\tReference\tStrand\tCoverage-q%i\tMeanQ\tBaseCount[A,C,G,T]\t
@@ -901,10 +861,10 @@ if __name__ == '__main__':
                     "{0:.2f}".format(column["frequency"]),
                     "\t".join(['-','-','-','-','-'])
                     ]) + "\n")
-                writer.flush()
+                # writer.flush()
             
             # Remove old reads
-            removed = reads.pop(i-1, None)
+            reads.pop(i-1, None)
             
             # When changing chromosome print some statistics
             if read.reference_name != last_chr:
@@ -923,4 +883,50 @@ if __name__ == '__main__':
     print("[INFO] TOTAL READS=" + str(total))
     tac = datetime.datetime.now()
     print("[INFO] END=" + str(tac) + "\t["+delta(tac, tic)+"]")
+
+
+# -i /marconi_scratch/userexternal/tflati00/test_picardi/reditools_test/SRR1413602.bam
+# -o editing18_test -f /marconi_scratch/userinternal/tcastign/test_picardi/hg19.fa -c1,1
+# -m20,20 -v1 -q30,30 -e -n0.0 -N0.0 -u -l -p --gzip -H -Y chr18:1-78077248 -F chr18_1_78077248
+#
+# -f /home/flati/data/reditools/SRR1413602.bam -r /home/flati/data/reditools/hg19.fa -g chr18:14237-14238 -m /home/flati/data/reditools/omopolymeric_positions.txt
+#
+# -f /home/flati/data/reditools/SRR1413602.bam
+# -r /home/flati/data/reditools/hg19.fa
+# -g chr18:14237-14238
+# -m /home/flati/data/reditools/omopolymeric_positions.txt
+if __name__ == '__main__':
+
+    print("START=" + str(datetime.datetime.now()))
+
+    # Options parsing
+    parser = argparse.ArgumentParser(description='REDItools 2.0')
+    parser.add_argument('-f', '--file', help='The bam file to be analyzed')
+    parser.add_argument('-o', '--output-file', help='The output statistics file')
+    parser.add_argument('-a', '--append-file', action='store_true', help='Appends results to file (and creates if not existing)')
+    parser.add_argument('-r', '--reference', help='The reference FASTA file')
+    parser.add_argument('-g', '--region', help='The region of the bam file to be analyzed')
+    parser.add_argument('-m', '--omopolymeric-file', help='The file containing the omopolymeric positions')
+    parser.add_argument('-s', '--splicing-file', help='The file containing the splicing sites positions')
+    args = parser.parse_args()
+    print(args)
+    
+    bamfile = args.file
+    omopolymeric_file = args.omopolymeric_file
+    reference_file = args.reference
+    output = args.output_file
+    append = args.append_file
+    splicing_file = args.splicing_file
+    
+    region = re.split("[:-]", args.region)
+    if not region or len(region) == 2 or (len(region) == 3 and region[1] == region[2]):
+        sys.stderr.write("[ERROR] Please provide a region of the form chrom:start-end (with end > start). Region provided: {}".format(region))
+        exit(1)
+    if len(region) >= 2:
+        region[1] = int(region[1])
+        region[2] = int(region[2])
+    
+    analyze(bamfile, region, reference_file, output, append, omopolymeric_file, splicing_file)
+    
+    
     
