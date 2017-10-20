@@ -10,6 +10,8 @@ from subprocess import Popen
 from mpi4py import MPI
 from random import shuffle
 from datetime import datetime
+from collections import OrderedDict
+import gzip
 
 ALIGN_CHUNK = 0
 STOP_WORKING = 1
@@ -261,7 +263,7 @@ if __name__ == '__main__':
             os.makedirs(output)
 
         print("Loading chromosomes' sizes!")
-        chromosomes = {}
+        chromosomes = OrderedDict()
         size_file = "/marconi_scratch/userinternal/tcastign/test_picardi/hg19.chrom.sizes";
         with open(size_file) as file:
             for line in file:
@@ -346,19 +348,20 @@ if __name__ == '__main__':
                 if strand == 0:
                     s = []
                 elif strand == 1:
-                    s = ['-s', '1', '-g', '2', '-S']
+                    s = ['-t', '1', '-i', '2', '-c']
                 elif strand == 2:
-                    s = ['-s', '2', '-g', '2', '-S']
+                    s = ['-t', '2', '-i', '2', '-c']
 
                 id = data[0] + "_" + str(data[1]) + "-" + str(data[2])
-
+                format = "gz"
+                
                 command_line = ['time', 'python', '/marconi_scratch/userexternal/tflati00/test_picardi/scalability/run/reditools2.0/src/cineca/reditools.py',
                                 '-f', input,
                                 '-r', "/marconi_scratch/userexternal/tflati00/test_picardi/hg19.fa",
                                 '-g', data[0] + ":" + str(data[1]) + "-" + str(data[2]),
                                 '-m', '/marconi_scratch/userexternal/tflati00/test_picardi/scalability/run/omopolymeric_positions.txt',
-                                '-o', output + "/" + "-".join([str(rank), data[0], str(data[1]), str(data[2])]) + ".txt"]
-                #command_line.extend(s)
+                                '-o', output + "/" + "-".join([str(rank), data[0], str(data[1]), str(data[2])]) + "." + format]
+                command_line.extend(s)
 
                 print("[MPI] [" + str(rank) + "] COMMAND-LINE:" + ' '.join(command_line))
 
@@ -379,4 +382,35 @@ if __name__ == '__main__':
     if rank == 0:
         t2 = time.time()
         print("[0] End time: {}".format(t2))
-        print("[MPI] [0] WHOLE ANALYSIS FINISHED - Total elapsed time [{:5.5f}]".format(t2-t1))
+        print("[MPI] [0] WHOLE PARALLEL ANALYSIS FINISHED - Total elapsed time [{:5.5f}]".format(t2-t1))
+        
+        little_files = []
+        for little_file in glob.glob(output + "/" + "*."+format):
+            print(little_file)
+            pieces = little_file.split("-")
+        
+        # Read the files
+        final_file = gzip.open(output + "/" + "outTable_final.gz", "w")
+        
+        total = len(little_files)
+        done = 0
+        for little_file in little_files:
+            #output + "/" + "-".join([str(rank), data[0], str(data[1]), str(data[2])]) + ".txt"
+#             little_file = output + "/" + "-".join([str(rank), data[0], str(data[1]), str(data[2])])
+#             dir = glob.glob(output + "/" + homework[0] + "-" + str(homework[1]) + "-" + str(homework[2]) + "*")
+#             if len(dir) == 0:
+#                 print("ERROR: No such directory")
+#                 exit
+#             dir = dir[0]
+            if format == "gz":
+                f = gzip.open(little_file)
+            else:
+                f = open(little_file, "r")
+                 
+            final_file.write(f.read())
+            f.close()
+            
+            done = done + 1
+            print(dir + "\t["+str(done)+"/"+str(total)+" - {:.2%}]".format(done/float(total)))
+
+        final_file.close()        
