@@ -459,12 +459,13 @@ def load_omopolymeric_positions(positions, input_file, region):
     start = None
     end = None
     
-    if len(region) >= 1:
-        chromosome = region[0]
-    if len(region) >= 2:
-        start = region[1]
-    if len(region) >= 3:
-        end = region[2]        
+    if region is not None:
+        if len(region) >= 1:
+            chromosome = region[0]
+        if len(region) >= 2:
+            start = region[1]
+        if len(region) >= 3:
+            end = region[2]        
     
     try:
         reader = open(input_file, "r")
@@ -618,7 +619,7 @@ def init(samfile, region):
     
     print("Opening bamfile within region=" + str(region))
     
-    if len(region) == 0:
+    if region is None or len(region) == 0:
         return samfile.fetch()
     
     if len(region) == 1:
@@ -629,7 +630,7 @@ def init(samfile, region):
 
 def within_interval(i, region):
     
-    if len(region) <= 1:
+    if region is None or len(region) <= 1:
         return True
     
     else:
@@ -917,14 +918,16 @@ if __name__ == '__main__':
     output = args.output_file
     append = args.append_file
     splicing_file = args.splicing_file
+    region = None
     
-    region = re.split("[:-]", args.region)
-    if not region or len(region) == 2 or (len(region) == 3 and region[1] == region[2]):
-        sys.stderr.write("[ERROR] Please provide a region of the form chrom:start-end (with end > start). Region provided: {}".format(region))
-        exit(1)
-    if len(region) >= 2:
-        region[1] = int(region[1])
-        region[2] = int(region[2])
+    if args.region:
+        region = re.split("[:-]", args.region)
+        if not region or len(region) == 2 or (len(region) == 3 and region[1] == region[2]):
+            sys.stderr.write("[ERROR] Please provide a region of the form chrom:start-end (with end > start). Region provided: {}".format(region))
+            exit(1)
+        if len(region) >= 2:
+            region[1] = int(region[1])
+            region[2] = int(region[2])
     
     analyze(bamfile, region, reference_file, output, append, omopolymeric_file, splicing_file)
     

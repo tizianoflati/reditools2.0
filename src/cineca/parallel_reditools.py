@@ -147,7 +147,9 @@ if __name__ == '__main__':
 
     input=sys.argv[1]
     output=sys.argv[2]
-    # strand=sys.argv[3]
+    strand=sys.argv[3]
+    reference=sys.argv[4]
+    
     strand = 2
     coverage_file = "coverage_test.txt"
 
@@ -355,9 +357,9 @@ if __name__ == '__main__':
                 id = data[0] + "_" + str(data[1]) + "-" + str(data[2])
                 format = "gz"
                 
-                command_line = ['time', 'python', '/marconi_scratch/userexternal/tflati00/test_picardi/scalability/run/reditools2.0/src/cineca/reditools.py',
+                command_line = ['time', 'python', 'reditools.py',
                                 '-f', input,
-                                '-r', "/marconi_scratch/userexternal/tflati00/test_picardi/hg19.fa",
+                                '-r', reference,
                                 '-g', data[0] + ":" + str(data[1]) + "-" + str(data[2]),
                                 '-m', '/marconi_scratch/userexternal/tflati00/test_picardi/scalability/run/omopolymeric_positions.txt',
                                 '-o', output + "/" + "-".join([str(rank), data[0], str(data[1]), str(data[2])]) + "." + format]
