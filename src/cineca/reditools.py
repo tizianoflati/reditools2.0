@@ -16,21 +16,7 @@ import re
 
 # Options
 DEBUG = False
-MIN_READ_LENGTH = 30 # 100
-SPLICING_SPAN = 5
-OMOPOLYMERIC_SPAN = 5
-MIN_QUALITY = 20 # 20
-MIN_BASE_QUALITY = 30 # 30
-MIN_BASE_POSITION = 6
-MAX_BASE_POSITION = 6 # 76
-MIN_COLUMN_LENGTH = 1 # 10
-MIN_EDITS_SINGLE = 1
-MIN_EDITS_NO = 0
-MAX_CHANGES = 100
 
-# MIN_BASE_QUALITY = 20
-MAX_BASE_POSITION = 0
-MIN_BASE_POSITION = 0
 
 def delta(t2, t1):
     delta = t2 - t1
@@ -465,7 +451,7 @@ def load_omopolymeric_positions(positions, input_file, region):
         if len(region) >= 2:
             start = region[1]
         if len(region) >= 3:
-            end = region[2]        
+            end = region[2]
     
     try:
         reader = open(input_file, "r")
@@ -553,7 +539,7 @@ def create_omopolymeric_positions(reference_file, omopolymeric_file):
 
     tic = datetime.datetime.now()
 
-    sys.stderr.write("Creating omopolymeric positions from reference file {}\n".format(reference_file))
+    sys.stderr.write("Creating omopolymeric positions (span={}) from reference file {}\n".format(OMOPOLYMERIC_SPAN, reference_file))
     
     index_file = reference_file + ".fai"
     sys.stderr.write("Loading chromosome names from index file {}\n".format(index_file))
@@ -638,16 +624,31 @@ def within_interval(i, region):
         end = region[2]
         return i >= start and i <= end
 
-def analyze(bamfile, region, reference_file, output, append, omopolymeric_file, splicing_file):
+def analyze(bamfile, options):
     
     global DEBUG
     
+    region = options["region"]
+    reference_file = options["reference"]
+    output = options["output"]
+    append = options["append"]
+    omopolymeric_file = options["omopolymeric_file"]
+    splicing_file = options["splicing_file"]
+    create_omopolymeric_file = options["create_omopolymeric_file"]
+
     splice_positions = []
     
     print("Opening BAM file="+bamfile)
     samfile = pysam.AlignmentFile(bamfile, "rb")
     
     omopolymeric_positions = set()
+    if create_omopolymeric_file is True:
+        if omopolymeric_file is not None:
+            omopolymeric_positions = create_omopolymeric_positions(reference_file, omopolymeric_file)
+        else:
+            print("[ERROR] You asked to create the omopolymeric file, but you did not specify any output file. Exiting.")
+            return
+    
     load_omopolymeric_positions(omopolymeric_positions, omopolymeric_file, region)
 #     if not omopolymeric_positions and omopolymeric_file is not None:
 #         omopolymeric_positions = create_omopolymeric_positions(reference_file, omopolymeric_file)
@@ -908,16 +909,48 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--reference', help='The reference FASTA file')
     parser.add_argument('-g', '--region', help='The region of the bam file to be analyzed')
     parser.add_argument('-m', '--omopolymeric-file', help='The file containing the omopolymeric positions')
+    parser.add_argument('-c', '--create-omopolymeric-file', default=False, help='Whether to create the omopolymeric span', action='store_true')
+    parser.add_argument('-os', '--omopolymeric-span', default=5, help='The omopolymeric span')
     parser.add_argument('-s', '--splicing-file', help='The file containing the splicing sites positions')
+    parser.add_argument('-sp', '--splicing-span', default=5, help='The splicing span')
+    parser.add_argument('-mrl', '--min-read-length', default=30, help='The minimum read length. Reads whose length is below this value will be discarded.')
+    parser.add_argument('-q', '--min-read-quality', default=20, help='The minimum read quality. Reads whose mapping quality is below this value will be discarded.')
+    parser.add_argument('-bq', '--min-base-quality', default=30, help='The minimum base quality. Bases whose quality is below this value will not be included in the analysis.')
+    parser.add_argument('-mbp', '--min-base-position', default=6, help='The minimum base position. Bases which reside in a previous position (in the read) will not be included in the analysis.')
+    parser.add_argument('-Mbp', '--max-base-position', default=6, help='The maximum base position. Bases which reside in a further position (in the read) will not be included in the analysis.')
+    parser.add_argument('-l', '--min-column-length', default=1, help='The minimum length of editing column (per position). Positions whose columns have length below this value will not be included in the analysis.')
+    parser.add_argument('-men', '--min-edits-per-nucletide', default=1, help='The minimum number of editing for events each nucletide (per position). Positions whose columns have bases with less than min-edits-per-base edits will not be included in the analysis.')
+    parser.add_argument('-me', '--min-edits', default=0, help='The minimum number of editing events (per position). Positions whose columns have bases with less than \'min-edits-per-base edits\' will not be included in the analysis.')    
+    parser.add_argument('-Men', '--max-editing-nucletides', default=100, help='The maximum number of editing nucleotides, from 0 to 4 (per position). Positions whose columns have more than \'max-editing-nucletides\' will not be included in the analysis.')
+    parser.add_argument('-d', '--debug', default=False, help='REDItools is run in DEBUG mode.', action='store_false')
+    
     args = parser.parse_args()
     print(args)
     
+    DEBUG = args.debug
+    
     bamfile = args.file
     omopolymeric_file = args.omopolymeric_file
+    OMOPOLYMERIC_SPAN = args.omopolymeric_span
+    create_omopolymeric_file = args.create_omopolymeric_file
+    
     reference_file = args.reference
     output = args.output_file
     append = args.append_file
+    
     splicing_file = args.splicing_file
+    SPLICING_SPAN = args.splicing_span
+    
+    MIN_READ_LENGTH = args.min_read_length
+    MIN_QUALITY = args.min_read_quality
+    MIN_BASE_QUALITY = args.min_base_quality
+    MIN_BASE_POSITION = args.min_base_position
+    MAX_BASE_POSITION = args.max_base_position
+    MIN_COLUMN_LENGTH = args.min_column_length
+    MIN_EDITS_SINGLE = args.min_edits_per_nucletide
+    MIN_EDITS_NO = args.min_edits
+    MAX_CHANGES = args.max_editing_nucletides
+    
     region = None
     
     if args.region:
@@ -929,7 +962,19 @@ if __name__ == '__main__':
             region[1] = int(region[1])
             region[2] = int(region[2])
     
-    analyze(bamfile, region, reference_file, output, append, omopolymeric_file, splicing_file)
+    options = {
+        "region": region,
+        "reference": reference_file,
+        "output": output,
+        "append": append,
+        "omopolymeric_file": omopolymeric_file,
+        "create_omopolymeric_file": create_omopolymeric_file,
+        "splicing_file": splicing_file
+        }
+    
+    print("RUNNING REDItools 2.0 with the following options", options)
+    
+    analyze(bamfile, options)
     
     
     
