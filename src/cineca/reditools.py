@@ -624,10 +624,11 @@ def within_interval(i, region):
         end = region[2]
         return i >= start and i <= end
 
-def analyze(bamfile, options):
+def analyze(options):
     
     global DEBUG
     
+    bamfile = options["bamfile"]
     region = options["region"]
     reference_file = options["reference"]
     output = options["output"]
@@ -886,21 +887,8 @@ def analyze(bamfile, options):
     tac = datetime.datetime.now()
     print("[INFO] END=" + str(tac) + "\t["+delta(tac, tic)+"]")
 
-
-# -i /marconi_scratch/userexternal/tflati00/test_picardi/reditools_test/SRR1413602.bam
-# -o editing18_test -f /marconi_scratch/userinternal/tcastign/test_picardi/hg19.fa -c1,1
-# -m20,20 -v1 -q30,30 -e -n0.0 -N0.0 -u -l -p --gzip -H -Y chr18:1-78077248 -F chr18_1_78077248
-#
-# -f /home/flati/data/reditools/SRR1413602.bam -r /home/flati/data/reditools/hg19.fa -g chr18:14237-14238 -m /home/flati/data/reditools/omopolymeric_positions.txt
-#
-# -f /home/flati/data/reditools/SRR1413602.bam
-# -r /home/flati/data/reditools/hg19.fa
-# -g chr18:14237-14238
-# -m /home/flati/data/reditools/omopolymeric_positions.txt
-if __name__ == '__main__':
-
-    print("START=" + str(datetime.datetime.now()))
-
+def parse_options():
+    
     # Options parsing
     parser = argparse.ArgumentParser(description='REDItools 2.0')
     parser.add_argument('-f', '--file', help='The bam file to be analyzed')
@@ -924,13 +912,15 @@ if __name__ == '__main__':
     parser.add_argument('-Men', '--max-editing-nucletides', default=100, help='The maximum number of editing nucleotides, from 0 to 4 (per position). Positions whose columns have more than \'max-editing-nucletides\' will not be included in the analysis.')
     parser.add_argument('-d', '--debug', default=False, help='REDItools is run in DEBUG mode.', action='store_false')
     
-    args = parser.parse_args()
+    args = parser.parse_known_args()[0]
     print(args)
     
+    global DEBUG
     DEBUG = args.debug
     
     bamfile = args.file
     omopolymeric_file = args.omopolymeric_file
+    global OMOPOLYMERIC_SPAN
     OMOPOLYMERIC_SPAN = args.omopolymeric_span
     create_omopolymeric_file = args.create_omopolymeric_file
     
@@ -939,16 +929,34 @@ if __name__ == '__main__':
     append = args.append_file
     
     splicing_file = args.splicing_file
+    global SPLICING_SPAN
     SPLICING_SPAN = args.splicing_span
     
+    global MIN_READ_LENGTH 
     MIN_READ_LENGTH = args.min_read_length
+    
+    global MIN_QUALITY
     MIN_QUALITY = args.min_read_quality
+    
+    global MIN_BASE_QUALITY
     MIN_BASE_QUALITY = args.min_base_quality
+    
+    global MIN_BASE_POSITION
     MIN_BASE_POSITION = args.min_base_position
+    
+    global MAX_BASE_POSITION
     MAX_BASE_POSITION = args.max_base_position
+    
+    global MIN_COLUMN_LENGTH
     MIN_COLUMN_LENGTH = args.min_column_length
+    
+    global MIN_EDITS_SINGLE
     MIN_EDITS_SINGLE = args.min_edits_per_nucletide
+    
+    global MIN_EDITS_NO
     MIN_EDITS_NO = args.min_edits
+    
+    global MAX_CHANGES
     MAX_CHANGES = args.max_editing_nucletides
     
     region = None
@@ -963,6 +971,7 @@ if __name__ == '__main__':
             region[2] = int(region[2])
     
     options = {
+        "bamfile": bamfile,
         "region": region,
         "reference": reference_file,
         "output": output,
@@ -974,7 +983,25 @@ if __name__ == '__main__':
     
     print("RUNNING REDItools 2.0 with the following options", options)
     
-    analyze(bamfile, options)
+    return options
+
+# -i /marconi_scratch/userexternal/tflati00/test_picardi/reditools_test/SRR1413602.bam
+# -o editing18_test -f /marconi_scratch/userinternal/tcastign/test_picardi/hg19.fa -c1,1
+# -m20,20 -v1 -q30,30 -e -n0.0 -N0.0 -u -l -p --gzip -H -Y chr18:1-78077248 -F chr18_1_78077248
+#
+# -f /home/flati/data/reditools/SRR1413602.bam -r /home/flati/data/reditools/hg19.fa -g chr18:14237-14238 -m /home/flati/data/reditools/omopolymeric_positions.txt
+#
+# -f /home/flati/data/reditools/SRR1413602.bam
+# -r /home/flati/data/reditools/hg19.fa
+# -g chr18:14237-14238
+# -m /home/flati/data/reditools/omopolymeric_positions.txt
+if __name__ == '__main__':
+
+    print("START=" + str(datetime.datetime.now()))
+
+    options = parse_options()
+    
+    analyze(options)
     
     
     

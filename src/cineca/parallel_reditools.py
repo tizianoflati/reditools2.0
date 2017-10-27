@@ -12,6 +12,8 @@ from random import shuffle
 from datetime import datetime
 from collections import OrderedDict
 import gzip
+import reditools
+import argparse
 
 ALIGN_CHUNK = 0
 STOP_WORKING = 1
@@ -82,6 +84,8 @@ def get_coverage(coverage_file):
         print("COVERAGES:", str(coverages))
         coverage = reduce(lambda x,y: x+y, coverages)
         
+    coverage = comm.bcast(coverage, root=0)
+        
     # Return the total
     return coverage
 
@@ -145,28 +149,45 @@ if __name__ == '__main__':
     rank = comm.Get_rank()
     size = comm.Get_size()
 
-    input=sys.argv[1]
-    output=sys.argv[2]
-    strand=sys.argv[3]
-    reference=sys.argv[4]
+    options = reditools.parse_options()
     
-    strand = 2
-    coverage_file = "coverage_test.txt"
+    parser = argparse.ArgumentParser(description='REDItools 2.0')
+    parser.add_argument('-cov', '--coverage-file', help='The coverage file of the sample to analyze')
+    parser.add_argument('-covdir', '--coverage-dir', help='The coverage directory containing the coverage file of the sample to analyze divided by chromosome')
+    parser.add_argument('-temp', '--temp-dir', help='The temp directory where to store temporary data for this sample')
+    parser.add_argument('-sizes', '--chromosome-sizes', help='The file with the chromosome sizes')
+    args = parser.parse_known_args()[0]
+    
+    coverage_file = args.coverage_file
+    coverage_dir = args.coverage_dir
+    temp_dir = args.temp_dir
+    size_file = args.chromosome_sizes
+    
+    output = options["output"]
+    format = output.split(".")[-1]
+    
+#     input=sys.argv[1]
+#     output=sys.argv[2]
+#     strand=sys.argv[3]
+#     reference=sys.argv[4]
+#     strand = 2
+#     coverage_file = "coverage_test.txt"
 
     t1 = time.time()
 
     print("I am rank #"+str(rank))
-    total_coverage = 1324307767144453888
+#     total_coverage = 1324307767144453888
+    total_coverage = get_coverage(coverage_file)
     # total_coverage_cubic_interpolated = 2093347272.03
-    # total_coverage = get_coverage(coverage_file)
     # total_coverage_linear = 4909633959
     # total_coverage = 28499712612751
     print("TOTAL COVERAGE", str(total_coverage))
     
     # Collect all the files with the coverage
     files = []
-    for file in os.listdir("pieces"):
+    for file in os.listdir(coverage_dir):
         if file.startswith("."): continue
+        if file.endswith(".cov"): continue
         if file == "chrM": continue
         files.append(file)
     files.sort()
@@ -214,7 +235,7 @@ if __name__ == '__main__':
         done = 0
         total = len(files)
         
-	homeworks = []
+        homeworks = []
         queue = set()
         for i in range(1, min(size, total)):
             file = files.pop()
@@ -259,14 +280,10 @@ if __name__ == '__main__':
 
         print("[MPI] [0] REDItools STARTED")
         print("[MPI] [0] MPI SIZE: " + str(size))
-        print(sys.argv)
-
-        if not os.path.exists(output):
-            os.makedirs(output)
 
         print("Loading chromosomes' sizes!")
         chromosomes = OrderedDict()
-        size_file = "/marconi_scratch/userinternal/tcastign/test_picardi/hg19.chrom.sizes";
+        #size_file = "/marconi_scratch/userinternal/tcastign/test_picardi/hg19.chrom.sizes";
         with open(size_file) as file:
             for line in file:
                 (key, val) = line.split()
@@ -319,80 +336,28 @@ if __name__ == '__main__':
             print("[MPI] [0] Sending DIE SIGNAL TO RANK " + str(i))
             comm.send(None, dest=i, tag=STOP_WORKING)
 
-    # Slave processes
-    if rank > 0:
-
-        while(True):
-            # Execute bowtie, view and sort
-            status = MPI.Status()
-            data = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
-
-            tag = status.Get_tag()
-            if tag == CALCULATE_COVERAGE:
-                intervals = calculate_intervals(total_coverage, "pieces/" + data)
-                comm.send(intervals, dest=0, tag=IM_FREE)
-            if tag == ALIGN_CHUNK:
-
-                print("[MPI] [{}] received data {} from rank 0 [{}]".format(str(rank), str(data), datetime.now().time()))
-
-                # Process it
-                time_start = time.time()
-                time_s = datetime.now().time()
-                print("[MPI] [{}] REDItools: STARTED [{}]".format(str(rank), time_s))
-
-                # Command: python REDItoolDnaRna_1.04_n.py -i $INPUT -o editing -f hg19.fa -t $THREADS
-                # -c 1,1 -m 20,20 -v 0 -q 30,30 -s 2 -g 2 -S -e -n 0.0 -N 0.0 -u -l -H -Y $CHR:$LEFT-$RIGHT -F $CHR_$LEFT_$RIGHT
-                # Command REDItools2.0: reditools2.0/src/cineca/reditools.py -f /gss/gss_work/DRES_HAIdA/gtex/SRR1413602/SRR1413602.bam
-                #                          -r ../../hg19.fa -g chr18:14237-14238
-
-                s = []
-
-                if strand == 0:
-                    s = []
-                elif strand == 1:
-                    s = ['-t', '1', '-i', '2', '-c']
-                elif strand == 2:
-                    s = ['-t', '2', '-i', '2', '-c']
-
-                id = data[0] + "_" + str(data[1]) + "-" + str(data[2])
-                format = "gz"
-                
-                command_line = ['time', 'python', 'reditools.py',
-                                '-f', input,
-                                '-r', reference,
-                                '-g', data[0] + ":" + str(data[1]) + "-" + str(data[2]),
-                                '-m', '/marconi_scratch/userexternal/tflati00/test_picardi/scalability/run/omopolymeric_positions.txt',
-                                '-o', output + "/" + "-".join([str(rank), data[0], str(data[1]), str(data[2])]) + "." + format]
-                command_line.extend(s)
-
-                print("[MPI] [" + str(rank) + "] COMMAND-LINE:" + ' '.join(command_line))
-
-                with open(output+"/logs/error-"+id+".txt","w") as stderr_file:
-                    pid = Popen(command_line, stderr=stderr_file)
-                    pid.wait()
-
-                time_end = time.time()
-                print("[MPI] [{}] REDItools: {} FINISHED [{}][{}] [TOTAL:{:5.2f}]".format(str(rank), str(data), time_s, datetime.now().time(), time_end - time_start))
-
-                print("[MPI] [{}] sending IM_FREE tag TO RANK 0 [{}]".format(str(rank), datetime.now().time()))
-                comm.send(None, dest=0, tag=IM_FREE)
-            elif tag == STOP_WORKING:
-                print("[MPI] [{}] received DIE SIGNAL FROM RANK 0 [{}]".format(str(rank), datetime.now().time()))
-                break
-
-    comm.Barrier()
-    if rank == 0:
+        #####################################################################
+        ######### RECOMBINATION OF SINGLE FILES #############################
+        #####################################################################
         t2 = time.time()
         print("[0] End time: {}".format(t2))
         print("[MPI] [0] WHOLE PARALLEL ANALYSIS FINISHED - Total elapsed time [{:5.5f}]".format(t2-t1))
         
+        
+        print("[MPI] [0] CREATING SETUP FOR MERGING PARTIAL FILES - Total elapsed time [{:5.5f}]".format(time.time()-t1))
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)
+        
         little_files = []
-        for little_file in glob.glob(output + "/" + "*."+format):
+        for little_file in glob.glob(temp_dir + "/" + "*."+format):
             print(little_file)
             pieces = little_file.split("-")
         
-        # Read the files
-        final_file = gzip.open(output + "/" + "outTable_final.gz", "w")
+        # Sort the output files
+        little_files = sorted(little_files, key = lambda x: (x[0], x[1]))
+        
+        # Open the final output file
+        final_file = gzip.open(output, "w")
         
         total = len(little_files)
         done = 0
@@ -415,4 +380,73 @@ if __name__ == '__main__':
             done = done + 1
             print(dir + "\t["+str(done)+"/"+str(total)+" - {:.2%}]".format(done/float(total)))
 
-        final_file.close()        
+        final_file.close()
+        
+        t2 = time.time()
+        print("[0] [END] End time: {}".format(t2))
+        print("[MPI] [0] [END] - WHOLE ANALYSIS FINISHED - Total elapsed time [{:5.5f}]".format(t2-t1))
+    # Slave processes
+    if rank > 0:
+
+        while(True):
+            # Execute bowtie, view and sort
+            status = MPI.Status()
+            data = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
+
+            tag = status.Get_tag()
+            if tag == CALCULATE_COVERAGE:
+                intervals = calculate_intervals(total_coverage, coverage_dir + data)
+                comm.send(intervals, dest=0, tag=IM_FREE)
+            if tag == ALIGN_CHUNK:
+
+                print("[MPI] [{}] received data {} from rank 0 [{}]".format(str(rank), str(data), datetime.now().time()))
+
+                # Process it
+                time_start = time.time()
+                time_s = datetime.now().time()
+                print("[MPI] [{}] REDItools: STARTED [{}]".format(str(rank), time_s))
+
+                # Command: python REDItoolDnaRna_1.04_n.py -i $INPUT -o editing -f hg19.fa -t $THREADS
+                # -c 1,1 -m 20,20 -v 0 -q 30,30 -s 2 -g 2 -S -e -n 0.0 -N 0.0 -u -l -H -Y $CHR:$LEFT-$RIGHT -F $CHR_$LEFT_$RIGHT
+                # Command REDItools2.0: reditools2.0/src/cineca/reditools.py -f /gss/gss_work/DRES_HAIdA/gtex/SRR1413602/SRR1413602.bam
+                #                          -r ../../hg19.fa -g chr18:14237-14238
+
+#                 s = []
+# 
+#                 if strand == 0:
+#                     s = []
+#                 elif strand == 1:
+#                     s = ['-t', '1', '-i', '2', '-c']
+#                 elif strand == 2:
+#                     s = ['-t', '2', '-i', '2', '-c']
+
+                id = data[0] + "-" + str(data[1]) + "-" + str(data[2])
+                
+                options["region"] = [data[0], data[1], data[2]]
+                options["output"] = temp_dir + "/" + id
+                
+#                 command_line = ['time', 'python', 'reditools.py',
+#                                 '-f', input,
+#                                 '-r', reference,
+#                                 '-g', data[0] + ":" + str(data[1]) + "-" + str(data[2]),
+#                                 '-m', '/marconi_scratch/userexternal/tflati00/test_picardi/scalability/run/omopolymeric_positions.txt',
+#                                 '-o', output + "/" + "-".join([str(rank), data[0], str(data[1]), str(data[2])]) + "." + format]
+#                 command_line.extend(s)
+
+#                 print("[MPI] [" + str(rank) + "] COMMAND-LINE:" + ' '.join(command_line))
+                print("[MPI] [" + str(rank) + "] COMMAND-LINE:" + options)
+
+                reditools.analyze(options)
+
+#                 with open(output+"/logs/error-"+id+".txt","w") as stderr_file:
+#                     pid = Popen(command_line, stderr=stderr_file)
+#                     pid.wait()
+
+                time_end = time.time()
+                print("[MPI] [{}] REDItools: {} FINISHED [{}][{}] [TOTAL:{:5.2f}]".format(str(rank), str(data), time_s, datetime.now().time(), time_end - time_start))
+
+                print("[MPI] [{}] sending IM_FREE tag TO RANK 0 [{}]".format(str(rank), datetime.now().time()))
+                comm.send(None, dest=0, tag=IM_FREE)
+            elif tag == STOP_WORKING:
+                print("[MPI] [{}] received DIE SIGNAL FROM RANK 0 [{}]".format(str(rank), datetime.now().time()))
+                break
