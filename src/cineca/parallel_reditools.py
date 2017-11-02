@@ -4,6 +4,7 @@ import os
 import glob
 import sys
 import math
+import re
 import time
 import random
 from subprocess import Popen
@@ -45,12 +46,12 @@ def weight_function(x):
     # return 2.748*10**(-3)*x**3 -0.056*x**2 + 0.376*x + 2.093
     return x**3
 
-def get_coverage(coverage_file):
+def get_coverage(coverage_file, region = None):
 
     # Open the file and read i-th section (jump to the next '\n' character)
     n = float(size)
     file_size = os.path.getsize(coverage_file)
-    print("[{}] SIZE OF FILE: {}".format(rank, file_size))
+    print("[{}] SIZE OF FILE {}: {} bytes".format(rank, coverage_file, file_size))
     start = int(rank*(file_size/n))
     end = int((rank+1)*(file_size/n))
     print("[{}] [DEBUG] START={} END={}".format(rank, start, end))
@@ -69,9 +70,17 @@ def get_coverage(coverage_file):
             if line_no == 1:
                 if not line.startswith("chr"):
                     continue
+            
+            triple = line.rstrip().split("\t")
+            
+            if region is not None:
+                if triple[0] != region[0]: continue
+                if len(region) >= 2 and int(triple[1]) < region[1]: continue
+                if len(region) >= 2 and int(triple[1]) > region[2]: continue
+                
             #if line_no % 10000000 == 0:
             #    print("[{}] [DEBUG] Read {} lines so far".format(rank, line_no))
-            cov = int(line.rstrip().split("\t")[2])
+            cov = int(triple[2])
             coverage_partial += weight_function(cov)
 
     print("[{}] START={} END={} PARTIAL_COVERAGE={}".format(rank, start, end, coverage_partial))    
@@ -89,7 +98,7 @@ def get_coverage(coverage_file):
     # Return the total
     return coverage
 
-def calculate_intervals(total_coverage, coverage_file):
+def calculate_intervals(total_coverage, coverage_file, region):
     print("[{}] Opening coverage file={}".format(rank, coverage_file))
     f = open(coverage_file, "r")
 
@@ -111,6 +120,11 @@ def calculate_intervals(total_coverage, coverage_file):
                 print("[{}] Time: {} - {} lines loaded.".format(rank, time.time(), line_no))
 
             fields = line.rstrip().split("\t")
+            
+            if region is not None:
+                if fields[0] != region[0]: continue
+                if len(region) >= 2 and int(fields[1]) < region[1]: continue
+                if len(region) >= 3 and int(fields[1]) > region[2]: continue
 
             # If the interval has become either i) too large or ii) too heavy or iii) spans across two different chromosomes
             if C >= subtotal or (chr is not None and fields[0] != chr) or (end is not None and start is not None and (end-start) > max_interval_width):
@@ -152,10 +166,11 @@ if __name__ == '__main__':
     options = reditools.parse_options()
     
     parser = argparse.ArgumentParser(description='REDItools 2.0')
-    parser.add_argument('-cov', '--coverage-file', help='The coverage file of the sample to analyze')
-    parser.add_argument('-covdir', '--coverage-dir', help='The coverage directory containing the coverage file of the sample to analyze divided by chromosome')
-    parser.add_argument('-temp', '--temp-dir', help='The temp directory where to store temporary data for this sample')
-    parser.add_argument('-sizes', '--chromosome-sizes', help='The file with the chromosome sizes')
+    parser.add_argument('-C', '--coverage-file', help='The coverage file of the sample to analyze')
+    parser.add_argument('-D', '--coverage-dir', help='The coverage directory containing the coverage file of the sample to analyze divided by chromosome')
+    parser.add_argument('-t', '--temp-dir', help='The temp directory where to store temporary data for this sample')
+    parser.add_argument('-S', '--chromosome-sizes', help='The file with the chromosome sizes')
+    parser.add_argument('-g', '--region', help='The region of the bam file to be analyzed')
     args = parser.parse_known_args()[0]
     
     coverage_file = args.coverage_file
@@ -166,32 +181,36 @@ if __name__ == '__main__':
     output = options["output"]
     format = output.split(".")[-1]
     
-#     input=sys.argv[1]
-#     output=sys.argv[2]
-#     strand=sys.argv[3]
-#     reference=sys.argv[4]
-#     strand = 2
-#     coverage_file = "coverage_test.txt"
-
+    if rank == 0:
+        print("LAUNCHED PARALLEL REDITOOLS WITH THE FOLLOWING OPTIONS:", options, args)
+        
+    region = None
+    if args.region:
+        region = re.split("[:-]", args.region)
+        if not region or len(region) == 2 or (len(region) == 3 and region[1] == region[2]):
+            sys.stderr.write("[ERROR] Please provide a region of the form chrom:start-end (with end > start). Region provided: {}".format(region))
+            exit(1)
+        if len(region) >= 2:
+            region[1] = int(region[1])
+            region[2] = int(region[2])
+    
     t1 = time.time()
 
     print("I am rank #"+str(rank))
-#     total_coverage = 1324307767144453888
-    total_coverage = get_coverage(coverage_file)
-    # total_coverage_cubic_interpolated = 2093347272.03
-    # total_coverage_linear = 4909633959
-    # total_coverage = 28499712612751
-    print("TOTAL COVERAGE", str(total_coverage))
     
+    total_coverage = get_coverage(coverage_file, region)
+#     print("TOTAL COVERAGE", str(total_coverage))
+     
     # Collect all the files with the coverage
     files = []
     for file in os.listdir(coverage_dir):
+        if region is not None and file != region[0]: continue
         if file.startswith("."): continue
         if file.endswith(".cov"): continue
         if file == "chrM": continue
         files.append(file)
     files.sort()
-    
+      
     if rank == 0:
         print("[0] " + str(len(files)) + " FILES => " + str(files))
     
@@ -234,78 +253,79 @@ if __name__ == '__main__':
         
         done = 0
         total = len(files)
-        
+          
         homeworks = []
         queue = set()
-        for i in range(1, min(size, total)):
+        for i in range(1, min(size, total+1)):
             file = files.pop()
             print("[MPI] [0] Sending coverage data "+ str(file) +" to rank " + str(i))
             comm.send(file, dest=i, tag=CALCULATE_COVERAGE)
             queue.add(i)
-
+  
         while len(files) > 0:
             status = MPI.Status()
             subintervals = comm.recv(source=MPI.ANY_SOURCE, tag=IM_FREE, status=status)
             for subinterval in subintervals:
                 homeworks.append(subinterval)
-
+  
             done += 1
             who = status.Get_source()
             queue.remove(who)
             now = datetime.now().time()
             elapsed = time.time() - start_intervals
             print("[MPI] [0] COVERAGE RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [#intervals: {}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, len(homeworks), done, total, 100 * float(done)/total, queue))
-
+  
             file = files.pop()
             print("[MPI] [0] Sending coverage data "+ str(file) +" to rank " + str(who))
             comm.send(file, dest=who, tag=CALCULATE_COVERAGE)
             queue.add(who)
-
+  
         while len(queue) > 0:
             status = MPI.Status()
             print("[MPI] [0] Going to receive data from slaves.")
             subintervals = comm.recv(source=MPI.ANY_SOURCE, tag=IM_FREE, status=status)
             for subinterval in subintervals:
                 homeworks.append(subinterval)
-
+  
             done += 1
             who = status.Get_source()
             queue.remove(who)
-            now = datetime.now().time() 
+            now = datetime.now().time()
             elapsed = time.time() - start_intervals
             print("[MPI] [0] COVERAGE RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [#intervals: {}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, len(homeworks), done, total, 100 * float(done)/total, queue))
-
+  
         print("[MPI] [0] FINISHED CALCULATING INTERVALS")
         done = 0
-
+  
         print("[MPI] [0] REDItools STARTED")
         print("[MPI] [0] MPI SIZE: " + str(size))
-
+          
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)
+ 
         print("Loading chromosomes' sizes!")
         chromosomes = OrderedDict()
-        #size_file = "/marconi_scratch/userinternal/tcastign/test_picardi/hg19.chrom.sizes";
-        with open(size_file) as file:
-            for line in file:
-                (key, val) = line.split()
-                chromosomes[key] = int(val)
+        for line in open(size_file):
+            (key, val) = line.split()
+            chromosomes[key] = int(val)
         print("Sizes:")
         print(chromosomes)
-
+  
         #homeworks = get_intervals(chromosomes, STEP)
-
+  
         total = len(homeworks)
         print("[MPI] [0] HOMEWORKS", total, homeworks)
         #shuffle(homeworks)
-
+  
         start = time.time()
-
+  
         queue = set()
         for i in range(1, min(size, total)):
             interval = homeworks.pop()
             print("[MPI] [0] Sending data "+ str(interval) +" to rank " + str(i))
             comm.send(interval, dest=i, tag=ALIGN_CHUNK)
             queue.add(i)
-
+  
         while len(homeworks) > 0:
             status = MPI.Status()
             comm.recv(source=MPI.ANY_SOURCE, tag=IM_FREE, status=status)
@@ -315,12 +335,12 @@ if __name__ == '__main__':
             now = datetime.now().time()
             elapsed = time.time() - start
             print("[MPI] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
-
+  
             interval = homeworks.pop()
             print("[MPI] [0] Sending data "+ str(interval) +" to rank " + str(who))
             comm.send(interval, dest=who, tag=ALIGN_CHUNK)
             queue.add(who)
-
+  
         while len(queue) > 0:
             status = MPI.Status()
             comm.recv(source=MPI.ANY_SOURCE, tag=IM_FREE, status=status)
@@ -330,31 +350,33 @@ if __name__ == '__main__':
             now = datetime.now().time()
             elapsed = time.time() - start
             print("[MPI] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
-
+  
         # We have finished processing all the chunks. Let's notify this to slaves
         for i in range(1, size):
             print("[MPI] [0] Sending DIE SIGNAL TO RANK " + str(i))
             comm.send(None, dest=i, tag=STOP_WORKING)
-
-        #####################################################################
-        ######### RECOMBINATION OF SINGLE FILES #############################
-        #####################################################################
+  
         t2 = time.time()
         print("[0] End time: {}".format(t2))
         print("[MPI] [0] WHOLE PARALLEL ANALYSIS FINISHED - Total elapsed time [{:5.5f}]".format(t2-t1))
         
-        
+        #####################################################################
+        ######### RECOMBINATION OF SINGLE FILES #############################
+        #####################################################################
         print("[MPI] [0] CREATING SETUP FOR MERGING PARTIAL FILES - Total elapsed time [{:5.5f}]".format(time.time()-t1))
-        if not os.path.exists(temp_dir):
-            os.makedirs(temp_dir)
         
         little_files = []
-        for little_file in glob.glob(temp_dir + "/" + "*."+format):
+        print("Scanning all files in "+temp_dir+" matching " + ".*")
+        for little_file in glob.glob(temp_dir + "/*"):
             print(little_file)
-            pieces = little_file.split("-")
-        
-        # Sort the output files
-        little_files = sorted(little_files, key = lambda x: (x[0], x[1]))
+            pieces = re.sub("\..*", "", os.path.basename(little_file)).split("-")
+            pieces.insert(0, little_file)
+            little_files.append(pieces)
+
+        # Sort the output files            
+        print("FILES TO MERGE: ", little_files)
+        little_files = sorted(little_files, key = lambda x: (x[1], int(x[2])))
+        print("FILES TO MERGE (SORTED): ", little_files)
         
         # Open the final output file
         final_file = gzip.open(output, "w")
@@ -362,29 +384,23 @@ if __name__ == '__main__':
         total = len(little_files)
         done = 0
         for little_file in little_files:
-            #output + "/" + "-".join([str(rank), data[0], str(data[1]), str(data[2])]) + ".txt"
-#             little_file = output + "/" + "-".join([str(rank), data[0], str(data[1]), str(data[2])])
-#             dir = glob.glob(output + "/" + homework[0] + "-" + str(homework[1]) + "-" + str(homework[2]) + "*")
-#             if len(dir) == 0:
-#                 print("ERROR: No such directory")
-#                 exit
-#             dir = dir[0]
-            if format == "gz":
-                f = gzip.open(little_file)
-            else:
-                f = open(little_file, "r")
-                 
+            print("Writing ", little_file)
+            file = little_file[0]
+
+            f = gzip.open(file)
+
             final_file.write(f.read())
             f.close()
             
             done = done + 1
-            print(dir + "\t["+str(done)+"/"+str(total)+" - {:.2%}]".format(done/float(total)))
+            print(file + "\t["+str(done)+"/"+str(total)+" - {:.2%}]".format(done/float(total)))
 
         final_file.close()
         
         t2 = time.time()
         print("[0] [END] End time: {}".format(t2))
         print("[MPI] [0] [END] - WHOLE ANALYSIS FINISHED - Total elapsed time [{:5.5f}]".format(t2-t1))
+        
     # Slave processes
     if rank > 0:
 
@@ -395,7 +411,7 @@ if __name__ == '__main__':
 
             tag = status.Get_tag()
             if tag == CALCULATE_COVERAGE:
-                intervals = calculate_intervals(total_coverage, coverage_dir + data)
+                intervals = calculate_intervals(total_coverage, coverage_dir + data, region)
                 comm.send(intervals, dest=0, tag=IM_FREE)
             if tag == ALIGN_CHUNK:
 
@@ -423,7 +439,7 @@ if __name__ == '__main__':
                 id = data[0] + "-" + str(data[1]) + "-" + str(data[2])
                 
                 options["region"] = [data[0], data[1], data[2]]
-                options["output"] = temp_dir + "/" + id
+                options["output"] = temp_dir + "/" + id + ".gz"
                 
 #                 command_line = ['time', 'python', 'reditools.py',
 #                                 '-f', input,
@@ -434,7 +450,7 @@ if __name__ == '__main__':
 #                 command_line.extend(s)
 
 #                 print("[MPI] [" + str(rank) + "] COMMAND-LINE:" + ' '.join(command_line))
-                print("[MPI] [" + str(rank) + "] COMMAND-LINE:" + options)
+                print("[MPI] [" + str(rank) + "] COMMAND-LINE:", options)
 
                 reditools.analyze(options)
 
