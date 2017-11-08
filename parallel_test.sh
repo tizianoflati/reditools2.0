@@ -1,6 +1,6 @@
 #!/bin/bash
-#PBS -l select=2:ncpus=68:mpiprocs=68:mem=90GB
-#PBS -l walltime=02:00:00
+#PBS -l select=4:ncpus=68:mpiprocs=68:mem=90GB
+#PBS -l walltime=04:00:00
 #PBS -A cin_staff
 ##PBS -v SAMPLE_ID,OUTPUT_DIR,SOURCE_BAM_FILE,STRAND_FILE
 
@@ -21,12 +21,7 @@ COVERAGE_DIR=$BASE_DIR"/cov/"$SAMPLE_ID"/"
 COVERAGE_FILE=$COVERAGE_DIR$SAMPLE_ID".cov"
 TEMP_DIR=$BASE_DIR"/temp/"$SAMPLE_ID"/"
 
-if [ ! -f $COVERAGE_FILE ]
-then
-	./extract_coverage.sh $SOURCE_BAM_FILE $COVERAGE_DIR
-fi
-
-echo "Launching REDItool on $SAMPLE_ID (output_dir=$OUTPUT_DIR, strand_file=$STRAND_FILE)";
+echo "Launching REDItool on $SAMPLE_ID (output_dir=$OUTPUT_DIR)";
 date
 
 if [ ! -d "$OUTPUT_DIR" ]; then
@@ -34,11 +29,16 @@ if [ ! -d "$OUTPUT_DIR" ]; then
 fi
 
 # Environment setup
-#module load env-knl
 module load python/2.7.12
 source ENV/bin/activate
 module load autoload profile/global
 module load autoload openmpi/1-10.3--gnu--6.1.0
+module load autoload samtools
+
+if [ ! -f $COVERAGE_FILE ]
+then
+        ./extract_coverage.sh $SOURCE_BAM_FILE $COVERAGE_DIR
+fi
 
 # Program launch
 echo "START:"`date`
