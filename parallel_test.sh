@@ -21,6 +21,10 @@ COVERAGE_DIR=$BASE_DIR"/cov/"$SAMPLE_ID"/"
 COVERAGE_FILE=$COVERAGE_DIR$SAMPLE_ID".cov"
 TEMP_DIR=$BASE_DIR"/temp/"$SAMPLE_ID"/"
 
+if [ ! -f $COVERAGE_FILE ]
+then
+	./extract_coverage.sh $SOURCE_BAM_FILE $COVERAGE_DIR
+fi
 
 echo "Launching REDItool on $SAMPLE_ID (output_dir=$OUTPUT_DIR, strand_file=$STRAND_FILE)";
 date
