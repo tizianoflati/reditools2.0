@@ -302,7 +302,7 @@ if __name__ == '__main__':
           
         if not os.path.exists(temp_dir):
             os.makedirs(temp_dir)
- 
+            
         print("Loading chromosomes' sizes!")
         chromosomes = OrderedDict()
         for line in open(size_file):
@@ -379,6 +379,9 @@ if __name__ == '__main__':
         print("FILES TO MERGE (SORTED): ", little_files)
         
         # Open the final output file
+        output_dir = os.path.dirname(output)
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
         final_file = gzip.open(output, "w")
         
         total = len(little_files)
