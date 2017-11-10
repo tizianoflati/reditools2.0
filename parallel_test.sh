@@ -7,10 +7,12 @@
 cd $PBS_O_WORKDIR
 
 BASE_DIR=$CINECA_SCRATCH"/reditools/"
-INPUT_DIR=$BASE_DIR"/input/"
+#INPUT_DIR=$BASE_DIR"/input/"
+INPUT_DIR="/marconi_scratch/userexternal/epicardi/PRJNA231202/SRR1047874/"
 OUTPUT_DIR=$BASE_DIR"/output/"
 
-SAMPLE_ID="SRR1413602"
+#SAMPLE_ID="SRR1413602"
+SAMPLE_ID="SRR1047874"
 SOURCE_BAM_FILE=$INPUT_DIR$SAMPLE_ID".bam"
 
 REFERENCE=$BASE_DIR"hg19.fa"
@@ -37,7 +39,7 @@ module load autoload samtools
 
 if [ ! -f $COVERAGE_FILE ]
 then
-        ./extract_coverage.sh $SOURCE_BAM_FILE $COVERAGE_DIR
+        ./extract_coverage.sh $SOURCE_BAM_FILE $COVERAGE_DIR $SIZE_FILE
 fi
 
 # Program launch
