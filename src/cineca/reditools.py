@@ -691,6 +691,7 @@ def analyze(options):
     
     # Take the time
     tic = datetime.datetime.now()
+    first_tic = tic
     
     total = 0
     
@@ -943,6 +944,7 @@ def analyze(options):
     print("[INFO] TOTAL READS=" + str(total))
     tac = datetime.datetime.now()
     print("[INFO] END=" + str(tac) + "\t["+delta(tac, tic)+"]")
+    print("[INFO] TOTAL END=" + str(tac) + "\t["+delta(tac, first_tic)+"]")
 
 complement_map = {"A":"T", "T":"A", "C":"G", "G":"C"}
 def complement(b):
