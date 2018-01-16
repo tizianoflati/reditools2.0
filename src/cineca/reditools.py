@@ -188,12 +188,12 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
     
     if splice_positions:
         if i in splice_positions[last_chr]:
-            if DEBUG: sys.stderr.write("[DEBUG] [SPLICE_SITE] Discarding position ({}, {}) because in splice site\n".format(last_chr, i))
+            if VERBOSE: sys.stderr.write("[DEBUG] [SPLICE_SITE] Discarding position ({}, {}) because in splice site\n".format(last_chr, i))
             return None
 
     if omopolymeric_positions:
         if i in omopolymeric_positions[last_chr]:
-            if DEBUG:
+            if VERBOSE:
                 sys.stderr.write("[DEBUG] [OMOPOLYMERIC] Discarding position ({}, {}) because omopolymeric\n".format(last_chr, i))
             return None
 
@@ -374,38 +374,38 @@ def filter_read(read):
      
     # Se la read non e' mappata (FLAG 77 o 141)
     if f == 77 or f == 141:
-        if DEBUG: print("[DEBUG] APPLIED FILTER [NOT_MAPPED] f=" + str(f))
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [NOT_MAPPED] f=" + str(f) + "\n")
         return False 
      
     # Se la read non passa i quality controls (FLAG 512)
     if read.is_qcfail:
-        if DEBUG: print("[DEBUG] APPLIED FILTER [QC_FAIL]")
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [QC_FAIL]\n")
         return False
      
     # Se la read ha un MAPQ < di 30
     if read.mapping_quality < MIN_QUALITY:
-        if DEBUG: print("[DEBUG] APPLIED FILTER [MAPQ] " + str(read.mapping_quality) + " MIN="+str(MIN_QUALITY))
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [MAPQ] " + str(read.mapping_quality) + " MIN="+str(MIN_QUALITY) + "\n")
         return False
    
     # Se la read ha una lunghezza < XX
     if read.query_length < MIN_READ_LENGTH:
-        if DEBUG: print("[DEBUG] APPLIED FILTER [MIN_READ_LENGTH] " + str(read.query_length) + " MIN=" + str(MIN_READ_LENGTH))
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [MIN_READ_LENGTH] " + str(read.query_length) + " MIN=" + str(MIN_READ_LENGTH) + "\n")
         return False
  
     # Se la read non mappa in modo unico (FLAG 256 o 2048)
     if read.is_secondary or read.is_supplementary:
-        if DEBUG: print("[DEBUG] APPLIED FILTER [IS_SECONDARY][IS_SUPPLEMENTARY]")
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [IS_SECONDARY][IS_SUPPLEMENTARY]\n")
         return False
      
     # Se la read e' un duplicato di PCR (FLAG 1024)
     if read.is_duplicate:
-        if DEBUG: print("[DEBUG] APPLIED FILTER [IS_DUPLICATE]")
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [IS_DUPLICATE]\n")
         return False
  
     # Se la read e' paired-end ma non mappa in modo proprio (FLAG diversi da 99/147(+-) o 83/163(-+))
     # 99 = 1+2+32+64 = PAIRED+PROPER_PAIR+MREVERSE+READ1 (+-)
     if read.is_paired and not (f == 99 or f == 147 or f == 83 or f == 163):
-        if DEBUG: print("[DEBUG] APPLIED FILTER [NOT_PROPER]")
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [NOT_PROPER]\n")
         return False 
  
     return True
@@ -417,18 +417,18 @@ def filter_base(read):
     
     # Se il carattere e' nelle prime X posizioni della read
     if pos < MIN_BASE_POSITION:
-        if DEBUG: print("[DEBUG] APPLIED BASE FILTER [MIN_BASE_POSITION]")
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED BASE FILTER [MIN_BASE_POSITION]\n")
         return False
     
     # Se il carattere e' nelle ultime Y posizioni della read
     if read["length"] - pos < MAX_BASE_POSITION:
-        if DEBUG: print("[DEBUG] APPLIED BASE FILTER [MAX_BASE_POSITION]")
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED BASE FILTER [MAX_BASE_POSITION]\n")
         return False
     
     # Se la qualita' e' < Q
     # if read["query_qualities"][read["alignment_index"]] < MIN_BASE_QUALITY:
     if read["qual"] < MIN_BASE_QUALITY:
-        if DEBUG: print("[DEBUG] APPLIED BASE FILTER [MIN_BASE_QUALITY]", read["query_qualities"], pos, read["query_qualities"][pos], MIN_BASE_QUALITY, read)
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED BASE FILTER [MIN_BASE_QUALITY]" + " " + str(read["query_qualities"]) + " " + str(pos) + " " + str(read["query_qualities"][pos]) + " " + str(MIN_BASE_QUALITY) + " " + str(read)+ "\n")
         return False
     
     return True
@@ -438,12 +438,12 @@ def filter_column(column, i):
     edits = column["edits"]
     
     if column["mean_quality"] < MIN_QUALITY:
-        if DEBUG: print("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(column) + " [MIN_MEAN_COLUMN_QUALITY]")
+        if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(column) + " [MIN_MEAN_COLUMN_QUALITY]\n")
         return False
     
     # Se il numero di caratteri e' < X
     if len(edits) < MIN_COLUMN_LENGTH:
-        if DEBUG: print("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(len(edits)) + " [MIN_COLUMN_LENGTH]")
+        if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(len(edits)) + " [MIN_COLUMN_LENGTH]\n")
         return False
     
     counter = column["counter"]
@@ -452,17 +452,17 @@ def filter_column(column, i):
     # (per ogni variazione) se singolarmente il numero delle basi che supportano la variazione e' < X
     for edit in counter:
         if edit != ref and counter[edit] < MIN_EDITS_SINGLE:
-            if DEBUG: print("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(counter[edit]) + " [MIN_EDITS_SINGLE]")
+            if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(counter[edit]) + " [MIN_EDITS_SINGLE]\n")
             return False
         
     # Se esistono  multipli cambi rispetto al reference
     if len(counter.keys()) > MAX_CHANGES:
-        if DEBUG: print("[DEBUG] DISCARDING COLUMN i=" + str(i) + " changes=" + str(len(counter.keys())) + " [MULTIPLE_CHANGES] " + str(column))
+        if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i=" + str(i) + " changes=" + str(len(counter.keys())) + " [MULTIPLE_CHANGES] " + str(column) + "\n")
         return False
     
     # Se tutte le sostituzioni sono < Y
     if column["edits_no"] < MIN_EDITS_NO:
-        if DEBUG: print("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(column["edits_no"]) + " [MIN_EDITS_NO]")
+        if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(column["edits_no"]) + " [MIN_EDITS_NO]\n")
         return False
     
     return True
@@ -1006,6 +1006,7 @@ def parse_options():
     parser.add_argument('-d', '--debug', default=False, help='REDItools is run in DEBUG mode.', action='store_true')
     parser.add_argument('-T', '--strand-confidence', default=True, help='Strand inference type 1:maxValue 2:useConfidence [1]; maxValue: the most prominent strand count will be used; useConfidence: strand is assigned if over a prefixed frequency confidence (-TV option)')
     parser.add_argument('-Tv', '--strand-confidence-value', type=float, default=0.7, help='Strand confidence [0.70]')    
+    parser.add_argument('-V', '--verbose', default=False, help='Verbose information in stderr')
     
     
     args = parser.parse_known_args()[0]
@@ -1013,6 +1014,9 @@ def parse_options():
     
     global DEBUG
     DEBUG = args.debug
+    
+    global VERBOSE
+    VERBOSE = args.verbose
     
     bamfile = args.file
     omopolymeric_file = args.omopolymeric_file
