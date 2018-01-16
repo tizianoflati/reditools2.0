@@ -191,10 +191,11 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
             if DEBUG: sys.stderr.write("[DEBUG] [SPLICE_SITE] Discarding position ({}, {}) because in splice site\n".format(last_chr, i))
             return None
 
-    if i in omopolymeric_positions:
-        if DEBUG:
-            sys.stderr.write("[DEBUG] [OMOPOLYMERIC] Discarding position ({}, {}) because omopolymeric\n".format(last_chr, i))
-        return None
+    if omopolymeric_positions:
+        if i in omopolymeric_positions[last_chr]:
+            if DEBUG:
+                sys.stderr.write("[DEBUG] [OMOPOLYMERIC] Discarding position ({}, {}) because omopolymeric\n".format(last_chr, i))
+            return None
 
 #     edits = {"T": [], "A": [], "C": [], "G": [], "N": []}    
     edits_no = 0
@@ -492,6 +493,7 @@ def load_omopolymeric_positions(positions, input_file, region):
             
             fields = line.rstrip().split("\t")
             if chromosome is None or fields[0] == chromosome:
+                chrom = fields[0]
                 f = int(fields[1])
                 t = int(fields[2])
                 
@@ -500,10 +502,13 @@ def load_omopolymeric_positions(positions, input_file, region):
                 
 #                 print("POSITION {} {} {} {} {} {}".format(str(fields), chromosome, f, t, start, end))
                 
+                if chrom not in positions:
+                    positions[chrom] = SortedSet()
+                
                 for i in range(f, t):
-                    positions.add(i)
+                    positions[chrom].add(i)
             elif positions:
-                break 
+                break
             
         reader.close()
     except IOError as e:
@@ -672,7 +677,7 @@ def analyze(options):
     print("Opening BAM file="+bamfile)
     samfile = pysam.AlignmentFile(bamfile, "rb")
     
-    omopolymeric_positions = set()
+    omopolymeric_positions = {}
     if create_omopolymeric_file is True:
         if omopolymeric_file is not None:
             omopolymeric_positions = create_omopolymeric_positions(reference_file, omopolymeric_file)
