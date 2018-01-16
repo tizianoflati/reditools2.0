@@ -374,7 +374,7 @@ def filter_read(read):
      
     # Se la read non e' mappata (FLAG 77 o 141)
     if f == 77 or f == 141:
-        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [NOT_MAPPED] f=" + str(f) + "\n")
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [NOT_MAPPED] f={}\n".format(str(f)))
         return False 
      
     # Se la read non passa i quality controls (FLAG 512)
@@ -384,12 +384,12 @@ def filter_read(read):
      
     # Se la read ha un MAPQ < di 30
     if read.mapping_quality < MIN_QUALITY:
-        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [MAPQ] " + str(read.mapping_quality) + " MIN="+str(MIN_QUALITY) + "\n")
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [MAPQ] {} MIN={}\n".format(read.mapping_quality, MIN_QUALITY))
         return False
    
     # Se la read ha una lunghezza < XX
     if read.query_length < MIN_READ_LENGTH:
-        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [MIN_READ_LENGTH] " + str(read.query_length) + " MIN=" + str(MIN_READ_LENGTH) + "\n")
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [MIN_READ_LENGTH] {} MIN={}\n".format(read.query_length, MIN_READ_LENGTH))
         return False
  
     # Se la read non mappa in modo unico (FLAG 256 o 2048)
@@ -428,7 +428,7 @@ def filter_base(read):
     # Se la qualita' e' < Q
     # if read["query_qualities"][read["alignment_index"]] < MIN_BASE_QUALITY:
     if read["qual"] < MIN_BASE_QUALITY:
-        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED BASE FILTER [MIN_BASE_QUALITY]" + " " + str(read["query_qualities"]) + " " + str(pos) + " " + str(read["query_qualities"][pos]) + " " + str(MIN_BASE_QUALITY) + " " + str(read)+ "\n")
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED BASE FILTER [MIN_BASE_QUALITY] {} {} {} {} {}\n".format(str(read["query_qualities"]), pos, str(read["query_qualities"][pos]), MIN_BASE_QUALITY, read))
         return False
     
     return True
@@ -438,12 +438,12 @@ def filter_column(column, i):
     edits = column["edits"]
     
     if column["mean_quality"] < MIN_QUALITY:
-        if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(column) + " [MIN_MEAN_COLUMN_QUALITY]\n")
+        if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i={} {} [MIN_MEAN_COLUMN_QUALITY]\n".format(i, column))
         return False
     
     # Se il numero di caratteri e' < X
     if len(edits) < MIN_COLUMN_LENGTH:
-        if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(len(edits)) + " [MIN_COLUMN_LENGTH]\n")
+        if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i={} {} [MIN_COLUMN_LENGTH]\n".format(i, len(edits)))
         return False
     
     counter = column["counter"]
@@ -452,17 +452,17 @@ def filter_column(column, i):
     # (per ogni variazione) se singolarmente il numero delle basi che supportano la variazione e' < X
     for edit in counter:
         if edit != ref and counter[edit] < MIN_EDITS_SINGLE:
-            if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(counter[edit]) + " [MIN_EDITS_SINGLE]\n")
+            if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i={} {}[MIN_EDITS_SINGLE]\n".format(i, counter[edit]))
             return False
         
     # Se esistono  multipli cambi rispetto al reference
     if len(counter.keys()) > MAX_CHANGES:
-        if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i=" + str(i) + " changes=" + str(len(counter.keys())) + " [MULTIPLE_CHANGES] " + str(column) + "\n")
+        if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i={} changes={} [MULTIPLE_CHANGES] {}\n".format(i, len(counter.keys()), column))
         return False
     
     # Se tutte le sostituzioni sono < Y
     if column["edits_no"] < MIN_EDITS_NO:
-        if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i=" + str(i) + " " + str(column["edits_no"]) + " [MIN_EDITS_NO]\n")
+        if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i={} {} [MIN_EDITS_NO]\n".format(i, column["edits_no"]))
         return False
     
     return True
@@ -1006,7 +1006,7 @@ def parse_options():
     parser.add_argument('-d', '--debug', default=False, help='REDItools is run in DEBUG mode.', action='store_true')
     parser.add_argument('-T', '--strand-confidence', default=True, help='Strand inference type 1:maxValue 2:useConfidence [1]; maxValue: the most prominent strand count will be used; useConfidence: strand is assigned if over a prefixed frequency confidence (-TV option)')
     parser.add_argument('-Tv', '--strand-confidence-value', type=float, default=0.7, help='Strand confidence [0.70]')    
-    parser.add_argument('-V', '--verbose', default=False, help='Verbose information in stderr')
+    parser.add_argument('-V', '--verbose', default=False, help='Verbose information in stderr', action='store_true')
     
     
     args = parser.parse_known_args()[0]
