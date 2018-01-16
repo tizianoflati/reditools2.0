@@ -14,10 +14,6 @@ import os
 import argparse
 import re
 
-# Options
-DEBUG = False
-
-
 def delta(t2, t1):
     delta = t2 - t1
     hours, remainder = divmod(delta.seconds, 3600)
@@ -29,12 +25,12 @@ def print_reads(reads, i):
     total = 0
     for key in reads:
         total += len(reads[key])
-        print("[INFO] E[i="+str(key)+"]["+str(len(reads[key]))+"]")
+        print("[INFO] E[i="+str(key)+"]["+str(len(reads[key]))+"] strand=" + str(strand))
         for read in reads[key]:
 #             index = read["index"]
             index = read["alignment_index"]
             
-            print("[INFO] \tR:" + str(read["reference"]) + " [pos="+str(read["pos"])+", alignment_index=" + str(index) + ", reference_start="+str(read["object"].reference_start)+" , align_start="+str(read["object"].query_alignment_start) + ", cigar=" + str(read["cigar"])+ ", cigar_list=" + str(read["cigar_list"]) + ", "+ str(len(read["query_qualities"]))+ ", " + str(read["query_qualities"]) + "]")
+            print("[INFO] \tR:" + str(read["reference"]) + " [r1="+str(read["object"].is_read1)+", r2="+str(read["object"].is_read2) +", reverse="+str(read["object"].is_reverse) +", pos="+str(read["pos"])+", alignment_index=" + str(index) + ", reference_start="+str(read["object"].reference_start)+" , align_start="+str(read["object"].query_alignment_start) + ", cigar=" + str(read["cigar"])+ ", cigar_list=" + str(read["cigar_list"]) + ", "+ str(len(read["query_qualities"]))+ ", " + str(read["query_qualities"]) + "]")
             print("[INFO] \tQ:" + str(read["sequence"]))
     print("READS[i="+str(i)+"] = " + str(total))
 
@@ -203,6 +199,7 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
     edits = []
     ref = None
     
+    strand_column = []
     passed= 0
     qualities = []
     for key in reads:
@@ -246,12 +243,17 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
 
             ref = read["ref"].upper()
             alt = read["alt"].upper()
+            
+            # print(read["pos"], ref, alt, strand, strand == 1, read["object"].is_read1, read["object"].is_read2, read["object"].is_reverse )
+            ref, alt = fix_strand(read, ref, alt)
 
             edits.append(alt)
 
             # q = read["query_qualities"][read["alignment_index"]]
             q = read["qual"]
             qualities.append(q)
+            
+            strand_column.append(read["strand"])
             
             if alt != ref:
                 edits_no += 1
@@ -321,8 +323,11 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
         "ref": ref,
         "variants": variants,
         "frequency": ratio,
-        "passed": passed
+        "passed": passed,
+        "strand": ''.join(strand_column)
     }
+    
+#     print(edits_info)
 
     # Check that the column passes the filters
     if not filter_column(edits_info, i): return None
@@ -333,6 +338,17 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
 
     return edits_info;
 
+def fix_strand(read, ref, alt):
+    global strand
+    
+    raw_read = read["object"]
+    
+    if (strand == 1 and ((raw_read.is_read1 and raw_read.is_reverse) or (raw_read.is_read2 and not raw_read.is_reverse))) or (strand == 2 and ((raw_read.is_read1 and not raw_read.is_reverse) or (raw_read.is_read2 and raw_read.is_reverse))):
+        return complement(ref), complement(alt)
+    
+    return ref, alt
+            
+
 def filter_read(read):
     
 #     if DEBUG:
@@ -340,6 +356,18 @@ def filter_read(read):
     
     # Get the flag of the read
     f = read.flag
+     
+#     if strict_mode:
+#         MD = read.get_tag("MD")
+# #         print(MD, read.get_reference_sequence(), read.reference_start)
+# #         MD = MD.split(":")[1]
+#         try:
+#             MD_value = int(MD)
+# #             print("SKIPPING", MD_value, read.query_sequence, read.reference_start)
+#             return True
+#         except ValueError:
+# #             print("NO MD VALUE")
+#             pass
      
     # Se la read non e' mappata (FLAG 77 o 141)
     if f == 77 or f == 141:
@@ -668,8 +696,6 @@ def analyze(options):
     
     reads = dict()
     
-    strand = 2
-    
     print("Selected region=" + str(region))
     
     outputfile = None
@@ -758,6 +784,29 @@ def analyze(options):
     #                 print(pos)
     #                 print(read.query_qualities)
                 
+                t = "*"
+                if read.is_read1:
+                    if strand == 1:
+                        if read.is_reverse: t='-'
+                        else: t='+'
+                    else:
+                        if read.is_reverse: t='+'
+                        else: t='-'
+                elif read.is_read2:
+                    if strand == 2:
+                        if read.is_reverse: t='-'
+                        else: t='+'
+                    else:
+                        if read.is_reverse: t='+'
+                        else: t='-'
+                else: # for single ends
+                    if strand == 1:
+                        if read.is_reverse: t='-'
+                        else: t='+'
+                    else:
+                        if read.is_reverse: t='+'
+                        else: t='-'                        
+                
                 item = {
     #                     "index": 0,
                         "pos": read.reference_start - 1,
@@ -775,7 +824,8 @@ def analyze(options):
                         "query_qualities": read.query_qualities,
                         "qualities_len": len(read.query_qualities),
                         "length": read.query_length,
-                        "cigar": read.cigarstring
+                        "cigar": read.cigarstring,
+                        "strand": t
                      }
     
                 cigar_list = [[int(c), op] for (c, op) in re.findall('(\d+)(.)', item["cigar"])]
@@ -845,18 +895,25 @@ def analyze(options):
                 print(column)
                 print_reads(reads, i)
             
-            if column is not None and within_interval(i, region):
+            if column is not None and within_interval(i, region) and not (strict_mode and column["non_zero"] == 0):
+                
+                vstrand = vstand(column["strand"])
+                if vstrand == "+": vstrand = 1
+                elif vstrand == "-": vstrand = 0
+                elif vstrand == "*": vstrand = 2
+                
                 # head='Region\tPosition\tReference\tStrand\tCoverage-q%i\tMeanQ\tBaseCount[A,C,G,T]\t
                 #       AllSubs\tFrequency\t
                 #       gCoverage-q%i\tgMeanQ\tgBaseCount[A,C,G,T]\tgAllSubs\tgFrequency\n' %(MQUAL,gMQUAL)
                 # cov,bcomp,subs,freq=BaseCount(seq,ref,MINIMUM_EDITS_FREQUENCY,MIN_EDITS_SINGLE)
                 # mqua=meanq(qual,len(seq))
                 # line='\t'.join([chr,str(pileupcolumn.pos+1),ref,mystrand,str(cov),mqua,str(bcomp),subs,freq]+['-','-','-','-','-'])+'\n'
+                # [A,C,G,T]
                 writer.write("\t".join([
                     last_chr,
                     str(i),
                     column["ref"],
-                    str(strand),
+                    str(vstrand),
                     str(column["passed"]),
                     "{0:.2f}".format(column["mean_quality"]),
                     str(column["distribution"]),
@@ -887,30 +944,60 @@ def analyze(options):
     tac = datetime.datetime.now()
     print("[INFO] END=" + str(tac) + "\t["+delta(tac, tic)+"]")
 
+complement_map = {"A":"T", "T":"A", "C":"G", "G":"C"}
+def complement(b):
+    return complement_map[b]
+
+def complement_all(sequence):
+    return ''.join([complement_map[l] for l in sequence])
+
+def prop(tot,va):
+    try: av=float(va)/tot
+    except: av=0.0
+    return av
+
+def vstand(strand): # strand='+-+-+-++++++-+++'
+    
+    vv=[(strand.count('+'),'+'),(strand.count('-'),'-'),(strand.count('*'),'*')]
+    if vv[0][0]==0 and vv[1][0]==0: return '*'
+    if use_strand_confidence: #flag che indica se usare il criterio 2, altrimenti usa il criterio 1
+        totvv=sum([x[0] for x in vv[:2]])
+        if prop(totvv,vv[0][0])>=strand_confidence_value: return '+' # strand_confidence_value e' il valore soglia, compreso tra 0 e 1, default 0.7
+        if prop(totvv,vv[1][0])>=strand_confidence_value: return '-'
+        return '*'
+    else:
+        if vv[0][0]==vv[1][0] and vv[2][0]==0: return '+'
+        return max(vv)[1]
+
 def parse_options():
     
     # Options parsing
     parser = argparse.ArgumentParser(description='REDItools 2.0')
     parser.add_argument('-f', '--file', help='The bam file to be analyzed')
     parser.add_argument('-o', '--output-file', help='The output statistics file')
+    parser.add_argument('-S', '--strict', default=False, action='store_true', help='Activate strict mode: only sites with edits will be included in the output')
+    parser.add_argument('-t', '--strand', type=int, default=0, help='Strand: this can be 0 (unstranded), 1 (secondstrand oriented) or 2 (firststrand oriented)')
     parser.add_argument('-a', '--append-file', action='store_true', help='Appends results to file (and creates if not existing)')
     parser.add_argument('-r', '--reference', help='The reference FASTA file')
     parser.add_argument('-g', '--region', help='The region of the bam file to be analyzed')
     parser.add_argument('-m', '--omopolymeric-file', help='The file containing the omopolymeric positions')
     parser.add_argument('-c', '--create-omopolymeric-file', default=False, help='Whether to create the omopolymeric span', action='store_true')
-    parser.add_argument('-os', '--omopolymeric-span', default=5, help='The omopolymeric span')
+    parser.add_argument('-os', '--omopolymeric-span', type=int, default=5, help='The omopolymeric span')
     parser.add_argument('-s', '--splicing-file', help='The file containing the splicing sites positions')
-    parser.add_argument('-sp', '--splicing-span', default=5, help='The splicing span')
-    parser.add_argument('-mrl', '--min-read-length', default=30, help='The minimum read length. Reads whose length is below this value will be discarded.')
-    parser.add_argument('-q', '--min-read-quality', default=20, help='The minimum read quality. Reads whose mapping quality is below this value will be discarded.')
-    parser.add_argument('-bq', '--min-base-quality', default=30, help='The minimum base quality. Bases whose quality is below this value will not be included in the analysis.')
-    parser.add_argument('-mbp', '--min-base-position', default=6, help='The minimum base position. Bases which reside in a previous position (in the read) will not be included in the analysis.')
-    parser.add_argument('-Mbp', '--max-base-position', default=6, help='The maximum base position. Bases which reside in a further position (in the read) will not be included in the analysis.')
-    parser.add_argument('-l', '--min-column-length', default=1, help='The minimum length of editing column (per position). Positions whose columns have length below this value will not be included in the analysis.')
-    parser.add_argument('-men', '--min-edits-per-nucletide', default=1, help='The minimum number of editing for events each nucletide (per position). Positions whose columns have bases with less than min-edits-per-base edits will not be included in the analysis.')
-    parser.add_argument('-me', '--min-edits', default=0, help='The minimum number of editing events (per position). Positions whose columns have bases with less than \'min-edits-per-base edits\' will not be included in the analysis.')    
-    parser.add_argument('-Men', '--max-editing-nucletides', default=100, help='The maximum number of editing nucleotides, from 0 to 4 (per position). Positions whose columns have more than \'max-editing-nucletides\' will not be included in the analysis.')
-    parser.add_argument('-d', '--debug', default=False, help='REDItools is run in DEBUG mode.', action='store_false')
+    parser.add_argument('-sp', '--splicing-span', type=int, default=4, help='The splicing span')
+    parser.add_argument('-mrl', '--min-read-length', type=int, default=30, help='The minimum read length. Reads whose length is below this value will be discarded.')
+    parser.add_argument('-q', '--min-read-quality', type=int, default=20, help='The minimum read quality. Reads whose mapping quality is below this value will be discarded.')
+    parser.add_argument('-bq', '--min-base-quality', type=int, default=30, help='The minimum base quality. Bases whose quality is below this value will not be included in the analysis.')
+    parser.add_argument('-mbp', '--min-base-position', type=int, default=0, help='The minimum base position. Bases which reside in a previous position (in the read) will not be included in the analysis.')
+    parser.add_argument('-Mbp', '--max-base-position', type=int, default=0, help='The maximum base position. Bases which reside in a further position (in the read) will not be included in the analysis.')
+    parser.add_argument('-l', '--min-column-length', type=int, default=1, help='The minimum length of editing column (per position). Positions whose columns have length below this value will not be included in the analysis.')
+    parser.add_argument('-men', '--min-edits-per-nucletide', type=int, default=1, help='The minimum number of editing for events each nucletide (per position). Positions whose columns have bases with less than min-edits-per-base edits will not be included in the analysis.')
+    parser.add_argument('-me', '--min-edits', type=int, default=0, help='The minimum number of editing events (per position). Positions whose columns have bases with less than \'min-edits-per-base edits\' will not be included in the analysis.')    
+    parser.add_argument('-Men', '--max-editing-nucletides', type=int, default=100, help='The maximum number of editing nucleotides, from 0 to 4 (per position). Positions whose columns have more than \'max-editing-nucletides\' will not be included in the analysis.')
+    parser.add_argument('-d', '--debug', default=False, help='REDItools is run in DEBUG mode.', action='store_true')
+    parser.add_argument('-T', '--strand-confidence', default=True, help='Strand inference type 1:maxValue 2:useConfidence [1]; maxValue: the most prominent strand count will be used; useConfidence: strand is assigned if over a prefixed frequency confidence (-TV option)')
+    parser.add_argument('-Tv', '--strand-confidence-value', type=float, default=0.7, help='Strand confidence [0.70]')    
+    
     
     args = parser.parse_known_args()[0]
     print(args)
@@ -927,6 +1014,18 @@ def parse_options():
     reference_file = args.reference
     output = args.output_file
     append = args.append_file
+    
+    global strict_mode
+    strict_mode = args.strict
+    
+    global strand
+    strand = args.strand
+    
+    global use_strand_confidence
+    use_strand_confidence = bool(args.strand_confidence)
+    
+    global strand_confidence_value
+    strand_confidence_value = float(args.strand_confidence_value)
     
     splicing_file = args.splicing_file
     global SPLICING_SPAN
