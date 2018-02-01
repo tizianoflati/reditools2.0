@@ -546,6 +546,9 @@ def load_omopolymeric_positions(positions, input_file, region):
             start = region[1]
         if len(region) >= 3:
             end = region[2]
+            
+    lines_read = 0
+    total = 0
     
     try:
         reader = open(input_file, "r")
@@ -553,6 +556,10 @@ def load_omopolymeric_positions(positions, input_file, region):
         for line in reader:
             if line.startswith("#"):
                 continue
+            
+            lines_read += 1
+            if lines_read % 500000 == 0:
+                sys.stderr.write("{} lines read.\n".format(lines_read))
             
             fields = line.rstrip().split("\t")
             if chromosome is None or fields[0] == chromosome:
@@ -570,6 +577,8 @@ def load_omopolymeric_positions(positions, input_file, region):
                 
                 for i in range(f, t):
                     positions[chrom].add(i)
+                    total += 1
+                    
             elif positions:
                 break
             
@@ -580,7 +589,7 @@ def load_omopolymeric_positions(positions, input_file, region):
     if not positions:
         sys.stderr.write("Omopolymeric positions file at {} seems to be empty!\n".format(input_file))
     else:
-        sys.stderr.write("{} total omopolymeric positions found.\n".format(len(positions)))
+        sys.stderr.write("{} total omopolymeric positions found.\n".format(total))
 
 def load_chromosome_names(index_file):
     names = []
