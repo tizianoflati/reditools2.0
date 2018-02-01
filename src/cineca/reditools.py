@@ -16,6 +16,8 @@ import os
 import argparse
 import re
 
+DEBUG = False
+
 def delta(t2, t1):
     delta = t2 - t1
     hours, remainder = divmod(delta.seconds, 3600)
@@ -175,7 +177,7 @@ def update_reads(reads, i):
                     
                     read["reference_index"] += n
 
-                    read["pos"] += n                    
+                    read["pos"] += n
 #                     read["alignment_index"] += 1
                     read["ref"] = None
                     # read["ref"] = read["reference"][read["reference_index"]]
@@ -188,7 +190,8 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
     
     if splice_positions:
         if i in splice_positions[last_chr]:
-            if VERBOSE: sys.stderr.write("[DEBUG] [SPLICE_SITE] Discarding position ({}, {}) because in splice site\n".format(last_chr, i))
+            if VERBOSE:
+                sys.stderr.write("[DEBUG] [SPLICE_SITE] Discarding position ({}, {}) because in splice site\n".format(last_chr, i))
             return None
 
     if omopolymeric_positions:
@@ -202,14 +205,15 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
     edits = []
     ref = None
     
+    r1r2distribution = Counter()
+    
     strand_column = []
-    passed= 0
     qualities = []
     for key in reads:
         for read in reads[key]:
             
-#             if DEBUG:
-#                 print("GET_COLUMN    i="+str(i) + " READ=" + str(read))
+            if DEBUG:
+                print("GET_COLUMN  Q_NAME="+ str(read["object"].query_name)+ " READ1=" + str(read["object"].is_read1) + " REVERSE=" + str(read["object"].is_reverse) + " i="+str(i) + " READ=" + str(read))
             
             # Filter the reads by positions
             if not filter_base(read):
@@ -239,7 +243,7 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
                     print("[INVALID] SKIPPING READ i=" + str(i) + " BECAUSE ALT is None", read)
                 continue
             
-            passed += 1
+#             passed += 1
             
 #             if passed > 8000:
 #                 break
@@ -247,8 +251,14 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
             ref = read["ref"].upper()
             alt = read["alt"].upper()
             
+            if DEBUG:
+                print("\tBEF={} {}".format(ref, alt))
+            
             # print(read["pos"], ref, alt, strand, strand == 1, read["object"].is_read1, read["object"].is_read2, read["object"].is_reverse )
-            ref, alt = fix_strand(read, ref, alt)
+            #ref, alt = fix_strand(read, ref, alt)
+
+            if DEBUG:
+                print("\tLAT={} {}".format(ref, alt))
 
             edits.append(alt)
 
@@ -257,10 +267,40 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
             qualities.append(q)
             
             strand_column.append(read["strand"])
+#             strand_column.append(get_strand(read))
             
             if alt != ref:
                 edits_no += 1
-            
+                
+            r1r2distribution[("R1" if read["object"].is_read1 else "R2") + ("-REV" if read["object"].is_reverse else "")] += 1
+    
+    vstrand = vstand(''.join(strand_column))
+    if vstrand == "+": vstrand = 1
+    elif vstrand == "-": vstrand = 0
+    elif vstrand == "*": vstrand = 2
+    
+#     if(vstrand == 0): ref = complement(ref)
+    
+    if DEBUG:
+        print(r1r2distribution)
+        print(vstrand, ''.join(strand_column))
+        print(Counter(edits))
+    
+#     if i == 62996785:
+#         print(edits, strand_column, len(qualities), qualities)
+    
+    if vstrand == 0:
+        edits = complement_all(edits)
+        ref = complement(ref)
+    
+    if vstrand in [0, 1] and strand_correction:
+        edits, strand_column, qualities, qualities_positions = normByStrand(edits, strand_column, qualities, vstrand)
+    
+#     if i == 62996785:
+#         print(edits, strand_column, len(qualities), qualities)
+    
+    passed = len(edits)
+    
     counter = Counter(edits)
     mean_q = 0
     if DEBUG:
@@ -275,6 +315,8 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
     #    return None
     
     if len(counter) == 0:
+        if VERBOSE:
+            sys.stderr.write("[VERBOSE] [EMPTY] Discarding position ({}, {}) because the associated counter is empty\n".format(last_chr, i))
         return None
     
     # [A,C,G,T]
@@ -315,7 +357,7 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
 #         print("REF COUNT=" + str(ref_count))
 #         print("ALT/REF % = " + str(ratio))
 #         raw_input("Press a key:")
-    
+
     edits_info = {
         "edits": edits,
         "distribution": distribution,
@@ -327,7 +369,7 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
         "variants": variants,
         "frequency": ratio,
         "passed": passed,
-        "strand": ''.join(strand_column)
+        "strand": vstrand
     }
     
 #     print(edits_info)
@@ -341,16 +383,37 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
 
     return edits_info;
 
-def fix_strand(read, ref, alt):
+def normByStrand(seq_, strand_, squal_, mystrand_):
+    
+    st='+'
+    if mystrand_== 0: st='-'
+    seq,strand,qual,squal=[],[],[],''
+    for i in range(len(seq_)):
+        if strand_[i]==st:
+            seq.append(seq_[i])
+            strand.append(strand_[i])
+            qual.append(squal_[i])
+            squal+=chr(squal_[i])
+    return seq,strand,qual,squal
+
+# def fix_strand(read, ref, alt):
+#     global strand
+#     
+#     raw_read = read["object"]
+#     
+#     if (strand == 1 and ((raw_read.is_read1 and raw_read.is_reverse) or (raw_read.is_read2 and not raw_read.is_reverse))) or (strand == 2 and ((raw_read.is_read1 and not raw_read.is_reverse) or (raw_read.is_read2 and raw_read.is_reverse))):
+#         return ref, complement(alt)
+#     
+#     return ref, alt
+def get_strand(read):
     global strand
     
     raw_read = read["object"]
     
     if (strand == 1 and ((raw_read.is_read1 and raw_read.is_reverse) or (raw_read.is_read2 and not raw_read.is_reverse))) or (strand == 2 and ((raw_read.is_read1 and not raw_read.is_reverse) or (raw_read.is_read2 and raw_read.is_reverse))):
-        return complement(ref), complement(alt)
+        return "-"
     
-    return ref, alt
-            
+    return "+"            
 
 def filter_read(read):
     
@@ -662,6 +725,7 @@ def within_interval(i, region):
 def analyze(options):
     
     global DEBUG
+    global activate_debug
     
     bamfile = options["bamfile"]
     region = options["region"]
@@ -704,8 +768,6 @@ def analyze(options):
     
     reads = dict()
     
-    print("Selected region=" + str(region))
-    
     outputfile = None
     
     if output is not None:
@@ -721,9 +783,12 @@ def analyze(options):
     if outputfile.endswith("gz"): writer = gzip.open(outputfile, mode)
     else: writer = open(outputfile, mode)
     
+    writer.write("\t".join(["Region", "Position", "Reference", "Strand", "Coverage-q30", "MeanQ", "BaseCount[A,C,G,T]", "AllSubs", "Frequency", "gCoverage-q30", "gMeanQ", "gBaseCount[A,C,G,T]", "gAllSubs", "gFrequency"]) + "\n")
+    
     # Open the iterator
     print("[INFO] Fetching data from bam {}".format(bamfile))
     print("[INFO] Narrowing REDItools to region {}".format(region))
+    sys.stdout.flush()
     
     iterator = init(samfile, region)
     
@@ -731,21 +796,22 @@ def analyze(options):
     if next_read is not None:
         next_pos = next_read.get_reference_positions()
         i = next_pos[0]
-        last_chr = next_read.reference_name
+        
         total += 1
         
         read = None
         pos = None
+        last_chr = None
         finished = False
         
-        DEBUG_START = -1
-        DEBUG_END = -1
+        DEBUG_START = region[1] if region is not None and len(region) > 1 else -1 
+        DEBUG_END = region[2] if region is not None and len(region) > 2 else -1
         STOP = -1
         
         while not finished:
         
-            if DEBUG_START > 0 and i >= DEBUG_START: DEBUG = True
-            if DEBUG_END > 0 and i >= DEBUG_END: DEBUG = False
+            if activate_debug and DEBUG_START > 0 and i >= DEBUG_START: DEBUG = True
+            if activate_debug and DEBUG_END > 0 and i >= DEBUG_END: DEBUG = False
             if STOP > 0 and i > STOP: break
         
             if next_read is LAST_READ and len(reads) == 0:
@@ -757,13 +823,22 @@ def analyze(options):
             if len(reads) == 0:
                 # print("[INFO] READ SET IS EMPTY. JUMP TO "+str(next_read.get_reference_positions()[0])+"!")
                 i = next_pos[0]
-                       
+            
             # Get all the next read(s)
-            while next_read is not LAST_READ and (next_pos[0] == i or next_pos[-1] == i):
+            while next_read is not LAST_READ and (next_pos[0] == i or next_pos[-1] == i): # TODO: why next_pos[-1] == i?
             
                 read = next_read
                 pos = next_pos
-    
+                
+                # When changing chromosome print some statistics
+                if read is not LAST_READ and read.reference_name != last_chr:
+                    tac = datetime.datetime.now()
+                    print("[INFO] REFERENCE NAME=" + read.reference_name + " (" + str(tac) + ")\t["+delta(tac, tic)+"]")
+                    sys.stdout.flush()
+                    tic = tac
+
+                last_chr = read.reference_name
+                
                 next_read = next(iterator, LAST_READ)
                 if next_read is not LAST_READ:
                     total += 1
@@ -771,6 +846,7 @@ def analyze(options):
                     
                     if total % LOG_INTERVAL == 0:
                         print("["+last_chr+"] Total reads loaded: " + str(total) + " ["+str(datetime.datetime.now())+"]")
+                        sys.stdout.flush()
                     
                 #print("[INFO] Adding a read to the set=" + str(read.get_reference_positions()))            
                 
@@ -905,11 +981,6 @@ def analyze(options):
             
             if column is not None and within_interval(i, region) and not (strict_mode and column["non_zero"] == 0):
                 
-                vstrand = vstand(column["strand"])
-                if vstrand == "+": vstrand = 1
-                elif vstrand == "-": vstrand = 0
-                elif vstrand == "*": vstrand = 2
-                
                 # head='Region\tPosition\tReference\tStrand\tCoverage-q%i\tMeanQ\tBaseCount[A,C,G,T]\t
                 #       AllSubs\tFrequency\t
                 #       gCoverage-q%i\tgMeanQ\tgBaseCount[A,C,G,T]\tgAllSubs\tgFrequency\n' %(MQUAL,gMQUAL)
@@ -921,7 +992,7 @@ def analyze(options):
                     last_chr,
                     str(i),
                     column["ref"],
-                    str(vstrand),
+                    str(column["strand"]),
                     str(column["passed"]),
                     "{0:.2f}".format(column["mean_quality"]),
                     str(column["distribution"]),
@@ -930,20 +1001,11 @@ def analyze(options):
                     "\t".join(['-','-','-','-','-'])
                     ]) + "\n")
                 # writer.flush()
+            elif VERBOSE:
+                sys.stderr.write("[VERBOSE] [NOPRINT] Not printing position ({}, {}) WITHIN_INTERVAL={} STRICT_MODE={} COLUMN={}\n".format(last_chr, i, within_interval(i, region), strict_mode, column))
             
             # Remove old reads
             reads.pop(i-1, None)
-            
-            # When changing chromosome print some statistics
-            if read.reference_name != last_chr:
-                last_chr = read.reference_name
-                
-                # if last_chr == "chr2": break
-        
-                # Take the time
-                tac = datetime.datetime.now()
-                print("[INFO] REFERENCE NAME=" + last_chr + " (" + str(tac) + ")\t["+delta(tac, tic)+"]")
-                tic = tac
     
     samfile.close()
     writer.close()
@@ -1004,7 +1066,8 @@ def parse_options():
     parser.add_argument('-me', '--min-edits', type=int, default=0, help='The minimum number of editing events (per position). Positions whose columns have bases with less than \'min-edits-per-base edits\' will not be included in the analysis.')    
     parser.add_argument('-Men', '--max-editing-nucletides', type=int, default=100, help='The maximum number of editing nucleotides, from 0 to 4 (per position). Positions whose columns have more than \'max-editing-nucletides\' will not be included in the analysis.')
     parser.add_argument('-d', '--debug', default=False, help='REDItools is run in DEBUG mode.', action='store_true')
-    parser.add_argument('-T', '--strand-confidence', default=True, help='Strand inference type 1:maxValue 2:useConfidence [1]; maxValue: the most prominent strand count will be used; useConfidence: strand is assigned if over a prefixed frequency confidence (-TV option)')
+    parser.add_argument('-T', '--strand-confidence', default=1, help='Strand inference type 1:maxValue 2:useConfidence [1]; maxValue: the most prominent strand count will be used; useConfidence: strand is assigned if over a prefixed frequency confidence (-TV option)')
+    parser.add_argument('-C', '--strand-correction', default=False, help='Strand correction. Once the strand has been inferred, only bases according to this strand will be selected.', action='store_true')
     parser.add_argument('-Tv', '--strand-confidence-value', type=float, default=0.7, help='Strand confidence [0.70]')    
     parser.add_argument('-V', '--verbose', default=False, help='Verbose information in stderr', action='store_true')
     
@@ -1012,8 +1075,8 @@ def parse_options():
     args = parser.parse_known_args()[0]
     print(args)
     
-    global DEBUG
-    DEBUG = args.debug
+    global activate_debug
+    activate_debug = args.debug
     
     global VERBOSE
     VERBOSE = args.verbose
@@ -1033,6 +1096,9 @@ def parse_options():
     
     global strand
     strand = args.strand
+    
+    global strand_correction
+    strand_correction = args.strand_correction
     
     global use_strand_confidence
     use_strand_confidence = bool(args.strand_confidence)
