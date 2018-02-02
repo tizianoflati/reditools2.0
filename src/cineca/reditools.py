@@ -274,20 +274,12 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
                 
             r1r2distribution[("R1" if read["object"].is_read1 else "R2") + ("-REV" if read["object"].is_reverse else "")] += 1
     
-    vstrand = vstand(''.join(strand_column))
-    if vstrand == "+": vstrand = 1
-    elif vstrand == "-": vstrand = 0
-    elif vstrand == "*": vstrand = 2
-    
-#     if(vstrand == 0): ref = complement(ref)
-    
-    if DEBUG:
-        print(r1r2distribution)
-        print(vstrand, ''.join(strand_column))
-        print(Counter(edits))
-    
-#     if i == 62996785:
-#         print(edits, strand_column, len(qualities), qualities)
+    vstrand = 2
+    if strand != 0:
+        vstrand = vstand(''.join(strand_column))
+        if vstrand == "+": vstrand = 1
+        elif vstrand == "-": vstrand = 0
+        elif vstrand == "*": vstrand = 2
     
     if vstrand == 0:
         edits = complement_all(edits)
@@ -295,6 +287,11 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
     
     if vstrand in [0, 1] and strand_correction:
         edits, strand_column, qualities, qualities_positions = normByStrand(edits, strand_column, qualities, vstrand)
+    
+    if DEBUG:
+        print(r1r2distribution)
+        print(vstrand, ''.join(strand_column))
+        print(Counter(edits))
     
 #     if i == 62996785:
 #         print(edits, strand_column, len(qualities), qualities)
