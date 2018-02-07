@@ -547,6 +547,8 @@ def load_omopolymeric_positions(positions, input_file, region):
     lines_read = 0
     total = 0
     
+    print("Loading omopolymeric positions of {} between {} and {}".format(chromosome, start, end))
+    
     try:
         reader = open(input_file, "r")
         
@@ -581,12 +583,12 @@ def load_omopolymeric_positions(positions, input_file, region):
             
         reader.close()
     except IOError as e:
-        sys.stderr.write("Omopolymeric positions file not found at {}. Error: {}\n".format(input_file, e))
+        sys.stderr.write("[{}] Omopolymeric positions file not found at {}. Error: {}\n".format(region, input_file, e))
     
     if not positions:
-        sys.stderr.write("Omopolymeric positions file at {} seems to be empty!\n".format(input_file))
+        sys.stderr.write("[{}] Omopolymeric positions file at {} seems to be empty!\n".format(region, input_file))
     else:
-        sys.stderr.write("{} total omopolymeric positions found.\n".format(total))
+        sys.stderr.write("[{}] {} total omopolymeric positions found.\n".format(region, total))
 
 def load_chromosome_names(index_file):
     names = []
@@ -800,13 +802,14 @@ def analyze(options):
     
     next_read = next(iterator, LAST_READ)
     if next_read is not None:
-        next_pos = next_read.get_reference_positions()
-        i = next_pos[0]
+#         next_pos = next_read.get_reference_positions()
+#         i = next_pos[0]
+        i = next_read.reference_start
         
         total += 1
         
         read = None
-        pos = None
+#         pos = None
         last_chr = None
         finished = False
         
@@ -827,14 +830,19 @@ def analyze(options):
         
             # Jump if we consumed all the reads
             if len(reads) == 0:
-                # print("[INFO] READ SET IS EMPTY. JUMP TO "+str(next_read.get_reference_positions()[0])+"!")
-                i = next_pos[0]
+                i = next_read.reference_start
+#                 print("[INFO] READ SET IS EMPTY. JUMP TO "+str(next_pos[0])+"!")
+#                 if len(next_pos) == 0: i = next_read.reference_start
+#                 else: i = next_pos[0]
+            
+#             print("P1", next_read.query_name, next_pos)
             
             # Get all the next read(s)
-            while next_read is not LAST_READ and (next_pos[0] == i or next_pos[-1] == i): # TODO: why next_pos[-1] == i?
+            #while next_read is not LAST_READ and (len(next_pos) > 0 and (next_pos[0] == i or next_pos[-1] == i)): # TODO: why or next_pos[-1] == i?
+            while next_read is not LAST_READ and next_read.reference_start == i:
             
                 read = next_read
-                pos = next_pos
+#                 pos = next_pos
                 
                 # When changing chromosome print some statistics
                 if read is not LAST_READ and read.reference_name != last_chr:
@@ -848,11 +856,13 @@ def analyze(options):
                 next_read = next(iterator, LAST_READ)
                 if next_read is not LAST_READ:
                     total += 1
-                    next_pos = next_read.get_reference_positions()
+#                     next_pos = next_read.get_reference_positions()
                     
                     if total % LOG_INTERVAL == 0:
                         print("["+last_chr+"] Total reads loaded: " + str(total) + " ["+str(datetime.datetime.now())+"]")
                         sys.stdout.flush()
+                
+#                 print("P2", next_read.query_name, next_read.get_reference_positions())
                     
                 #print("[INFO] Adding a read to the set=" + str(read.get_reference_positions()))            
                 
@@ -909,7 +919,7 @@ def analyze(options):
                         "reference": ref_seq,
                         "reference_len": len(ref_seq),
                         "sequence": read.query_sequence,
-                        "positions": pos,
+#                         "positions": pos,
                         "chromosome": read.reference_name,
                         "query_qualities": read.query_qualities,
                         "qualities_len": len(read.query_qualities),
@@ -953,7 +963,7 @@ def analyze(options):
     #             print(read.reference_name, i)
     #             raw_input("Press enter to continue...")
                 
-                end_position = pos[-1]
+                end_position = read.reference_end #pos[-1]
                 if end_position not in reads:
                     reads[end_position] = []
                     

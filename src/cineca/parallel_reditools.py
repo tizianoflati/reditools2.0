@@ -294,10 +294,10 @@ if __name__ == '__main__':
             elapsed = time.time() - start_intervals
             print("[MPI] [0] COVERAGE RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [#intervals: {}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, len(homeworks), done, total, 100 * float(done)/total, queue))
   
-        print("[MPI] [0] FINISHED CALCULATING INTERVALS")
+        print("[MPI] [0] FINISHED CALCULATING INTERVALS [{}]".format(time.time()))
         done = 0
   
-        print("[MPI] [0] REDItools STARTED")
+        print("[MPI] [0] REDItools STARTED [{}]".format(time.time()))
         print("[MPI] [0] MPI SIZE: " + str(size))
           
         if not os.path.exists(temp_dir):
