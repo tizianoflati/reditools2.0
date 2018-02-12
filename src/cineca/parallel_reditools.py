@@ -166,7 +166,7 @@ if __name__ == '__main__':
     options = reditools.parse_options()
     
     parser = argparse.ArgumentParser(description='REDItools 2.0')
-    parser.add_argument('-C', '--coverage-file', help='The coverage file of the sample to analyze')
+    parser.add_argument('-G', '--coverage-file', help='The coverage file of the sample to analyze')
     parser.add_argument('-D', '--coverage-dir', help='The coverage directory containing the coverage file of the sample to analyze divided by chromosome')
     parser.add_argument('-t', '--temp-dir', help='The temp directory where to store temporary data for this sample')
     parser.add_argument('-S', '--chromosome-sizes', help='The file with the chromosome sizes')

@@ -212,18 +212,20 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
     for key in reads:
         for read in reads[key]:
             
-            if DEBUG:
-                print("GET_COLUMN  Q_NAME="+ str(read["object"].query_name)+ " READ1=" + str(read["object"].is_read1) + " REVERSE=" + str(read["object"].is_reverse) + " i="+str(i) + " READ=" + str(read))
+#             if DEBUG:
+#                 print("GET_COLUMN  Q_NAME="+ str(read["object"].query_name)+ " READ1=" + str(read["object"].is_read1) + " REVERSE=" + str(read["object"].is_reverse) + " i="+str(i) + " READ=" + str(read))
             
             # Filter the reads by positions
             if not filter_base(read):
-                
                 continue
 #             elif read["positions"][read["index"]] != i:
             elif read["pos"] != i:
                 if DEBUG:
                     print("[OUT_OF_RANGE] SKIPPING READ i=" + str(i) + " but READ=" + str(read["pos"]))
                 continue
+            
+            if DEBUG:
+                print("GET_COLUMN  Q_NAME="+ str(read["object"].query_name)+ " READ1=" + str(read["object"].is_read1) + " REVERSE=" + str(read["object"].is_reverse) + " i="+str(i) + " READ=" + str(read))
             
 #             j = read["alignment_index"]
 #             if DEBUG:
@@ -791,7 +793,8 @@ def analyze(options):
     if outputfile.endswith("gz"): writer = gzip.open(outputfile, mode)
     else: writer = open(outputfile, mode)
     
-    writer.write("\t".join(["Region", "Position", "Reference", "Strand", "Coverage-q30", "MeanQ", "BaseCount[A,C,G,T]", "AllSubs", "Frequency", "gCoverage-q30", "gMeanQ", "gBaseCount[A,C,G,T]", "gAllSubs", "gFrequency"]) + "\n")
+    if not remove_header:
+        writer.write("\t".join(["Region", "Position", "Reference", "Strand", "Coverage-q30", "MeanQ", "BaseCount[A,C,G,T]", "AllSubs", "Frequency", "gCoverage-q30", "gMeanQ", "gBaseCount[A,C,G,T]", "gAllSubs", "gFrequency"]) + "\n")
     
     # Open the iterator
     print("[INFO] Fetching data from bam {}".format(bamfile))
@@ -819,7 +822,7 @@ def analyze(options):
         
         while not finished:
         
-            if activate_debug and DEBUG_START > 0 and i >= DEBUG_START: DEBUG = True
+            if activate_debug and DEBUG_START > 0 and i >= DEBUG_START-1: DEBUG = True
             if activate_debug and DEBUG_END > 0 and i >= DEBUG_END: DEBUG = False
             if STOP > 0 and i > STOP: break
         
@@ -972,9 +975,9 @@ def analyze(options):
                 reads[end_position].append(item)
                 
             # Debug purposes
-            if DEBUG:
-                print("BEFORE UPDATE (i="+str(i)+"):")
-                print_reads(reads, i)
+#             if DEBUG:
+#                 print("BEFORE UPDATE (i="+str(i)+"):")
+#                 print_reads(reads, i)
         
             update_reads(reads, i)
             
@@ -982,18 +985,18 @@ def analyze(options):
             
             # Debug purposes
             if DEBUG:
-                print("AFTER UPDATE:");
-                print_reads(reads, i)
+#                 print("AFTER UPDATE:");
+#                 print_reads(reads, i)
                 raw_input("Press enter to continue...")
             
             # Go the next position
             i += 1
     #         print("Position i"+str(i))
             
-            if DEBUG:
-                print("[DEBUG] WRITING COLUMN IN POSITION {}: {}".format(i, column is not None))
-                print(column)
-                print_reads(reads, i)
+#             if DEBUG:
+#                 print("[DEBUG] WRITING COLUMN IN POSITION {}: {}".format(i, column is not None))
+#                 print(column)
+#                 print_reads(reads, i)
             
             if column is not None and within_interval(i, region) and not (strict_mode and column["non_zero"] == 0):
                 
@@ -1063,15 +1066,15 @@ def parse_options():
     parser.add_argument('-f', '--file', help='The bam file to be analyzed')
     parser.add_argument('-o', '--output-file', help='The output statistics file')
     parser.add_argument('-S', '--strict', default=False, action='store_true', help='Activate strict mode: only sites with edits will be included in the output')
-    parser.add_argument('-t', '--strand', type=int, default=0, help='Strand: this can be 0 (unstranded), 1 (secondstrand oriented) or 2 (firststrand oriented)')
+    parser.add_argument('-s', '--strand', type=int, default=0, help='Strand: this can be 0 (unstranded), 1 (secondstrand oriented) or 2 (firststrand oriented)')
     parser.add_argument('-a', '--append-file', action='store_true', help='Appends results to file (and creates if not existing)')
     parser.add_argument('-r', '--reference', help='The reference FASTA file')
     parser.add_argument('-g', '--region', help='The region of the bam file to be analyzed')
     parser.add_argument('-m', '--omopolymeric-file', help='The file containing the omopolymeric positions')
     parser.add_argument('-c', '--create-omopolymeric-file', default=False, help='Whether to create the omopolymeric span', action='store_true')
     parser.add_argument('-os', '--omopolymeric-span', type=int, default=5, help='The omopolymeric span')
-    parser.add_argument('-s', '--splicing-file', help='The file containing the splicing sites positions')
-    parser.add_argument('-sp', '--splicing-span', type=int, default=4, help='The splicing span')
+    parser.add_argument('-sf', '--splicing-file', help='The file containing the splicing sites positions')
+    parser.add_argument('-ss', '--splicing-span', type=int, default=4, help='The splicing span')
     parser.add_argument('-mrl', '--min-read-length', type=int, default=30, help='The minimum read length. Reads whose length is below this value will be discarded.')
     parser.add_argument('-q', '--min-read-quality', type=int, default=20, help='The minimum read quality. Reads whose mapping quality is below this value will be discarded.')
     parser.add_argument('-bq', '--min-base-quality', type=int, default=30, help='The minimum base quality. Bases whose quality is below this value will not be included in the analysis.')
@@ -1086,6 +1089,7 @@ def parse_options():
     parser.add_argument('-C', '--strand-correction', default=False, help='Strand correction. Once the strand has been inferred, only bases according to this strand will be selected.', action='store_true')
     parser.add_argument('-Tv', '--strand-confidence-value', type=float, default=0.7, help='Strand confidence [0.70]')    
     parser.add_argument('-V', '--verbose', default=False, help='Verbose information in stderr', action='store_true')
+    parser.add_argument('-H', '--remove-header', default=False, help='Do not include header in output file', action='store_true')
     
     
     args = parser.parse_known_args()[0]
@@ -1152,6 +1156,9 @@ def parse_options():
     
     global MAX_CHANGES
     MAX_CHANGES = args.max_editing_nucletides
+    
+    global remove_header
+    remove_header = args.remove_header
     
     region = None
     
