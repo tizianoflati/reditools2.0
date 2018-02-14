@@ -164,6 +164,7 @@ if __name__ == '__main__':
     size = comm.Get_size()
 
     options = reditools.parse_options()
+    options["remove_header"] = True
     
     parser = argparse.ArgumentParser(description='REDItools 2.0')
     parser.add_argument('-G', '--coverage-file', help='The coverage file of the sample to analyze')
@@ -384,6 +385,8 @@ if __name__ == '__main__':
             os.makedirs(output_dir)
         final_file = gzip.open(output, "w")
         
+        final_file.write("\t".join(reditools.get_header()) + "\n")
+        
         total = len(little_files)
         done = 0
         for little_file in little_files:
@@ -391,7 +394,6 @@ if __name__ == '__main__':
             file = little_file[0]
 
             f = gzip.open(file)
-
             final_file.write(f.read())
             f.close()
             

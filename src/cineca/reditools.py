@@ -732,6 +732,9 @@ def within_interval(i, region):
         end = region[2]
         return i >= start and i <= end
 
+def get_header():
+    return ["Region", "Position", "Reference", "Strand", "Coverage-q30", "MeanQ", "BaseCount[A,C,G,T]", "AllSubs", "Frequency", "gCoverage-q30", "gMeanQ", "gBaseCount[A,C,G,T]", "gAllSubs", "gFrequency"]
+
 def analyze(options):
     
     global DEBUG
@@ -793,8 +796,8 @@ def analyze(options):
     if outputfile.endswith("gz"): writer = gzip.open(outputfile, mode)
     else: writer = open(outputfile, mode)
     
-    if not remove_header:
-        writer.write("\t".join(["Region", "Position", "Reference", "Strand", "Coverage-q30", "MeanQ", "BaseCount[A,C,G,T]", "AllSubs", "Frequency", "gCoverage-q30", "gMeanQ", "gBaseCount[A,C,G,T]", "gAllSubs", "gFrequency"]) + "\n")
+    if not options["remove_header"]:
+        writer.write("\t".join(get_header()) + "\n")
     
     # Open the iterator
     print("[INFO] Fetching data from bam {}".format(bamfile))
@@ -1091,7 +1094,6 @@ def parse_options():
     parser.add_argument('-V', '--verbose', default=False, help='Verbose information in stderr', action='store_true')
     parser.add_argument('-H', '--remove-header', default=False, help='Do not include header in output file', action='store_true')
     
-    
     args = parser.parse_known_args()[0]
     print(args)
     
@@ -1157,9 +1159,6 @@ def parse_options():
     global MAX_CHANGES
     MAX_CHANGES = args.max_editing_nucletides
     
-    global remove_header
-    remove_header = args.remove_header
-    
     region = None
     
     if args.region:
@@ -1179,7 +1178,8 @@ def parse_options():
         "append": append,
         "omopolymeric_file": omopolymeric_file,
         "create_omopolymeric_file": create_omopolymeric_file,
-        "splicing_file": splicing_file
+        "splicing_file": splicing_file,
+        "remove_header": args.remove_header
         }
     
     print("RUNNING REDItools 2.0 with the following options", options)
