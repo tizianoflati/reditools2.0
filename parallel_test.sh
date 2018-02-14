@@ -1,17 +1,18 @@
 #!/bin/bash
-#PBS -l select=4:ncpus=68:mpiprocs=68:mem=90GB
-#PBS -l walltime=04:00:00
-#PBS -A cin_staff
-##PBS -v SAMPLE_ID,OUTPUT_DIR,SOURCE_BAM_FILE,STRAND_FILE
+#SBATCH --ntasks=136
+#SBATCH --ntasks-per-node=68
+#SBATCH --time=24:00:00
+#SBATCH --account=Pra15_3924
+#SBATCH -p knl_usr_prod
+#SBATCH -e para-RT.e
+#SBATCH -o para-RT.o
 
-cd $PBS_O_WORKDIR
+cd $SLURM_SUBMIT_DIR
 
 BASE_DIR=$CINECA_SCRATCH"/reditools/"
-#INPUT_DIR=$BASE_DIR"/input/"
 INPUT_DIR="/marconi_scratch/userexternal/epicardi/PRJNA231202/SRR1047874/"
 OUTPUT_DIR=$BASE_DIR"/output/"
 
-#SAMPLE_ID="SRR1413602"
 SAMPLE_ID="SRR1047874"
 SOURCE_BAM_FILE=$INPUT_DIR$SAMPLE_ID".bam"
 
@@ -42,9 +43,16 @@ then
         ./extract_coverage.sh $SOURCE_BAM_FILE $COVERAGE_DIR $SIZE_FILE
 fi
 
+strand=0
+options=""
+if [ $strand != 0 ]
+then
+        options="-C -T 2 -s $strand"
+fi
+
 # Program launch
 echo "START:"`date`
 
-time mpirun src/cineca/parallel_reditools.py -f $SOURCE_BAM_FILE -r $REFERENCE -m $OMOPOLYMER_FILE -o $OUTPUT_DIR/$SAMPLE_ID/table.gz -C $COVERAGE_FILE -D $COVERAGE_DIR -t $TEMP_DIR -S $SIZE_FILE 2>&1 | tee $SAMPLE_ID.log
+time mpirun src/cineca/parallel_reditools.py -f $SOURCE_BAM_FILE -r $REFERENCE -m $OMOPOLYMER_FILE -o $OUTPUT_DIR/$SAMPLE_ID/table.gz -G $COVERAGE_FILE -D $COVERAGE_DIR -t $TEMP_DIR -Z $SIZE_FILE $options 2>&1 | tee $SAMPLE_ID.log
 
 echo "END:"`date`
