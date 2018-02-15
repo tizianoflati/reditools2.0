@@ -9,7 +9,9 @@ REDItools 2.0
 Installation
 -------------
 > git clone https://github.com/tflati/reditools2.0
+> 
 > cd reditools2.0
+> 
 > pip install -r requirements.txt
 
 Testing
