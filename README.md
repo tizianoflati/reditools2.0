@@ -37,4 +37,4 @@ Parallel version
 
 Issues
 -------------
-No known issue are known. For any problem you can write to t.flati@cineca.it.
+No known issue are known. For any problem, write to t.flati@cineca.it.
