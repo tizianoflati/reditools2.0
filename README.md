@@ -2,7 +2,7 @@ REDItools 2.0
 ===================
 
 
-**REDItools 2.0** is the optimized, parallel multi-node version of [<i class="icon-link"></i> REDItools](srv00.recas.ba.infn.it/reditools/).
+**REDItools 2.0** is the optimized, parallel multi-node version of [<i class="icon-link"></i> REDItools](http://srv00.recas.ba.infn.it/reditools/).
 
 ----------
 
