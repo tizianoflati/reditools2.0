@@ -1,2 +1,2 @@
-DATADIR="/home/flati/data/reditools"
-python reditools $DATADIR/SRR1413602.bam $DATADIR/omopolymeric_positions.txt $DATADIR/hg19.fa $DATADIR/RefSeqSplicesites.ss.gz chr18
+INPUT_BAM_FILE="test/SRR2135391.bam"
+python src/cineca/reditools.py -f $INPUT_BAM_FILE -o table.txt -g chr1
