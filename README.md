@@ -42,6 +42,7 @@ Parallel version
 3. Modify the following variables:
 
 > **BASE_DIR**=\$CINECA_SCRATCH"/reditools/"
+> 
 > **INPUT_DIR**="/marconi_scratch/userexternal/epicardi/PRJNA231202/SRR1047874/"
 > **OUTPUT_DIR**=\$BASE_DIR"/output/"
 > **SAMPLE_ID**="SRR1047874"
