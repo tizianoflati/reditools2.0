@@ -42,16 +42,27 @@ Parallel version
 3. Modify the following variables:
 
 > **BASE_DIR**=\$CINECA_SCRATCH"/reditools/"
+> 
 > **INPUT_DIR**="/marconi_scratch/userexternal/epicardi/PRJNA231202/SRR1047874/"
+> 
 > **OUTPUT_DIR**=\$BASE_DIR"/output/"
+> 
 > **SAMPLE_ID**="SRR1047874"
+> 
 > **SOURCE_BAM_FILE**=\$INPUT_DIR\$SAMPLE_ID".bam"
+> 
 > **REFERENCE**=\$BASE_DIR"hg19.fa"
+> 
 > **OMOPOLYMER_FILE**=\$BASE_DIR"omopolymeric_positions.txt"
+> 
 > **SIZE_FILE**=\$BASE_DIR"hg19.chrom.sizes"
+> 
 > **COVERAGE_DIR**=\$BASE_DIR"/cov/"\$SAMPLE_ID"/"
+> 
 > **COVERAGE_FILE**=\$COVERAGE_DIR\$SAMPLE_ID".cov"
+> 
 > **TEMP_DIR**=\$BASE_DIR"/temp/"\$SAMPLE_ID"/"
+> 
 > **strand**=0
 
 4. Launch the parallel test:
