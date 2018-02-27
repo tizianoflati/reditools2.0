@@ -255,6 +255,9 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
             
             if DEBUG:
                 print("\tBEF={} {}".format(ref, alt))
+
+            if ref == "N" or alt == "N":
+                continue
             
             # print(read["pos"], ref, alt, strand, strand == 1, read["object"].is_read1, read["object"].is_read2, read["object"].is_reverse )
             #ref, alt = fix_strand(read, ref, alt)
@@ -421,7 +424,16 @@ def filter_read(read):
     
     # Get the flag of the read
     f = read.flag
-     
+
+#     if strict_mode:
+#         try:
+#             NM = read.get_tag("NM")
+#             if NM == 0:
+# #             print("SKIPPING", MD_value, read.query_sequence, read.reference_start)
+#                 return True
+#         except KeyError:
+#             pass
+        
 #     if strict_mode:
 #         MD = read.get_tag("MD")
 # #         print(MD, read.get_reference_sequence(), read.reference_start)
@@ -1035,7 +1047,7 @@ def analyze(options):
     print("[INFO] TOTAL READS=" + str(total))
     tac = datetime.datetime.now()
     print("[INFO] END=" + str(tac) + "\t["+delta(tac, tic)+"]")
-    print("[INFO] TOTAL END=" + str(tac) + "\t["+delta(tac, first_tic)+"]")
+    print("[INFO] FINAL END=" + str(tac) + " START="+ str(first_tic) +"\t[TOTAL COMPUTATION="+delta(tac, first_tic)+"] [LAUNCH TIME:"+str(LAUNCH_TIME)+"] [TOTAL RUN="+delta(tac, LAUNCH_TIME)+"]")
 
 complement_map = {"A":"T", "T":"A", "C":"G", "G":"C"}
 def complement(b):
@@ -1198,8 +1210,12 @@ def parse_options():
 # -m /home/flati/data/reditools/omopolymeric_positions.txt
 if __name__ == '__main__':
 
-    print("START=" + str(datetime.datetime.now()))
-
+    LAUNCH_TIME = datetime.datetime.now()
+    print("START=" + str(LAUNCH_TIME))
+    
+    print("[SYSTEM]", "PYSAM VERSION", pysam.__version__)
+    print("[SYSTEM]", "PYSAM PATH", pysam.__path__)
+    
     options = parse_options()
     
     analyze(options)

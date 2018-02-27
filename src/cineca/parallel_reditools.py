@@ -3,13 +3,9 @@
 import os
 import glob
 import sys
-import math
 import re
 import time
-import random
-from subprocess import Popen
 from mpi4py import MPI
-from random import shuffle
 from datetime import datetime
 from collections import OrderedDict
 import gzip
@@ -99,7 +95,7 @@ def get_coverage(coverage_file, region = None):
     return coverage
 
 def calculate_intervals(total_coverage, coverage_file, region):
-    print("[{}] Opening coverage file={}".format(rank, coverage_file))
+    print("[SYSTEM] [{}] Opening coverage file={}".format(rank, coverage_file))
     f = open(coverage_file, "r")
 
     chr = None
@@ -110,14 +106,14 @@ def calculate_intervals(total_coverage, coverage_file, region):
 
     subintervals = []
     subtotal = total_coverage / size
-    print("TOTAL={} SUBTOTAL={}".format(total_coverage, subtotal))
+    print("[SYSTEM] TOTAL={} SUBTOTAL={}".format(total_coverage, subtotal))
 
     line_no = 0
     with f as lines:
         for line in lines:
             line_no += 1
             if line_no % 1000000 == 0:
-                print("[{}] Time: {} - {} lines loaded.".format(rank, time.time(), line_no))
+                print("[SYSTEM] [{}] Time: {} - {} lines loaded.".format(rank, time.time(), line_no))
 
             fields = line.rstrip().split("\t")
             
@@ -134,7 +130,7 @@ def calculate_intervals(total_coverage, coverage_file, region):
                 elif end is not None and start is not None and (end-start) > max_interval_width: reason = "MAX_WIDTH"
 
                 interval = (chr, start, end, C, end-start, reason)
-                print("[{}] Time: {} - Discovered new interval={}".format(rank, time.time(), interval))
+                print("[SYSTEM] [{}] Time: {} - Discovered new interval={}".format(rank, time.time(), interval))
                 subintervals.append(interval)
                 chr = None
                 start = None
@@ -151,7 +147,7 @@ def calculate_intervals(total_coverage, coverage_file, region):
         if C > 0:
             reason = "END_OF_CHROMOSOME"
             interval = (chr, start, end, C, end-start, reason)
-            print("[{}] Time: {} - Discovered new interval={}".format(rank, time.time(), interval))
+            print("[SYSTEM] [{}] Time: {} - Discovered new interval={}".format(rank, time.time(), interval))
             subintervals.append(interval)
 
     return subintervals
@@ -183,7 +179,7 @@ if __name__ == '__main__':
     format = output.split(".")[-1]
     
     if rank == 0:
-        print("LAUNCHED PARALLEL REDITOOLS WITH THE FOLLOWING OPTIONS:", options, args)
+        print("[SYSTEM] LAUNCHED PARALLEL REDITOOLS WITH THE FOLLOWING OPTIONS:", options, args)
         
     region = None
     if args.region:
@@ -259,7 +255,7 @@ if __name__ == '__main__':
         queue = set()
         for i in range(1, min(size, total+1)):
             file = files.pop()
-            print("[MPI] [0] Sending coverage data "+ str(file) +" to rank " + str(i))
+            print("[SYSTEM] [MPI] [0] Sending coverage data "+ str(file) +" to rank " + str(i))
             comm.send(file, dest=i, tag=CALCULATE_COVERAGE)
             queue.add(i)
   
@@ -274,16 +270,16 @@ if __name__ == '__main__':
             queue.remove(who)
             now = datetime.now().time()
             elapsed = time.time() - start_intervals
-            print("[MPI] [0] COVERAGE RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [#intervals: {}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, len(homeworks), done, total, 100 * float(done)/total, queue))
+            print("[SYSTEM] [TIME] [MPI] [0] COVERAGE RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [#intervals: {}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, len(homeworks), done, total, 100 * float(done)/total, queue))
   
             file = files.pop()
-            print("[MPI] [0] Sending coverage data "+ str(file) +" to rank " + str(who))
+            print("[SYSTEM] [MPI] [0] Sending coverage data "+ str(file) +" to rank " + str(who))
             comm.send(file, dest=who, tag=CALCULATE_COVERAGE)
             queue.add(who)
   
         while len(queue) > 0:
             status = MPI.Status()
-            print("[MPI] [0] Going to receive data from slaves.")
+            print("[SYSTEM] [MPI] [0] Going to receive data from slaves.")
             subintervals = comm.recv(source=MPI.ANY_SOURCE, tag=IM_FREE, status=status)
             for subinterval in subintervals:
                 homeworks.append(subinterval)
@@ -293,13 +289,12 @@ if __name__ == '__main__':
             queue.remove(who)
             now = datetime.now().time()
             elapsed = time.time() - start_intervals
-            print("[MPI] [0] COVERAGE RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [#intervals: {}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, len(homeworks), done, total, 100 * float(done)/total, queue))
+            print("[SYSTEM] [TIME] [MPI] [0] COVERAGE RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [#intervals: {}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, len(homeworks), done, total, 100 * float(done)/total, queue))
   
-        print("[MPI] [0] FINISHED CALCULATING INTERVALS [{}]".format(time.time()))
+        print("[SYSTEM] [TIME] [MPI] [0] FINISHED CALCULATING INTERVALS [{}]".format(time.time()))
         done = 0
   
-        print("[MPI] [0] REDItools STARTED [{}]".format(time.time()))
-        print("[MPI] [0] MPI SIZE: " + str(size))
+        print("[SYSTEM] [TIME] [MPI] [0] REDItools STARTED. MPI SIZE (PROCS): {} [{}]".format(size, time.time()))
           
         if not os.path.exists(temp_dir):
             os.makedirs(temp_dir)
@@ -315,7 +310,7 @@ if __name__ == '__main__':
         #homeworks = get_intervals(chromosomes, STEP)
   
         total = len(homeworks)
-        print("[MPI] [0] HOMEWORKS", total, homeworks)
+        print("[SYSTEM] [MPI] [0] HOMEWORKS", total, homeworks)
         #shuffle(homeworks)
   
         start = time.time()
@@ -323,7 +318,7 @@ if __name__ == '__main__':
         queue = set()
         for i in range(1, min(size, total)):
             interval = homeworks.pop()
-            print("[MPI] [0] Sending data "+ str(interval) +" to rank " + str(i))
+            print("[SYSTEM] [MPI] [0] Sending data "+ str(interval) +" to rank " + str(i))
             comm.send(interval, dest=i, tag=ALIGN_CHUNK)
             queue.add(i)
   
@@ -335,10 +330,10 @@ if __name__ == '__main__':
             queue.remove(who)
             now = datetime.now().time()
             elapsed = time.time() - start
-            print("[MPI] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
+            print("[SYSTEM] [TIME] [MPI] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
   
             interval = homeworks.pop()
-            print("[MPI] [0] Sending data "+ str(interval) +" to rank " + str(who))
+            print("[SYSTEM] [MPI] [0] Sending data "+ str(interval) +" to rank " + str(who))
             comm.send(interval, dest=who, tag=ALIGN_CHUNK)
             queue.add(who)
   
@@ -350,21 +345,18 @@ if __name__ == '__main__':
             queue.remove(who)
             now = datetime.now().time()
             elapsed = time.time() - start
-            print("[MPI] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
+            print("[SYSTEM] [TIME] [MPI] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
   
         # We have finished processing all the chunks. Let's notify this to slaves
         for i in range(1, size):
-            print("[MPI] [0] Sending DIE SIGNAL TO RANK " + str(i))
+            print("[SYSTEM] [MPI] [0] Sending DIE SIGNAL TO RANK " + str(i))
             comm.send(None, dest=i, tag=STOP_WORKING)
   
-        t2 = time.time()
-        print("[0] End time: {}".format(t2))
-        print("[MPI] [0] WHOLE PARALLEL ANALYSIS FINISHED - Total elapsed time [{:5.5f}]".format(t2-t1))
-        
         #####################################################################
         ######### RECOMBINATION OF SINGLE FILES #############################
         #####################################################################
-        print("[MPI] [0] CREATING SETUP FOR MERGING PARTIAL FILES - Total elapsed time [{:5.5f}]".format(time.time()-t1))
+        t2 = time.time()
+        print("[SYSTEM] [TIME] [MPI] [0] WHOLE PARALLEL ANALYSIS FINISHED. CREATING SETUP FOR MERGING PARTIAL FILES - Total elapsed time [{:5.5f}] [{}]".format(t2-t1, t2))
         
         little_files = []
         print("Scanning all files in "+temp_dir+" matching " + ".*")
@@ -375,9 +367,9 @@ if __name__ == '__main__':
             little_files.append(pieces)
 
         # Sort the output files            
-        print("FILES TO MERGE: ", little_files)
+        print("[SYSTEM] FILES TO MERGE: ", little_files)
         little_files = sorted(little_files, key = lambda x: (x[1], int(x[2])))
-        print("FILES TO MERGE (SORTED): ", little_files)
+        print("[SYSTEM] FILES TO MERGE (SORTED): ", little_files)
         
         # Open the final output file
         output_dir = os.path.dirname(output)
@@ -403,8 +395,7 @@ if __name__ == '__main__':
         final_file.close()
         
         t2 = time.time()
-        print("[0] [END] End time: {}".format(t2))
-        print("[MPI] [0] [END] - WHOLE ANALYSIS FINISHED - Total elapsed time [{:5.5f}]".format(t2-t1))
+        print("[SYSTEM] [TIME] [MPI] [0] [END] - WHOLE ANALYSIS FINISHED - Total elapsed time [{:5.5f}] [{}]".format(t2-t1, t2))
         
     # Slave processes
     if rank > 0:
@@ -420,12 +411,12 @@ if __name__ == '__main__':
                 comm.send(intervals, dest=0, tag=IM_FREE)
             if tag == ALIGN_CHUNK:
 
-                print("[MPI] [{}] received data {} from rank 0 [{}]".format(str(rank), str(data), datetime.now().time()))
+                print("[SYSTEM] [TIME] [MPI] [{}] received data {} from rank 0 [{}]".format(str(rank), str(data), datetime.now().time()))
 
                 # Process it
                 time_start = time.time()
                 time_s = datetime.now().time()
-                print("[MPI] [{}] REDItools: STARTED [{}]".format(str(rank), time_s))
+                print("[SYSTEM] [TIME] [MPI] [{}] REDItools: STARTED [{}]".format(str(rank), time_s))
 
                 # Command: python REDItoolDnaRna_1.04_n.py -i $INPUT -o editing -f hg19.fa -t $THREADS
                 # -c 1,1 -m 20,20 -v 0 -q 30,30 -s 2 -g 2 -S -e -n 0.0 -N 0.0 -u -l -H -Y $CHR:$LEFT-$RIGHT -F $CHR_$LEFT_$RIGHT
@@ -464,10 +455,10 @@ if __name__ == '__main__':
 #                     pid.wait()
 
                 time_end = time.time()
-                print("[MPI] [{}] REDItools: {} FINISHED [{}][{}] [TOTAL:{:5.2f}]".format(str(rank), str(data), time_s, datetime.now().time(), time_end - time_start))
+                print("[SYSTEM] [TIME] [MPI] [{}] REDItools: {} FINISHED [{}][{}] [TOTAL:{:5.2f}]".format(str(rank), str(data), time_s, datetime.now().time(), time_end - time_start))
 
-                print("[MPI] [{}] sending IM_FREE tag TO RANK 0 [{}]".format(str(rank), datetime.now().time()))
+                print("[SYSTEM] [TIME] [MPI] [{}] sending IM_FREE tag TO RANK 0 [{}]".format(str(rank), datetime.now().time()))
                 comm.send(None, dest=0, tag=IM_FREE)
             elif tag == STOP_WORKING:
-                print("[MPI] [{}] received DIE SIGNAL FROM RANK 0 [{}]".format(str(rank), datetime.now().time()))
+                print("[SYSTEM] [TIME] [MPI] [{}] received DIE SIGNAL FROM RANK 0 [{}]".format(str(rank), datetime.now().time()))
                 break
