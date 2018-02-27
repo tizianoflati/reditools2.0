@@ -22,7 +22,7 @@ def delta(t2, t1):
     delta = t2 - t1
     hours, remainder = divmod(delta.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
-     
+    
     return "%02d:%02d:%02d" % (hours, minutes, seconds)
 
 def print_reads(reads, i):

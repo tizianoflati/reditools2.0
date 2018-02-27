@@ -17,7 +17,9 @@ STOP_WORKING = 1
 IM_FREE = 2
 CALCULATE_COVERAGE = 3
 
-STEP = 10000000    
+STEP = 10000000
+
+TIME_STATS = {}
 
 def get_intervals(intervals, num_intervals):
     homeworks = []
@@ -175,8 +177,8 @@ if __name__ == '__main__':
     temp_dir = args.temp_dir
     size_file = args.chromosome_sizes
     
-    output = options["output"]
-    format = output.split(".")[-1]
+    # output = options["output"]
+    # format = output.split(".")[-1]
     
     if rank == 0:
         print("[SYSTEM] LAUNCHED PARALLEL REDITOOLS WITH THE FOLLOWING OPTIONS:", options, args)
@@ -195,9 +197,17 @@ if __name__ == '__main__':
 
     print("I am rank #"+str(rank))
     
+    if rank == 0:
+        print("[0] PRE-COVERAGE TIME " + str(datetime.now().time()))
+    
     total_coverage = get_coverage(coverage_file, region)
 #     print("TOTAL COVERAGE", str(total_coverage))
-     
+    
+    if rank == 0:
+        now = datetime.now().time()
+        elapsed = time.time() - t1
+        print("[SYSTEM] [TIME] [MPI] [0] MIDDLE-COVERAGE [now:{}] [elapsed: {}]".format(now, elapsed))
+    
     # Collect all the files with the coverage
     files = []
     for file in os.listdir(coverage_dir):
@@ -291,11 +301,20 @@ if __name__ == '__main__':
             elapsed = time.time() - start_intervals
             print("[SYSTEM] [TIME] [MPI] [0] COVERAGE RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [#intervals: {}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, len(homeworks), done, total, 100 * float(done)/total, queue))
   
-        print("[SYSTEM] [TIME] [MPI] [0] FINISHED CALCULATING INTERVALS [{}]".format(time.time()))
+        now = datetime.now().time()
+        elapsed = time.time() - start_intervals
+        print("[SYSTEM] [TIME] [MPI] [0] FINISHED CALCULATING INTERVALS [now:{}] [elapsed: {}]".format(now, elapsed))
+        
+        TIME_STATS["COVERAGE"] = {
+                "start": start_intervals,
+                "end": now,
+                "elapsed": elapsed
+            }
+        
         done = 0
   
-        print("[SYSTEM] [TIME] [MPI] [0] REDItools STARTED. MPI SIZE (PROCS): {} [{}]".format(size, time.time()))
-          
+        print("[SYSTEM] [TIME] [MPI] [0] REDItools STARTED. MPI SIZE (PROCS): {} [now: {}]".format(size, datetime.now().time()))
+        
         if not os.path.exists(temp_dir):
             os.makedirs(temp_dir)
             
@@ -314,7 +333,9 @@ if __name__ == '__main__':
         #shuffle(homeworks)
   
         start = time.time()
-  
+        
+        print("[SYSTEM] [TIME] [MPI] [0] REDItools PILEUP START: [now: {}]".format(datetime.now().time()))
+        
         queue = set()
         for i in range(1, min(size, total)):
             interval = homeworks.pop()
@@ -356,7 +377,13 @@ if __name__ == '__main__':
         ######### RECOMBINATION OF SINGLE FILES #############################
         #####################################################################
         t2 = time.time()
-        print("[SYSTEM] [TIME] [MPI] [0] WHOLE PARALLEL ANALYSIS FINISHED. CREATING SETUP FOR MERGING PARTIAL FILES - Total elapsed time [{:5.5f}] [{}]".format(t2-t1, t2))
+        elapsed = t2-t1
+        print("[SYSTEM] [TIME] [MPI] [0] WHOLE PARALLEL ANALYSIS FINISHED. CREATING SETUP FOR MERGING PARTIAL FILES - Total elapsed time [{:5.5f}] [{}] [now: {}]".format(elapsed, t2, datetime.now().time()))
+        TIME_STATS["COMPUTATION"] = {
+                "start": t1,
+                "end": t2,
+                "elapsed": elapsed
+            }
         
         little_files = []
         print("Scanning all files in "+temp_dir+" matching " + ".*")
@@ -371,31 +398,40 @@ if __name__ == '__main__':
         little_files = sorted(little_files, key = lambda x: (x[1], int(x[2])))
         print("[SYSTEM] FILES TO MERGE (SORTED): ", little_files)
         
-        # Open the final output file
-        output_dir = os.path.dirname(output)
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-        final_file = gzip.open(output, "w")
-        
-        final_file.write("\t".join(reditools.get_header()) + "\n")
-        
-        total = len(little_files)
-        done = 0
+        smallfiles_list_filename = temp_dir + "files.txt"
+        f = open(smallfiles_list_filename, "w")
         for little_file in little_files:
-            print("Writing ", little_file)
-            file = little_file[0]
-
-            f = gzip.open(file)
-            final_file.write(f.read())
-            f.close()
-            
-            done = done + 1
-            print(file + "\t["+str(done)+"/"+str(total)+" - {:.2%}]".format(done/float(total)))
-
-        final_file.close()
+            f.write(f + "\n")
+        f.close()
+        
+        # Open the final output file
+#         output_dir = os.path.dirname(output)
+#         if not os.path.exists(output_dir):
+#             os.makedirs(output_dir)
+#         final_file = gzip.open(output, "w")
+        
+#         final_file.write("\t".join(reditools.get_header()) + "\n")
+        
+#         total = len(little_files)
+#         done = 0
+#         for little_file in little_files:
+#             print("Writing ", little_file)
+#             file = little_file[0]
+# 
+#             f = gzip.open(file)
+#             final_file.write(f.read())
+#             f.close()
+#             
+#             done = done + 1
+#             print(file + "\t["+str(done)+"/"+str(total)+" - {:.2%}]".format(done/float(total)))
+# 
+#         final_file.close()
         
         t2 = time.time()
-        print("[SYSTEM] [TIME] [MPI] [0] [END] - WHOLE ANALYSIS FINISHED - Total elapsed time [{:5.5f}] [{}]".format(t2-t1, t2))
+        print("[SYSTEM] [TIME] [MPI] [0] [END] - WHOLE ANALYSIS FINISHED - Total elapsed time [{:5.5f}] [{}] [now: {}]".format(t2-t1, t2, datetime.now().time()))
+        
+        print("[STATS] [COVERAGE] START={} END={} ELAPSED={}".format(TIME_STATS["COVERAGE"]["start"], TIME_STATS["COVERAGE"]["end"], TIME_STATS["COVERAGE"]["elapsed"]))
+        print("[STATS] [COMPUTATION] START={} END={} ELAPSED={}".format(TIME_STATS["COMPUTATION"]["start"], TIME_STATS["COMPUTATION"]["end"], TIME_STATS["COMPUTATION"]["elapsed"]))
         
     # Slave processes
     if rank > 0:

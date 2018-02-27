@@ -18,7 +18,7 @@ done
 wait
 
 echo "Creating complete file "`date`
-for chrom in `cat $SIZE_FILE | cut -f 1 `
+for chrom in `cat $SIZE_FILE | cut -f 1`
 do  
         cat $COVERAGE_DIR$chrom >> $COVERAGE_DIR$FILE_ID".cov"
 done
