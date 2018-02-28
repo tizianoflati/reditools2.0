@@ -44,12 +44,14 @@ module load autoload samtools
 if [ ! -f $COVERAGE_FILE ]
 then
         t1=$(date +%s)
-        echo "[STATS] [COVERAGE] START="$t1
+        t1_human=$(date)
+        echo "[STATS] [COVERAGE] START="$t1_human" ["$t1"]"
         ./extract_coverage.sh $SOURCE_BAM_FILE $COVERAGE_DIR $SIZE_FILE
         t2=$(date +%s)
+        t2_human=$(date)
         elapsed_time=$(($t2-$t1))
         elapsed_time_human=$(date -d@$elapsed_time -u +%H:%M:%S)
-        echo "[STATS] [COVERAGE] START="$t1" END="$t2" ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
+        echo "[STATS] [COVERAGE] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
 fi
 
 strand=0
@@ -62,17 +64,21 @@ fi
 # Program launch
 echo "START:"`date`
 t1=$(date +%s)
+t1_human=$(date)
 time mpirun src/cineca/parallel_reditools.py -f $SOURCE_BAM_FILE -r $REFERENCE -m $OMOPOLYMER_FILE -G $COVERAGE_FILE -D $COVERAGE_DIR -t $TEMP_DIR -Z $SIZE_FILE $options 2>&1 | tee $SAMPLE_ID.log
 t2=$(date +%s)
+t2_human=$(date)
 elapsed_time=$(($t2-$t1))
 elapsed_time_human=$(date -d@$elapsed_time -u +%H:%M:%S)
-echo "[STATS] [PARALLEL] START="$t1" END="$t2" ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
+echo "[STATS] [PARALLEL] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
 
 t1=$(date +%s)
+t1_human=$(date)
 time ./merge.sh $TEMP_DIR $OUTPUT $NUM_CORES
 t2=$(date +%s)
+t2_human=$(date)
 elapsed_time=$(($t2-$t1))
 elapsed_time_human=$(date -d@$elapsed_time -u +%H:%M:%S)
-echo "[STATS] [MERGE] START="$t1" END="$t2" ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
+echo "[STATS] [MERGE] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
 
 echo "END:"`date`
