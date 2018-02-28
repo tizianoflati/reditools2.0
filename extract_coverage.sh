@@ -10,17 +10,17 @@ then
 fi
 
 #samtools depth $1 | grep -vP "\t0$" | tee $COVERAGE_DIR$FILE_ID".cov" | awk '{print($0) > "'$COVERAGE_DIR'"$1}'
-echo "Creating single chromosome coverage files "`date`
-for chrom in `cat $SIZE_FILE | cut -f 1 `
+echo "Creating single chromosome coverage files ["`date`"]"
+for chrom in `cat $SIZE_FILE | cut -f 1`
 do
 	samtools depth $1 -r $chrom | grep -vP "\t0$" > $COVERAGE_DIR$chrom &
 done
 wait
 
-echo "Creating complete file "`date`
+echo "Creating complete file ["`date`"]"
 for chrom in `cat $SIZE_FILE | cut -f 1`
 do  
         cat $COVERAGE_DIR$chrom >> $COVERAGE_DIR$FILE_ID".cov"
 done
 
-echo "Finished creating coverage data "`date`
+echo "Finished creating coverage data ["`date`"]"

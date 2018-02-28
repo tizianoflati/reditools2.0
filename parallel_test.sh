@@ -43,7 +43,13 @@ module load autoload samtools
 
 if [ ! -f $COVERAGE_FILE ]
 then
+        t1=$(date +%s)
+        echo "[STATS] [COVERAGE] START="$t1
         ./extract_coverage.sh $SOURCE_BAM_FILE $COVERAGE_DIR $SIZE_FILE
+        t2=$(date +%s)
+        elapsed_time=$(($t2-$t1))
+        elapsed_time_human=$(date -d@$elapsed_time -u +%H:%M:%S)
+        echo "[STATS] [COVERAGE] START="$t1" END="$t2" ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
 fi
 
 strand=0
