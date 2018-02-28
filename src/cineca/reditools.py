@@ -17,6 +17,7 @@ import argparse
 import re
 
 DEBUG = False
+LAUNCH_TIME = 0
 
 def delta(t2, t1):
     delta = t2 - t1
@@ -751,6 +752,7 @@ def analyze(options):
     
     global DEBUG
     global activate_debug
+    global LAUNCH_TIME
     
     bamfile = options["bamfile"]
     region = options["region"]
@@ -1208,7 +1210,6 @@ def parse_options():
 # -r /home/flati/data/reditools/hg19.fa
 # -g chr18:14237-14238
 # -m /home/flati/data/reditools/omopolymeric_positions.txt
-global LAUNCH_TIME
 if __name__ == '__main__':
 
     LAUNCH_TIME = datetime.datetime.now()
