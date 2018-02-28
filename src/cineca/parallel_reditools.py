@@ -307,7 +307,7 @@ if __name__ == '__main__':
         
         TIME_STATS["COVERAGE"] = {
                 "start": start_intervals,
-                "end": now,
+                "end": time.time(),
                 "elapsed": elapsed
             }
         
@@ -388,20 +388,22 @@ if __name__ == '__main__':
         little_files = []
         print("Scanning all files in "+temp_dir+" matching " + ".*")
         for little_file in glob.glob(temp_dir + "/*"):
+            if little_file.endswith("files.txt"): continue
+            
             print(little_file)
             pieces = re.sub("\..*", "", os.path.basename(little_file)).split("-")
             pieces.insert(0, little_file)
             little_files.append(pieces)
 
         # Sort the output files            
-        print("[SYSTEM] FILES TO MERGE: ", little_files)
+        print("[SYSTEM] "+str(len(little_files))+" FILES TO MERGE: ", little_files)
         little_files = sorted(little_files, key = lambda x: (x[1], int(x[2])))
-        print("[SYSTEM] FILES TO MERGE (SORTED): ", little_files)
+        print("[SYSTEM] "+str(len(little_files))+" FILES TO MERGE (SORTED): ", little_files)
         
         smallfiles_list_filename = temp_dir + "files.txt"
         f = open(smallfiles_list_filename, "w")
         for little_file in little_files:
-            f.write(f + "\n")
+            f.write(little_file[0] + "\n")
         f.close()
         
         # Open the final output file
@@ -447,12 +449,10 @@ if __name__ == '__main__':
                 comm.send(intervals, dest=0, tag=IM_FREE)
             if tag == ALIGN_CHUNK:
 
-                print("[SYSTEM] [TIME] [MPI] [{}] received data {} from rank 0 [{}]".format(str(rank), str(data), datetime.now().time()))
-
                 # Process it
                 time_start = time.time()
                 time_s = datetime.now().time()
-                print("[SYSTEM] [TIME] [MPI] [{}] REDItools: STARTED [{}]".format(str(rank), time_s))
+                print("[SYSTEM] [TIME] [MPI] [{}] REDItools: STARTED {} from rank 0 [{}]".format(str(rank), str(data), time_s))
 
                 # Command: python REDItoolDnaRna_1.04_n.py -i $INPUT -o editing -f hg19.fa -t $THREADS
                 # -c 1,1 -m 20,20 -v 0 -q 30,30 -s 2 -g 2 -S -e -n 0.0 -N 0.0 -u -l -H -Y $CHR:$LEFT-$RIGHT -F $CHR_$LEFT_$RIGHT
@@ -491,9 +491,9 @@ if __name__ == '__main__':
 #                     pid.wait()
 
                 time_end = time.time()
-                print("[SYSTEM] [TIME] [MPI] [{}] REDItools: {} FINISHED [{}][{}] [TOTAL:{:5.2f}]".format(str(rank), str(data), time_s, datetime.now().time(), time_end - time_start))
+                print("[SYSTEM] [TIME] [MPI] [{}] REDItools: FINISHED {} [{}][{}] [TOTAL:{:5.2f}]".format(str(rank), str(data), time_s, datetime.now().time(), time_end - time_start))
 
-                print("[SYSTEM] [TIME] [MPI] [{}] sending IM_FREE tag TO RANK 0 [{}]".format(str(rank), datetime.now().time()))
+                print("[SYSTEM] [TIME] [MPI] [{}] SENDING IM_FREE tag TO RANK 0 [{}]".format(str(rank), datetime.now().time()))
                 comm.send(None, dest=0, tag=IM_FREE)
             elif tag == STOP_WORKING:
                 print("[SYSTEM] [TIME] [MPI] [{}] received DIE SIGNAL FROM RANK 0 [{}]".format(str(rank), datetime.now().time()))

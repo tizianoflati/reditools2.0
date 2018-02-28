@@ -40,6 +40,7 @@ source ENV/bin/activate
 module load autoload profile/global
 module load autoload openmpi/1-10.3--gnu--6.1.0
 module load autoload samtools
+module load autoload htslib
 
 if [ ! -f $COVERAGE_FILE ]
 then
@@ -74,6 +75,7 @@ echo "[STATS] [PARALLEL] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPS
 
 t1=$(date +%s)
 t1_human=$(date)
+export PATH=$HTSLIB_HOME/bin/:$PATH
 time ./merge.sh $TEMP_DIR $OUTPUT $NUM_CORES
 t2=$(date +%s)
 t2_human=$(date)

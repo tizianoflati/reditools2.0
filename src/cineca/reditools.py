@@ -17,7 +17,6 @@ import argparse
 import re
 
 DEBUG = False
-LAUNCH_TIME = 0
 
 def delta(t2, t1):
     delta = t2 - t1
@@ -752,7 +751,9 @@ def analyze(options):
     
     global DEBUG
     global activate_debug
-    global LAUNCH_TIME
+    
+    LAUNCH_TIME = datetime.datetime.now()
+    print("START=" + str(LAUNCH_TIME))
     
     bamfile = options["bamfile"]
     region = options["region"]
@@ -1212,9 +1213,6 @@ def parse_options():
 # -m /home/flati/data/reditools/omopolymeric_positions.txt
 if __name__ == '__main__':
 
-    LAUNCH_TIME = datetime.datetime.now()
-    print("START=" + str(LAUNCH_TIME))
-    
     print("[SYSTEM]", "PYSAM VERSION", pysam.__version__)
     print("[SYSTEM]", "PYSAM PATH", pysam.__path__)
     
