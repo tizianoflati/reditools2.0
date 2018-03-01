@@ -315,6 +315,8 @@ if __name__ == '__main__':
   
         print("[SYSTEM] [TIME] [MPI] [0] REDItools STARTED. MPI SIZE (PROCS): {} [now: {}]".format(size, datetime.now().time()))
         
+        t1 = time.time()
+        
         if not os.path.exists(temp_dir):
             os.makedirs(temp_dir)
             

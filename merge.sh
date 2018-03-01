@@ -12,7 +12,7 @@ else
         mkdir -p $OUTPUT_DIR
     fi
     
-    zcat $(cat $TABLE_DIR/files.txt) | bgzip -d -c -@ $THREADS > $FINAL_TABLE
+    zcat $(cat $TABLE_DIR/files.txt) | bgzip -c -@ $THREADS > $FINAL_TABLE
     echo "Finished creating final table $FINAL_TABLE ["`date`"]"
 fi
 
