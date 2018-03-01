@@ -9,7 +9,8 @@ Created on 09 gen 2017
 import pysam
 import sys
 import datetime
-from collections import Counter
+# from collections import Counter
+from collections import defaultdict
 import gzip
 from sortedcontainers import SortedSet
 import os
@@ -41,6 +42,8 @@ def print_reads(reads, i):
 def update_reads(reads, i):
     if DEBUG:
         print("[INFO] UPDATING READS IN POSITION " + str(i))
+    
+    pos_based_read_dictionary = {}
     
     for ending_position in reads:
         for read in reads[ending_position]:
@@ -185,8 +188,14 @@ def update_reads(reads, i):
                     del cigar_list[0]
                 
                 read["qual"] = read["query_qualities"][read["alignment_index"]]
+                
+            p = read["pos"]
+            if p not in pos_based_read_dictionary: pos_based_read_dictionary[p] = []
+            pos_based_read_dictionary[p].append(read)
+                
+    return pos_based_read_dictionary
             
-def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
+def get_column(pos_based_read_dictionary, reads, splice_positions, last_chr, omopolymeric_positions, i):
     
     if splice_positions:
         if i in splice_positions[last_chr]:
@@ -205,7 +214,8 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
     edits = []
     ref = None
     
-    r1r2distribution = Counter()
+#     r1r2distribution = Counter()
+    r1r2distribution = defaultdict(int)
     
     strand_column = []
     qualities = []
@@ -216,10 +226,29 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
 #                 print("GET_COLUMN  Q_NAME="+ str(read["object"].query_name)+ " READ1=" + str(read["object"].is_read1) + " REVERSE=" + str(read["object"].is_reverse) + " i="+str(i) + " READ=" + str(read))
             
             # Filter the reads by positions
-            if not filter_base(read):
+#             if not filter_base(read):
+#                 continue
+
+            pos = read["alignment_index"]
+    
+            # Se il carattere e' nelle prime X posizioni della read
+            if pos < MIN_BASE_POSITION:
+                if VERBOSE: sys.stderr.write("[DEBUG] APPLIED BASE FILTER [MIN_BASE_POSITION]\n")
                 continue
+            
+            # Se il carattere e' nelle ultime Y posizioni della read
+            if read["length"] - pos < MAX_BASE_POSITION:
+                if VERBOSE: sys.stderr.write("[DEBUG] APPLIED BASE FILTER [MAX_BASE_POSITION]\n")
+                continue
+            
+            # Se la qualita' e' < Q
+            # if read["query_qualities"][read["alignment_index"]] < MIN_BASE_QUALITY:
+            if read["qual"] < MIN_BASE_QUALITY:
+                if VERBOSE: sys.stderr.write("[DEBUG] APPLIED BASE FILTER [MIN_BASE_QUALITY] {} {} {} {} {}\n".format(str(read["query_qualities"]), pos, str(read["query_qualities"][pos]), MIN_BASE_QUALITY, read))
+                continue
+            
 #             elif read["positions"][read["index"]] != i:
-            elif read["pos"] != i:
+            if read["pos"] != i:
                 if DEBUG:
                     print("[OUT_OF_RANGE] SKIPPING READ i=" + str(i) + " but READ=" + str(read["pos"]))
                 continue
@@ -296,14 +325,21 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
     if DEBUG:
         print(r1r2distribution)
         print(vstrand, ''.join(strand_column))
-        print(Counter(edits))
+#         counter = defaultdict(str)
+#         for e in edits: counter[e] += 1
+#         print(Counter(edits))
     
 #     if i == 62996785:
 #         print(edits, strand_column, len(qualities), qualities)
     
     passed = len(edits)
     
-    counter = Counter(edits)
+#     counter = Counter(edits)
+    counter = defaultdict(int)
+    for e in edits: counter[e] += 1
+    
+#     print(Counter(edits), counter)
+    
     mean_q = 0
     if DEBUG:
         print("Qualities[i="+str(i)+"]="+str(qualities))
@@ -322,8 +358,11 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
         return None
     
     # [A,C,G,T]
-    distribution = [counter['A'], counter['C'], counter['G'], counter['T']]
-    ref_count = counter[ref]
+    distribution = [counter['A'] if 'A' in counter else 0,
+                    counter['C'] if 'C' in counter else 0,
+                    counter['G'] if 'G' in counter else 0,
+                    counter['T'] if 'T' in counter else 0]
+    ref_count = counter[ref] if ref in counter else 0
     
     non_zero = 0
     for el in counter:
@@ -333,7 +372,18 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
     variants = []
 #     most_common = None
     ratio = 0.0
-    for el in counter.most_common():
+#     most_common = []
+#     most_common_value = -1
+#     for el in counter:
+#         value = counter[el]
+#         if value > most_common_value:
+#             most_common_value = value
+#             most_common = []
+#         if value == most_common_value:
+#             most_common.append((el, value))
+
+#     for el in Counter(edits).most_common():
+    for el in sorted(counter.items(), key=lambda x: x[1], reverse=True):
         if el[0] == ref: continue
         else:
             variants.append(el[0])
@@ -374,8 +424,6 @@ def get_column(reads, splice_positions, last_chr, omopolymeric_positions, i):
         "strand": vstrand
     }
     
-#     print(edits_info)
-
     # Check that the column passes the filters
     if not filter_column(edits_info, i): return None
 
@@ -526,7 +574,7 @@ def filter_column(column, i):
     # (per ogni variazione) se singolarmente il numero delle basi che supportano la variazione e' < X
     for edit in counter:
         if edit != ref and counter[edit] < MIN_EDITS_SINGLE:
-            if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i={} {}[MIN_EDITS_SINGLE]\n".format(i, counter[edit]))
+            if VERBOSE: sys.stderr.write("[DEBUG] DISCARDING COLUMN i={} c({})={} [MIN_EDITS_SINGLE] {}\n".format(i, edit, counter[edit], counter))
             return False
         
     # Se esistono  multipli cambi rispetto al reference
@@ -997,9 +1045,9 @@ def analyze(options):
 #                 print("BEFORE UPDATE (i="+str(i)+"):")
 #                 print_reads(reads, i)
         
-            update_reads(reads, i)
+            pos_based_read_dictionary = update_reads(reads, i)
             
-            column = get_column(reads, splice_positions, last_chr, omopolymeric_positions, i)
+            column = get_column(pos_based_read_dictionary, reads, splice_positions, last_chr, omopolymeric_positions, i)
             
             # Debug purposes
             if DEBUG:
