@@ -834,7 +834,7 @@ def analyze(options):
     
     # Constants
     LAST_READ = None
-    LOG_INTERVAL = 1000
+    LOG_INTERVAL = 25000
     
     # Take the time
     tic = datetime.datetime.now()
@@ -1093,7 +1093,7 @@ def analyze(options):
                     "{0:.2f}".format(column["frequency"]),
                     "\t".join(['-','-','-','-','-'])
                     ]) + "\n")
-                if column["passed"] >= 1000: print("WRITTEN LINE {} {} {} {} {}".format(last_chr, str(i), column["ref"], column["strand"], column["passed"]))
+#                 if column["passed"] >= 1000: print("WRITTEN LINE {} {} {} {} {}".format(last_chr, str(i), column["ref"], column["strand"], column["passed"]))
                 # writer.flush()
             elif VERBOSE:
                 sys.stderr.write("[VERBOSE] [NOPRINT] Not printing position ({}, {}) WITHIN_INTERVAL={} STRICT_MODE={} COLUMN={}\n".format(last_chr, i, within_interval(i, region), strict_mode, column))
