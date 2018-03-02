@@ -834,7 +834,7 @@ def analyze(options):
     
     # Constants
     LAST_READ = None
-    LOG_INTERVAL = 25000
+    LOG_INTERVAL = 1000
     
     # Take the time
     tic = datetime.datetime.now()
@@ -891,12 +891,21 @@ def analyze(options):
             if activate_debug and DEBUG_START > 0 and i >= DEBUG_START-1: DEBUG = True
             if activate_debug and DEBUG_END > 0 and i >= DEBUG_END: DEBUG = False
             if STOP > 0 and i > STOP: break
-        
+            
+#             if i>=46958774:
+#                 print(next_read)
+#                 print_reads(reads, i)
+#                 raw_input()
+            
             if next_read is LAST_READ and len(reads) == 0:
                 print("NO MORE READS!")
                 finished = True
                 break
-        
+            
+            if region is not None and len(region) >= 3 and i > region[2]:
+                finished = True
+                break
+            
             # Jump if we consumed all the reads
             if len(reads) == 0:
                 i = next_read.reference_start
@@ -1084,6 +1093,7 @@ def analyze(options):
                     "{0:.2f}".format(column["frequency"]),
                     "\t".join(['-','-','-','-','-'])
                     ]) + "\n")
+                if column["passed"] >= 1000: print("WRITTEN LINE {} {} {} {} {}".format(last_chr, str(i), column["ref"], column["strand"], column["passed"]))
                 # writer.flush()
             elif VERBOSE:
                 sys.stderr.write("[VERBOSE] [NOPRINT] Not printing position ({}, {}) WITHIN_INTERVAL={} STRICT_MODE={} COLUMN={}\n".format(last_chr, i, within_interval(i, region), strict_mode, column))
