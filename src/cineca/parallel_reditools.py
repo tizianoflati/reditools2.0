@@ -8,9 +8,9 @@ import time
 from mpi4py import MPI
 from datetime import datetime
 from collections import OrderedDict
-import gzip
 import reditools
 import argparse
+import gc
 
 ALIGN_CHUNK = 0
 STOP_WORKING = 1
@@ -323,7 +323,7 @@ if __name__ == '__main__':
         print("Loading chromosomes' sizes!")
         chromosomes = OrderedDict()
         for line in open(size_file):
-            (key, val) = line.split()
+            (key, val) = line.split()[0:2]
             chromosomes[key] = int(val)
         print("Sizes:")
         print(chromosomes)
@@ -397,9 +397,10 @@ if __name__ == '__main__':
             pieces.insert(0, little_file)
             little_files.append(pieces)
 
-        # Sort the output files            
+        # Sort the output files
+        keys = chromosomes.keys()
         print("[SYSTEM] "+str(len(little_files))+" FILES TO MERGE: ", little_files)
-        little_files = sorted(little_files, key = lambda x: (x[1], int(x[2])))
+        little_files = sorted(little_files, key = lambda x: (keys.index(x[1]), x[2]))
         print("[SYSTEM] "+str(len(little_files))+" FILES TO MERGE (SORTED): ", little_files)
         
         smallfiles_list_filename = temp_dir + "files.txt"
@@ -485,7 +486,8 @@ if __name__ == '__main__':
 
 #                 print("[MPI] [" + str(rank) + "] COMMAND-LINE:" + ' '.join(command_line))
                 print("[MPI] [" + str(rank) + "] COMMAND-LINE:", options)
-
+                
+                gc.collect()
                 reditools.analyze(options)
 
 #                 with open(output+"/logs/error-"+id+".txt","w") as stderr_file:

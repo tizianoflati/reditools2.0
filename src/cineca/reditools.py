@@ -1065,7 +1065,6 @@ def analyze(options):
 #                 print_reads(reads, i)
             
             if column is not None and within_interval(i, region) and not (strict_mode and column["non_zero"] == 0):
-                
                 # head='Region\tPosition\tReference\tStrand\tCoverage-q%i\tMeanQ\tBaseCount[A,C,G,T]\t
                 #       AllSubs\tFrequency\t
                 #       gCoverage-q%i\tgMeanQ\tgBaseCount[A,C,G,T]\tgAllSubs\tgFrequency\n' %(MQUAL,gMQUAL)
@@ -1098,7 +1097,7 @@ def analyze(options):
     print("[INFO] TOTAL READS=" + str(total))
     tac = datetime.datetime.now()
     print("[INFO] END=" + str(tac) + "\t["+delta(tac, tic)+"]")
-    print("[INFO] FINAL END=" + str(tac) + " START="+ str(first_tic) +"\t[TOTAL COMPUTATION="+delta(tac, first_tic)+"] [LAUNCH TIME:"+str(LAUNCH_TIME)+"] [TOTAL RUN="+delta(tac, LAUNCH_TIME)+"]")
+    print("[INFO] FINAL END=" + str(tac) + " START="+ str(first_tic) + "\t"+ str(region) +"\t[TOTAL COMPUTATION="+delta(tac, first_tic)+"] [LAUNCH TIME:"+str(LAUNCH_TIME)+"] [TOTAL RUN="+delta(tac, LAUNCH_TIME)+"]")
 
 complement_map = {"A":"T", "T":"A", "C":"G", "G":"C"}
 def complement(b):
