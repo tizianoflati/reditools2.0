@@ -9,13 +9,13 @@ Created on 09 gen 2017
 import pysam
 import sys
 import datetime
-# from collections import Counter
 from collections import defaultdict
 import gzip
 from sortedcontainers import SortedSet
 import os
 import argparse
 import re
+import psutil
 
 DEBUG = False
 
@@ -800,9 +800,6 @@ def analyze(options):
     global DEBUG
     global activate_debug
     
-    LAUNCH_TIME = datetime.datetime.now()
-    print("START=" + str(LAUNCH_TIME))
-    
     bamfile = options["bamfile"]
     region = options["region"]
     reference_file = options["reference"]
@@ -812,9 +809,10 @@ def analyze(options):
     splicing_file = options["splicing_file"]
     create_omopolymeric_file = options["create_omopolymeric_file"]
 
-    splice_positions = []
-    
-    print("Opening BAM file="+bamfile)
+    LAUNCH_TIME = datetime.datetime.now()
+    print("[INFO] ["+region+"] START=" + str(LAUNCH_TIME))
+
+    print("[INFO] Opening BAM file="+bamfile)
     samfile = pysam.AlignmentFile(bamfile, "rb")
     
     omopolymeric_positions = {}
@@ -829,12 +827,14 @@ def analyze(options):
 #     if not omopolymeric_positions and omopolymeric_file is not None:
 #         omopolymeric_positions = create_omopolymeric_positions(reference_file, omopolymeric_file)
     
+    splice_positions = []
+    
     if splicing_file:
         splice_positions = load_splicing_file(splicing_file)
     
     # Constants
     LAST_READ = None
-    LOG_INTERVAL = 25000
+    LOG_INTERVAL = 1000
     
     # Take the time
     tic = datetime.datetime.now()
@@ -897,12 +897,8 @@ def analyze(options):
 #                 print_reads(reads, i)
 #                 raw_input()
             
-            if next_read is LAST_READ and len(reads) == 0:
+            if (next_read is LAST_READ and len(reads) == 0) or (region is not None and len(region) >= 3 and i > region[2]):
                 print("NO MORE READS!")
-                finished = True
-                break
-            
-            if region is not None and len(region) >= 3 and i > region[2]:
                 finished = True
                 break
             
@@ -937,7 +933,7 @@ def analyze(options):
 #                     next_pos = next_read.get_reference_positions()
                     
                     if total % LOG_INTERVAL == 0:
-                        print("["+last_chr+"] Total reads loaded: " + str(total) + " ["+str(datetime.datetime.now())+"]")
+                        print("[{}] [{}] Total reads loaded: {} [{}] [RAM:{}MB]".format(last_chr, region, total, datetime.datetime.now(), psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024)))
                         sys.stdout.flush()
                 
 #                 print("P2", next_read.query_name, next_read.get_reference_positions())
@@ -1104,10 +1100,10 @@ def analyze(options):
     samfile.close()
     writer.close()
     
-    print("[INFO] TOTAL READS=" + str(total))
+    print("[INFO] ["+region+"] TOTAL READS=" + str(total))
     tac = datetime.datetime.now()
-    print("[INFO] END=" + str(tac) + "\t["+delta(tac, tic)+"]")
-    print("[INFO] FINAL END=" + str(tac) + " START="+ str(first_tic) + "\t"+ str(region) +"\t[TOTAL COMPUTATION="+delta(tac, first_tic)+"] [LAUNCH TIME:"+str(LAUNCH_TIME)+"] [TOTAL RUN="+delta(tac, LAUNCH_TIME)+"]")
+    print("[INFO] ["+region+"] END=" + str(tac) + "\t["+delta(tac, tic)+"]")
+    print("[INFO] ["+region+"] FINAL END=" + str(tac) + " START="+ str(first_tic) + "\t"+ str(region) +"\t[TOTAL COMPUTATION="+delta(tac, first_tic)+"] [LAUNCH TIME:"+str(LAUNCH_TIME)+"] [TOTAL RUN="+delta(tac, LAUNCH_TIME)+"]")
 
 complement_map = {"A":"T", "T":"A", "C":"G", "G":"C"}
 def complement(b):

@@ -11,6 +11,7 @@ from collections import OrderedDict
 import reditools
 import argparse
 import gc
+import socket
 
 ALIGN_CHUNK = 0
 STOP_WORKING = 1
@@ -179,6 +180,10 @@ if __name__ == '__main__':
     
     # output = options["output"]
     # format = output.split(".")[-1]
+    hostname = socket.gethostname()
+    host = socket.gethostbyname(hostname)
+    fqdn = socket.getfqdn()
+    print("[SYSTEM] [TECH] [NODE] ID:{} IP:{} FQDN:{}".format(hostname, host, fqdn))
     
     if rank == 0:
         print("[SYSTEM] LAUNCHED PARALLEL REDITOOLS WITH THE FOLLOWING OPTIONS:", options, args)
