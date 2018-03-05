@@ -183,7 +183,7 @@ if __name__ == '__main__':
     hostname = socket.gethostname()
     host = socket.gethostbyname(hostname)
     fqdn = socket.getfqdn()
-    print("[SYSTEM] [TECH] [NODE] ID:{} IP:{} FQDN:{}".format(hostname, host, fqdn))
+    print("[SYSTEM] [TECH] [NODE] RANK:{} ID:{} IP:{} FQDN:{}".format(rank, hostname, host, fqdn))
     
     if rank == 0:
         print("[SYSTEM] LAUNCHED PARALLEL REDITOOLS WITH THE FOLLOWING OPTIONS:", options, args)
