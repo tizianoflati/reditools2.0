@@ -810,7 +810,7 @@ def analyze(options):
     create_omopolymeric_file = options["create_omopolymeric_file"]
 
     LAUNCH_TIME = datetime.datetime.now()
-    print("[INFO] ["+region+"] START=" + str(LAUNCH_TIME))
+    print("[INFO] ["+str(region)+"] START=" + str(LAUNCH_TIME))
 
     print("[INFO] Opening BAM file="+bamfile)
     samfile = pysam.AlignmentFile(bamfile, "rb")
@@ -1100,10 +1100,10 @@ def analyze(options):
     samfile.close()
     writer.close()
     
-    print("[INFO] ["+region+"] TOTAL READS=" + str(total))
+    print("[INFO] ["+str(region)+"] TOTAL READS=" + str(total))
     tac = datetime.datetime.now()
-    print("[INFO] ["+region+"] END=" + str(tac) + "\t["+delta(tac, tic)+"]")
-    print("[INFO] ["+region+"] FINAL END=" + str(tac) + " START="+ str(first_tic) + "\t"+ str(region) +"\t[TOTAL COMPUTATION="+delta(tac, first_tic)+"] [LAUNCH TIME:"+str(LAUNCH_TIME)+"] [TOTAL RUN="+delta(tac, LAUNCH_TIME)+"]")
+    print("[INFO] ["+str(region)+"] END=" + str(tac) + "\t["+delta(tac, tic)+"]")
+    print("[INFO] ["+str(region)+"] FINAL END=" + str(tac) + " START="+ str(first_tic) + "\t"+ str(region) +"\t[TOTAL COMPUTATION="+delta(tac, first_tic)+"] [LAUNCH TIME:"+str(LAUNCH_TIME)+"] [TOTAL RUN="+delta(tac, LAUNCH_TIME)+"]")
 
 complement_map = {"A":"T", "T":"A", "C":"G", "G":"C"}
 def complement(b):
