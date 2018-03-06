@@ -1,2 +1,4 @@
 pysam
 sortedcontainers
+psutil
+netifaces
