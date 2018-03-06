@@ -12,6 +12,7 @@ import reditools
 import argparse
 import gc
 import socket
+import netifaces
 
 ALIGN_CHUNK = 0
 STOP_WORKING = 1
@@ -180,10 +181,12 @@ if __name__ == '__main__':
     
     # output = options["output"]
     # format = output.split(".")[-1]
-    hostname = socket.gethostname()
-    host = socket.gethostbyname(hostname)
-    fqdn = socket.getfqdn()
-    print("[SYSTEM] [TECH] [NODE] RANK:{} ID:{} IP:{} FQDN:{}".format(rank, hostname, host, fqdn))
+#     hostname = socket.gethostname()
+#     host = socket.gethostbyname(hostname)
+#     fqdn = socket.getfqdn()
+    host = netifaces.ifaddresses('ib0')[netifaces.AF_INET][0]['addr']
+    hostname = socket.gethostbyaddr(host)
+    print("[SYSTEM] [TECH] [NODE] RANK:{} HOSTNAME:{} IP:{}".format(rank, hostname, host))
     
     if rank == 0:
         print("[SYSTEM] LAUNCHED PARALLEL REDITOOLS WITH THE FOLLOWING OPTIONS:", options, args)
@@ -373,12 +376,15 @@ if __name__ == '__main__':
             queue.remove(who)
             now = datetime.now().time()
             elapsed = time.time() - start
+            
             print("[SYSTEM] [TIME] [MPI] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
-  
-        # We have finished processing all the chunks. Let's notify this to slaves
-        for i in range(1, size):
             print("[SYSTEM] [MPI] [0] Sending DIE SIGNAL TO RANK " + str(i))
             comm.send(None, dest=i, tag=STOP_WORKING)
+  
+        # We have finished processing all the chunks. Let's notify this to slaves
+#         for i in range(1, size):
+#             print("[SYSTEM] [MPI] [0] Sending DIE SIGNAL TO RANK " + str(i))
+#             comm.send(None, dest=i, tag=STOP_WORKING)
   
         #####################################################################
         ######### RECOMBINATION OF SINGLE FILES #############################
