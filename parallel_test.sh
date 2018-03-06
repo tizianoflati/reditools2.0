@@ -85,3 +85,4 @@ elapsed_time_human=$(date -d@$elapsed_time -u +%H:%M:%S)
 echo "[STATS] [MERGE] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
 
 echo "END:"`date`
+echo "OK" > tee $TEMP_DIR/status.txt

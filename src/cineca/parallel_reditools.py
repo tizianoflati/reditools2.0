@@ -179,13 +179,19 @@ if __name__ == '__main__':
     temp_dir = args.temp_dir
     size_file = args.chromosome_sizes
     
+    if not os.path.isfile(coverage_file):
+        print("[ERROR] Coverage file {} not existing!".format(coverage_file))
+        exit(1)
+    
     # output = options["output"]
     # format = output.split(".")[-1]
 #     hostname = socket.gethostname()
 #     host = socket.gethostbyname(hostname)
 #     fqdn = socket.getfqdn()
-    hostname = socket.gethostbyaddr(netifaces.ifaddresses('ib0')[netifaces.AF_INET][0]['addr'])
-    print("[SYSTEM] [TECH] [NODE] RANK:{} HOSTNAME:{}".format(rank, hostname))
+    interface = 'ib0' if 'ib0' in netifaces.interfaces() else netifaces.interfaces()[0]
+    hostname = socket.gethostbyaddr(netifaces.ifaddresses(interface)[netifaces.AF_INET][0]['addr'])
+    pid = os.getpid()
+    print("[SYSTEM] [TECH] [NODE] RANK:{} HOSTNAME:{} PID:{}".format(rank, hostname, pid))
     
     if rank == 0:
         print("[SYSTEM] LAUNCHED PARALLEL REDITOOLS WITH THE FOLLOWING OPTIONS:", options, args)
@@ -204,120 +210,157 @@ if __name__ == '__main__':
 
     print("I am rank #"+str(rank))
     
-    if rank == 0:
-        print("[0] PRE-COVERAGE TIME " + str(datetime.now().time()))
+    # COVERAGE SECTION
+    interval_file = temp_dir + "/intervals.txt"
+    homeworks = []
+    if os.path.isfile(interval_file) and os.stat(interval_file).st_size > 0:
+        if rank == 0:
+            print("[0] [RESTART] FOUND INTERVAL FILE {} ".format(interval_file))
+            expected_total = 0
+            for line in open(interval_file, "r"):
+                line = line.strip()
+                
+                if expected_total == 0:
+                    expected_total = int(line)
+                    continue
+                
+                # Interval format: (chr, start, end, C, end-start, reason)
+                fields = line.split("\t")
+                for i in range(1, 5):
+                    fields[i] = int(fields[i])
+                homeworks.append(fields)
+            
+    else:
+        if rank == 0:
+            print("[0] PRE-COVERAGE TIME " + str(datetime.now().time()))
+        
+        total_coverage = get_coverage(coverage_file, region)
+    #     print("TOTAL COVERAGE", str(total_coverage))
+        
+        if rank == 0:
+            now = datetime.now().time()
+            elapsed = time.time() - t1
+            print("[SYSTEM] [TIME] [MPI] [0] MIDDLE-COVERAGE [now:{}] [elapsed: {}]".format(now, elapsed))
+        
+        # Collect all the files with the coverage
+        files = []
+        for file in os.listdir(coverage_dir):
+            if region is not None and file != region[0]: continue
+            if file.startswith("."): continue
+            if file.endswith(".cov"): continue
+            if file == "chrM": continue
+            files.append(file)
+        files.sort()
     
-    total_coverage = get_coverage(coverage_file, region)
-#     print("TOTAL COVERAGE", str(total_coverage))
+        if rank == 0:
+            print("[0] " + str(len(files)) + " FILES => " + str(files))
+        
+        '''
+        # Assign interval calculation to slaves
+        fps = int(len(files) / size)
+        if fps == 0: fps = 1
+        print("Files per mpi process: " + str(fps))
+        subintervals = []
+        for i in range(0, size):
+            if rank == i:
+                from_file = i*fps
+                to_file = i*fps+fps if i<size-1 else len(files)
+                if from_file > len(files): continue
+                if to_file > len(files): continue
     
-    if rank == 0:
-        now = datetime.now().time()
-        elapsed = time.time() - t1
-        print("[SYSTEM] [TIME] [MPI] [0] MIDDLE-COVERAGE [now:{}] [elapsed: {}]".format(now, elapsed))
+                print("[{}] Processing from file {} to file {} = {}".format(rank, from_file, to_file, files[from_file:to_file]))
     
-    # Collect all the files with the coverage
-    files = []
-    for file in os.listdir(coverage_dir):
-        if region is not None and file != region[0]: continue
-        if file.startswith("."): continue
-        if file.endswith(".cov"): continue
-        if file == "chrM": continue
-        files.append(file)
-    files.sort()
+                for file in files[from_file:to_file]:
+                    file_intervals = calculate_intervals(total_coverage, "pieces/" + file)
+                    for interv in file_intervals:
+                        subintervals.append(interv)
+    
+        # Gather all the intervals calculated from the slaves
+        all_subintervals = []
+        if rank == 0:
+            intervals = None
+            all_subintervals = comm.gather(subintervals)
+            print("[0] {} total intervals received.".format(len(all_subintervals)))
+            homeworks = reduce(lambda x,y: x+y, all_subintervals)
+            print("[0] {} total intervals aggregated.".format(len(homeworks)))
+            for interval in homeworks:
+                print(interval)
+        '''
+    
+        # Master: dispatches the work to the other slaves
+        if rank == 0:
+            start_intervals = t1
+            print("[0] Start time: {}".format(start_intervals))
+            
+            done = 0
+            total = len(files)
+              
+            queue = set()
+            for i in range(1, min(size, total+1)):
+                file = files.pop()
+                print("[SYSTEM] [MPI] [0] Sending coverage data "+ str(file) +" to rank " + str(i))
+                comm.send(file, dest=i, tag=CALCULATE_COVERAGE)
+                queue.add(i)
       
-    if rank == 0:
-        print("[0] " + str(len(files)) + " FILES => " + str(files))
-    
-    '''
-    # Assign interval calculation to slaves
-    fps = int(len(files) / size)
-    if fps == 0: fps = 1
-    print("Files per mpi process: " + str(fps))
-    subintervals = []
-    for i in range(0, size):
-        if rank == i:
-            from_file = i*fps
-            to_file = i*fps+fps if i<size-1 else len(files)
-            if from_file > len(files): continue
-            if to_file > len(files): continue
-
-            print("[{}] Processing from file {} to file {} = {}".format(rank, from_file, to_file, files[from_file:to_file]))
-
-            for file in files[from_file:to_file]:
-                file_intervals = calculate_intervals(total_coverage, "pieces/" + file)
-                for interv in file_intervals:
-                    subintervals.append(interv)
-
-    # Gather all the intervals calculated from the slaves
-    all_subintervals = []
-    if rank == 0:
-        intervals = None
-        all_subintervals = comm.gather(subintervals)
-        print("[0] {} total intervals received.".format(len(all_subintervals)))
-        homeworks = reduce(lambda x,y: x+y, all_subintervals)
-        print("[0] {} total intervals aggregated.".format(len(homeworks)))
-        for interval in homeworks:
-            print(interval)
-    '''
-
-    # Master: dispatches the work to the other slaves
-    if rank == 0:
-        start_intervals = t1
-        print("[0] Start time: {}".format(start_intervals))
-        
-        done = 0
-        total = len(files)
-          
-        homeworks = []
-        queue = set()
-        for i in range(1, min(size, total+1)):
-            file = files.pop()
-            print("[SYSTEM] [MPI] [0] Sending coverage data "+ str(file) +" to rank " + str(i))
-            comm.send(file, dest=i, tag=CALCULATE_COVERAGE)
-            queue.add(i)
-  
-        while len(files) > 0:
-            status = MPI.Status()
-            subintervals = comm.recv(source=MPI.ANY_SOURCE, tag=IM_FREE, status=status)
-            for subinterval in subintervals:
-                homeworks.append(subinterval)
-  
-            done += 1
-            who = status.Get_source()
-            queue.remove(who)
+            while len(files) > 0:
+                status = MPI.Status()
+                subintervals = comm.recv(source=MPI.ANY_SOURCE, tag=IM_FREE, status=status)
+                for subinterval in subintervals:
+                    homeworks.append(subinterval)
+      
+                done += 1
+                who = status.Get_source()
+                queue.remove(who)
+                now = datetime.now().time()
+                elapsed = time.time() - start_intervals
+                print("[SYSTEM] [TIME] [MPI] [0] COVERAGE RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [#intervals: {}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, len(homeworks), done, total, 100 * float(done)/total, queue))
+      
+                file = files.pop()
+                print("[SYSTEM] [MPI] [0] Sending coverage data "+ str(file) +" to rank " + str(who))
+                comm.send(file, dest=who, tag=CALCULATE_COVERAGE)
+                queue.add(who)
+      
+            while len(queue) > 0:
+                status = MPI.Status()
+                print("[SYSTEM] [MPI] [0] Going to receive data from slaves.")
+                subintervals = comm.recv(source=MPI.ANY_SOURCE, tag=IM_FREE, status=status)
+                for subinterval in subintervals:
+                    homeworks.append(subinterval)
+      
+                done += 1
+                who = status.Get_source()
+                queue.remove(who)
+                now = datetime.now().time()
+                elapsed = time.time() - start_intervals
+                print("[SYSTEM] [TIME] [MPI] [0] COVERAGE RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [#intervals: {}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, len(homeworks), done, total, 100 * float(done)/total, queue))
+                
             now = datetime.now().time()
             elapsed = time.time() - start_intervals
-            print("[SYSTEM] [TIME] [MPI] [0] COVERAGE RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [#intervals: {}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, len(homeworks), done, total, 100 * float(done)/total, queue))
-  
-            file = files.pop()
-            print("[SYSTEM] [MPI] [0] Sending coverage data "+ str(file) +" to rank " + str(who))
-            comm.send(file, dest=who, tag=CALCULATE_COVERAGE)
-            queue.add(who)
-  
-        while len(queue) > 0:
-            status = MPI.Status()
-            print("[SYSTEM] [MPI] [0] Going to receive data from slaves.")
-            subintervals = comm.recv(source=MPI.ANY_SOURCE, tag=IM_FREE, status=status)
-            for subinterval in subintervals:
-                homeworks.append(subinterval)
-  
-            done += 1
-            who = status.Get_source()
-            queue.remove(who)
+            
+            interval_file = temp_dir + "/intervals.txt"
+            print("[SYSTEM] [TIME] [MPI] [0] SAVING INTERVALS TO {} [now:{}] [elapsed: {}]".format(interval_file, now, elapsed))
+            writer = open(interval_file, "w")
+            writer.write(str(len(homeworks)) + "\n")
+            for homework in homeworks:
+                writer.write("\t".join([str(x) for x in homework]) + "\n")
+            writer.close()
+            
             now = datetime.now().time()
-            elapsed = time.time() - start_intervals
-            print("[SYSTEM] [TIME] [MPI] [0] COVERAGE RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [#intervals: {}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, len(homeworks), done, total, 100 * float(done)/total, queue))
-  
-        now = datetime.now().time()
-        elapsed = time.time() - start_intervals
-        print("[SYSTEM] [TIME] [MPI] [0] FINISHED CALCULATING INTERVALS [now:{}] [elapsed: {}]".format(now, elapsed))
+            elapsed = time.time() - start_intervals 
+            print("[SYSTEM] [TIME] [MPI] [0] INTERVALS SAVED TO {} [now:{}] [elapsed: {}]".format(interval_file, now, elapsed))
+                
+            print("[SYSTEM] [TIME] [MPI] [0] FINISHED CALCULATING INTERVALS [now:{}] [elapsed: {}]".format(now, elapsed))
+            
+            TIME_STATS["COVERAGE"] = {
+                    "start": start_intervals,
+                    "end": time.time(),
+                    "elapsed": elapsed
+                }
         
-        TIME_STATS["COVERAGE"] = {
-                "start": start_intervals,
-                "end": time.time(),
-                "elapsed": elapsed
-            }
-        
+    if rank == 0:
+        ###########################################################
+        ######### COMPUTATION SECTION #############################
+        ###########################################################
         done = 0
   
         print("[SYSTEM] [TIME] [MPI] [0] REDItools STARTED. MPI SIZE (PROCS): {} [now: {}]".format(size, datetime.now().time()))
@@ -377,9 +420,9 @@ if __name__ == '__main__':
             elapsed = time.time() - start
             
             print("[SYSTEM] [TIME] [MPI] [SEND/RECV] [RECV] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
-            print("[SYSTEM] [MPI] [SEND/RECV] [SEND] [0] Sending DIE SIGNAL TO RANK " + str(i))
-            comm.send(None, dest=i, tag=STOP_WORKING)
-  
+            print("[SYSTEM] [MPI] [SEND/RECV] [SEND] [0] Sending DIE SIGNAL TO RANK " + str(who))
+            comm.send(None, dest=who, tag=STOP_WORKING)
+
         # We have finished processing all the chunks. Let's notify this to slaves
 #         for i in range(1, size):
 #             print("[SYSTEM] [MPI] [0] Sending DIE SIGNAL TO RANK " + str(i))
@@ -401,6 +444,8 @@ if __name__ == '__main__':
         print("Scanning all files in "+temp_dir+" matching " + ".*")
         for little_file in glob.glob(temp_dir + "/*"):
             if little_file.endswith("files.txt"): continue
+            if little_file.endswith("intervals.txt"): continue
+            if little_file.endswith("status.txt"): continue
             
             print(little_file)
             pieces = re.sub("\..*", "", os.path.basename(little_file)).split("-")
@@ -445,8 +490,11 @@ if __name__ == '__main__':
         t2 = time.time()
         print("[SYSTEM] [TIME] [MPI] [0] [END] - WHOLE ANALYSIS FINISHED - Total elapsed time [{:5.5f}] [{}] [now: {}]".format(t2-t1, t2, datetime.now().time()))
         
-        print("[STATS] [COVERAGE] START={} END={} ELAPSED={}".format(TIME_STATS["COVERAGE"]["start"], TIME_STATS["COVERAGE"]["end"], TIME_STATS["COVERAGE"]["elapsed"]))
-        print("[STATS] [COMPUTATION] START={} END={} ELAPSED={}".format(TIME_STATS["COMPUTATION"]["start"], TIME_STATS["COMPUTATION"]["end"], TIME_STATS["COMPUTATION"]["elapsed"]))
+        if "COVERAGE" in TIME_STATS:
+            print("[STATS] [COVERAGE] START={} END={} ELAPSED={}".format(TIME_STATS["COVERAGE"]["start"], TIME_STATS["COVERAGE"]["end"], TIME_STATS["COVERAGE"]["elapsed"]))
+        
+        if "COMPUTATION" in TIME_STATS:    
+            print("[STATS] [COMPUTATION] START={} END={} ELAPSED={}".format(TIME_STATS["COMPUTATION"]["start"], TIME_STATS["COMPUTATION"]["end"], TIME_STATS["COMPUTATION"]["elapsed"]))
         
     # Slave processes
     if rank > 0:
@@ -513,4 +561,4 @@ if __name__ == '__main__':
                 print("[SYSTEM] [TIME] [MPI] [SEND/RECV] [RECV] [{}] received DIE SIGNAL FROM RANK 0 [{}]".format(str(rank), datetime.now().time()))
                 break
             
-    print("[{}] EXITING [now{}]".format(rank, time.time()))
+    print("[{}] EXITING [now:{}]".format(rank, time.time()))

@@ -14,6 +14,9 @@ else
     
     zcat $(cat $TABLE_DIR/files.txt) | bgzip -c -@ $THREADS > $FINAL_TABLE
     echo "Finished creating final table $FINAL_TABLE ["`date`"]"
+    
+    tabix -s 1 -b 2 -e 2 -c Region $FINAL_TABLE
+    echo "Finished creating index file for file $FINAL_TABLE ["`date`"]"    
 fi
 
 # echo "Starting creating final table "`date`

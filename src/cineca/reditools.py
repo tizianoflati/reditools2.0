@@ -802,8 +802,10 @@ def analyze(options):
     global DEBUG
     global activate_debug
     
-    hostname = socket.gethostbyaddr(netifaces.ifaddresses('ib0')[netifaces.AF_INET][0]['addr'])
-    hostname_string = hostname[0] + "|" + hostname[2][0] 
+    interface = 'ib0' if 'ib0' in netifaces.interfaces() else netifaces.interfaces()[0]
+    hostname = socket.gethostbyaddr(netifaces.ifaddresses(interface)[netifaces.AF_INET][0]['addr'])
+    pid = os.getpid()
+    hostname_string = hostname[0] + "|" + hostname[2][0] + "|" + str(pid)
     
     bamfile = options["bamfile"]
     region = options["region"]
