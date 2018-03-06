@@ -16,6 +16,8 @@ import os
 import argparse
 import re
 import psutil
+import socket
+import netifaces
 
 DEBUG = False
 
@@ -800,6 +802,9 @@ def analyze(options):
     global DEBUG
     global activate_debug
     
+    hostname = socket.gethostbyaddr(netifaces.ifaddresses('ib0')[netifaces.AF_INET][0]['addr'])
+    hostname_string = hostname[0] + "|" + hostname[2][0] 
+    
     bamfile = options["bamfile"]
     region = options["region"]
     reference_file = options["reference"]
@@ -933,7 +938,7 @@ def analyze(options):
 #                     next_pos = next_read.get_reference_positions()
                     
                     if total % LOG_INTERVAL == 0:
-                        print("[{}] [{}] Total reads loaded: {} [{}] [RAM:{}MB]".format(last_chr, region, total, datetime.datetime.now(), psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024)))
+                        print("[{}] [{}] [{}] Total reads loaded: {} [{}] [RAM:{}MB]".format(hostname_string, last_chr, region, total, datetime.datetime.now(), psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024)))
                         sys.stdout.flush()
                 
 #                 print("P2", next_read.query_name, next_read.get_reference_positions())
@@ -1100,10 +1105,9 @@ def analyze(options):
     samfile.close()
     writer.close()
     
-    print("[INFO] ["+str(region)+"] TOTAL READS=" + str(total))
     tac = datetime.datetime.now()
-    print("[INFO] ["+str(region)+"] END=" + str(tac) + "\t["+delta(tac, tic)+"]")
-    print("[INFO] ["+str(region)+"] FINAL END=" + str(tac) + " START="+ str(first_tic) + "\t"+ str(region) +"\t[TOTAL COMPUTATION="+delta(tac, first_tic)+"] [LAUNCH TIME:"+str(LAUNCH_TIME)+"] [TOTAL RUN="+delta(tac, LAUNCH_TIME)+"]")
+    print("[INFO] ["+hostname_string+"] ["+str(region)+"] END=" + str(tac) + "\t["+delta(tac, tic)+"]")
+    print("[INFO] ["+hostname_string+"] ["+str(region).ljust(50)+"] FINAL END=" + str(tac) + " START="+ str(first_tic) + "\t"+ str(region) +"\t[TOTAL COMPUTATION="+delta(tac, first_tic)+"] [LAUNCH TIME:"+str(LAUNCH_TIME)+"] [TOTAL RUN="+delta(tac, LAUNCH_TIME)+"] [READS="+str(total)+"]")
 
 complement_map = {"A":"T", "T":"A", "C":"G", "G":"C"}
 def complement(b):

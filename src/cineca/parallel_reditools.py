@@ -184,9 +184,8 @@ if __name__ == '__main__':
 #     hostname = socket.gethostname()
 #     host = socket.gethostbyname(hostname)
 #     fqdn = socket.getfqdn()
-    host = netifaces.ifaddresses('ib0')[netifaces.AF_INET][0]['addr']
-    hostname = socket.gethostbyaddr(host)
-    print("[SYSTEM] [TECH] [NODE] RANK:{} HOSTNAME:{} IP:{}".format(rank, hostname, host))
+    hostname = socket.gethostbyaddr(netifaces.ifaddresses('ib0')[netifaces.AF_INET][0]['addr'])
+    print("[SYSTEM] [TECH] [NODE] RANK:{} HOSTNAME:{}".format(rank, hostname))
     
     if rank == 0:
         print("[SYSTEM] LAUNCHED PARALLEL REDITOOLS WITH THE FOLLOWING OPTIONS:", options, args)
@@ -349,7 +348,7 @@ if __name__ == '__main__':
         queue = set()
         for i in range(1, min(size, total)):
             interval = homeworks.pop()
-            print("[SYSTEM] [MPI] [0] Sending data "+ str(interval) +" to rank " + str(i))
+            print("[SYSTEM] [MPI] [SEND/RECV] [SEND] [0] Sending data "+ str(interval) +" to rank " + str(i))
             comm.send(interval, dest=i, tag=ALIGN_CHUNK)
             queue.add(i)
   
@@ -361,10 +360,10 @@ if __name__ == '__main__':
             queue.remove(who)
             now = datetime.now().time()
             elapsed = time.time() - start
-            print("[SYSTEM] [TIME] [MPI] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
+            print("[SYSTEM] [TIME] [MPI] [SEND/RECV] [RECV] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
   
             interval = homeworks.pop()
-            print("[SYSTEM] [MPI] [0] Sending data "+ str(interval) +" to rank " + str(who))
+            print("[SYSTEM] [MPI] [SEND/RECV] [SEND] [0] Sending data "+ str(interval) +" to rank " + str(who))
             comm.send(interval, dest=who, tag=ALIGN_CHUNK)
             queue.add(who)
   
@@ -377,8 +376,8 @@ if __name__ == '__main__':
             now = datetime.now().time()
             elapsed = time.time() - start
             
-            print("[SYSTEM] [TIME] [MPI] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
-            print("[SYSTEM] [MPI] [0] Sending DIE SIGNAL TO RANK " + str(i))
+            print("[SYSTEM] [TIME] [MPI] [SEND/RECV] [RECV] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
+            print("[SYSTEM] [MPI] [SEND/RECV] [SEND] [0] Sending DIE SIGNAL TO RANK " + str(i))
             comm.send(None, dest=i, tag=STOP_WORKING)
   
         # We have finished processing all the chunks. Let's notify this to slaves
@@ -466,7 +465,7 @@ if __name__ == '__main__':
                 # Process it
                 time_start = time.time()
                 time_s = datetime.now().time()
-                print("[SYSTEM] [TIME] [MPI] [{}] REDItools: STARTED {} from rank 0 [{}]".format(str(rank), str(data), time_s))
+                print("[SYSTEM] [TIME] [MPI] [SEND/RECV] [RECV] [{}] REDItools: STARTED {} from rank 0 [{}]".format(str(rank), str(data), time_s))
 
                 # Command: python REDItoolDnaRna_1.04_n.py -i $INPUT -o editing -f hg19.fa -t $THREADS
                 # -c 1,1 -m 20,20 -v 0 -q 30,30 -s 2 -g 2 -S -e -n 0.0 -N 0.0 -u -l -H -Y $CHR:$LEFT-$RIGHT -F $CHR_$LEFT_$RIGHT
@@ -508,8 +507,10 @@ if __name__ == '__main__':
                 time_end = time.time()
                 print("[SYSTEM] [TIME] [MPI] [{}] REDItools: FINISHED {} [{}][{}] [TOTAL:{:5.2f}]".format(str(rank), str(data), time_s, datetime.now().time(), time_end - time_start))
 
-                print("[SYSTEM] [TIME] [MPI] [{}] SENDING IM_FREE tag TO RANK 0 [{}]".format(str(rank), datetime.now().time()))
+                print("[SYSTEM] [TIME] [MPI] [SEND/RECV] [SEND] [{}] SENDING IM_FREE tag TO RANK 0 [{}]".format(str(rank), datetime.now().time()))
                 comm.send(None, dest=0, tag=IM_FREE)
             elif tag == STOP_WORKING:
-                print("[SYSTEM] [TIME] [MPI] [{}] received DIE SIGNAL FROM RANK 0 [{}]".format(str(rank), datetime.now().time()))
+                print("[SYSTEM] [TIME] [MPI] [SEND/RECV] [RECV] [{}] received DIE SIGNAL FROM RANK 0 [{}]".format(str(rank), datetime.now().time()))
                 break
+            
+    print("[{}] EXITING [now{}]".format(rank, time.time()))
