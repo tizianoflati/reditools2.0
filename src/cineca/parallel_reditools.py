@@ -405,7 +405,7 @@ if __name__ == '__main__':
         # Sort the output files
         keys = chromosomes.keys()
         print("[SYSTEM] "+str(len(little_files))+" FILES TO MERGE: ", little_files)
-        little_files = sorted(little_files, key = lambda x: (keys.index(x[1]), x[2]))
+        little_files = sorted(little_files, key = lambda x: (keys.index(x[1]), int(x[2])))
         print("[SYSTEM] "+str(len(little_files))+" FILES TO MERGE (SORTED): ", little_files)
         
         smallfiles_list_filename = temp_dir + "files.txt"
