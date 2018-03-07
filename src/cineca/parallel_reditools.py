@@ -211,6 +211,9 @@ if __name__ == '__main__':
     print("I am rank #"+str(rank))
     
     # COVERAGE SECTION
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)    
+
     interval_file = temp_dir + "/intervals.txt"
     homeworks = []
     if os.path.isfile(interval_file) and os.stat(interval_file).st_size > 0:
@@ -367,9 +370,6 @@ if __name__ == '__main__':
         
         t1 = time.time()
         
-        if not os.path.exists(temp_dir):
-            os.makedirs(temp_dir)
-            
         print("Loading chromosomes' sizes!")
         chromosomes = OrderedDict()
         for line in open(size_file):
