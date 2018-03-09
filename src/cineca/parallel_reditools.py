@@ -107,7 +107,7 @@ def calculate_intervals(total_coverage, coverage_file, region):
     start = None
     end = None
     C = 0
-    max_interval_width = 3000000000 / size
+    max_interval_width = min(3000000, 3000000000 / size)
 
     subintervals = []
     subtotal = total_coverage / size
