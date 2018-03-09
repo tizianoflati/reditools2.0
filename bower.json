@@ -1,0 +1,20 @@
+{
+  "name": "REDItools 2.0",
+  "authors": [
+    "tflati <tflati@di.uniroma1.it>"
+  ],
+  "description": "Simple visualization tool",
+  "main": "template.html",
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "vis": "^4.21.0"
+  }
+}

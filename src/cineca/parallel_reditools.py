@@ -13,6 +13,7 @@ import argparse
 import gc
 import socket
 import netifaces
+import json
 
 ALIGN_CHUNK = 0
 STOP_WORKING = 1
@@ -210,6 +211,15 @@ if __name__ == '__main__':
 
     print("I am rank #"+str(rank))
     
+    time_data = {}
+    time_data["periods"] = []
+    time_data["groups"] = []
+    for i in range(0, size):
+        time_data["groups"].append([])
+    
+    if rank == 0:
+        time_data["periods"].append({"id": "INTERVALS", "content": "Intervals", "start": str(datetime.now()), "type": "background"})
+    
     # COVERAGE SECTION
     interval_file = temp_dir + "/intervals.txt"
     homeworks = []
@@ -229,15 +239,16 @@ if __name__ == '__main__':
                 for i in range(1, 5):
                     fields[i] = int(fields[i])
                 homeworks.append(fields)
-            
     else:
         if rank == 0:
+            time_data["periods"].append({"id": "COVERAGE", "content": "Total coverage", "start": str(datetime.now()), "type": "background"})
             print("[0] PRE-COVERAGE TIME " + str(datetime.now().time()))
         
         total_coverage = get_coverage(coverage_file, region)
     #     print("TOTAL COVERAGE", str(total_coverage))
         
         if rank == 0:
+            time_data["periods"][-1]["end"] = str(datetime.now())
             now = datetime.now().time()
             elapsed = time.time() - t1
             print("[SYSTEM] [TIME] [MPI] [0] MIDDLE-COVERAGE [now:{}] [elapsed: {}]".format(now, elapsed))
@@ -356,13 +367,17 @@ if __name__ == '__main__':
                     "end": time.time(),
                     "elapsed": elapsed
                 }
-        
+            
     if rank == 0:
+        
+        time_data["periods"][0]["end"] = str(datetime.now())
+        
         ###########################################################
         ######### COMPUTATION SECTION #############################
         ###########################################################
         done = 0
-  
+        parallel_time_section_data = {"id": "ANALYSIS", "content": "Parallel", "start": str(datetime.now()), "type": "background"}
+        time_data["periods"].append(parallel_time_section_data)
         print("[SYSTEM] [TIME] [MPI] [0] REDItools STARTED. MPI SIZE (PROCS): {} [now: {}]".format(size, datetime.now().time()))
         
         t1 = time.time()
@@ -392,6 +407,14 @@ if __name__ == '__main__':
         for i in range(1, min(size, total)):
             interval = homeworks.pop()
             print("[SYSTEM] [MPI] [SEND/RECV] [SEND] [0] Sending data "+ str(interval) +" to rank " + str(i))
+            id_event = str(i)+"#"+str(len(time_data["groups"][i]))
+            time_data["groups"][i].append({"id": id_event, "content": id_event, "start": str(datetime.now()), "group": i,
+                                           "extra": {
+                                               "interval": "{}:{}-{}".format(interval[0], interval[1], interval[2]),
+                                               "weight": str(interval[3]),
+                                               "width": str(interval[4]),
+                                               "reason": str(interval[5])
+                                               }})
             comm.send(interval, dest=i, tag=ALIGN_CHUNK)
             queue.add(i)
   
@@ -404,9 +427,23 @@ if __name__ == '__main__':
             now = datetime.now().time()
             elapsed = time.time() - start
             print("[SYSTEM] [TIME] [MPI] [SEND/RECV] [RECV] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
+            time_data["groups"][who][-1]["end"] = str(datetime.now())
+            time_data["groups"][who][-1]["extra"]["duration"] = str(datetime.strptime(time_data["groups"][who][-1]["end"], '%Y-%m-%d %H:%M:%S.%f') - datetime.strptime(time_data["groups"][who][-1]["start"], '%Y-%m-%d %H:%M:%S.%f'))
+            time_data["groups"][who][-1]["extra"]["done"] = done
+            time_data["groups"][who][-1]["extra"]["total"] = total
+            time_data["groups"][who][-1]["extra"]["total (%)"] = "{:.2f}%".format(100 * float(done)/total)
   
             interval = homeworks.pop()
             print("[SYSTEM] [MPI] [SEND/RECV] [SEND] [0] Sending data "+ str(interval) +" to rank " + str(who))
+            id_event = str(who)+"#"+str(len(time_data["groups"][who]))
+            
+            time_data["groups"][who].append({"id": id_event, "content": id_event, "start": str(datetime.now()), "group": who,
+                                             "extra": {
+                                                 "interval": "{}:{}-{}".format(interval[0], interval[1], interval[2]),
+                                                 "weight": str(interval[3]),
+                                                 "width": str(interval[4]),
+                                                 "reason": str(interval[5])
+                                               }})
             comm.send(interval, dest=who, tag=ALIGN_CHUNK)
             queue.add(who)
   
@@ -418,11 +455,49 @@ if __name__ == '__main__':
             queue.remove(who)
             now = datetime.now().time()
             elapsed = time.time() - start
+            time_data["groups"][who][-1]["end"] = str(datetime.now())
+            time_data["groups"][who][-1]["extra"]["duration"] = str(datetime.strptime(time_data["groups"][who][-1]["end"], '%Y-%m-%d %H:%M:%S.%f') - datetime.strptime(time_data["groups"][who][-1]["start"], '%Y-%m-%d %H:%M:%S.%f'))
+            time_data["groups"][who][-1]["extra"]["done"] = done
+            time_data["groups"][who][-1]["extra"]["total"] = total
+            time_data["groups"][who][-1]["extra"]["total (%)"] = "{:.2f}%".format(100 * float(done)/total)
             
             print("[SYSTEM] [TIME] [MPI] [SEND/RECV] [RECV] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
             print("[SYSTEM] [MPI] [SEND/RECV] [SEND] [0] Sending DIE SIGNAL TO RANK " + str(who))
             comm.send(None, dest=who, tag=STOP_WORKING)
 
+        parallel_time_section_data["end"] = str(datetime.now())
+        
+        #################################################
+        ########### WRITE TIME DATA #####################
+        #################################################
+        events = []
+        for period in time_data["periods"]:
+            events.append(period)
+            
+        for group in time_data["groups"]:
+            for event in group:
+                extras = []
+                for key, value in event["extra"].items():
+                    extras.append("<b>{}</b>: {}".format(key, value))
+                    
+                event["title"] = "<br/>".join(extras)
+                events.append(event)
+                
+        groups = []
+        for i in range(0, size):
+            groups.append({"id": i, "content": "MPI Proc. #"+str(i)})
+            
+        
+        time_file = temp_dir + "times.txt"
+        f = open(time_file, "w")
+        json.dump(events, f)
+        f.close()
+        
+        group_file = temp_dir + "groups.txt"
+        f = open(group_file, "w")
+        json.dump(groups, f)
+        f.close()
+        
         # We have finished processing all the chunks. Let's notify this to slaves
 #         for i in range(1, size):
 #             print("[SYSTEM] [MPI] [0] Sending DIE SIGNAL TO RANK " + str(i))
@@ -446,6 +521,8 @@ if __name__ == '__main__':
             if little_file.endswith("files.txt"): continue
             if little_file.endswith("intervals.txt"): continue
             if little_file.endswith("status.txt"): continue
+            if little_file.endswith("times.txt"): continue
+            if little_file.endswith("groups.txt"): continue
             
             print(little_file)
             pieces = re.sub("\..*", "", os.path.basename(little_file)).split("-")
