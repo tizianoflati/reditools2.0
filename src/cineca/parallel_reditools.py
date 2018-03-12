@@ -111,7 +111,7 @@ def calculate_intervals(total_coverage, coverage_file, region):
 
     subintervals = []
     subtotal = total_coverage / size
-    print("[SYSTEM] TOTAL={} SUBTOTAL={}".format(total_coverage, subtotal))
+    print("[SYSTEM] TOTAL={} SUBTOTAL={} MAX_INTERVAL_WIDTH={}".format(total_coverage, subtotal, max_interval_width))
 
     line_no = 0
     with f as lines:
