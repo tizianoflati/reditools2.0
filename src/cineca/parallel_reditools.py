@@ -221,8 +221,11 @@ if __name__ == '__main__':
         time_data["periods"].append({"id": "INTERVALS", "content": "Intervals", "start": str(datetime.now()), "type": "background"})
     
     # COVERAGE SECTION
-    if not os.path.exists(temp_dir):
-        os.makedirs(temp_dir)    
+    try:
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)
+    except Exception as e:
+        print("[WARN] {}".format(e))
 
     interval_file = temp_dir + "/intervals.txt"
     homeworks = []
