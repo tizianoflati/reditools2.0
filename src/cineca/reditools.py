@@ -115,7 +115,7 @@ def update_reads(reads, i):
                 
                 read["ref"] = None
                 read["alt"] = None
-                read["qual"] = None
+                read["qual"] = DEFAULT_BASE_QUALITY
                 
                 continue
                 
@@ -189,7 +189,8 @@ def update_reads(reads, i):
                     read["alt"] = None
                     del cigar_list[0]
                 
-                read["qual"] = read["query_qualities"][read["alignment_index"]]
+                if read["query_qualities"] is not None:
+                    read["qual"] = read["query_qualities"][read["alignment_index"]]
                 
             p = read["pos"]
             if p not in pos_based_read_dictionary: pos_based_read_dictionary[p] = []
@@ -507,7 +508,7 @@ def filter_read(read):
         return False
      
     # Se la read ha un MAPQ < di 30
-    if read.mapping_quality is not None and read.mapping_quality < MIN_QUALITY:
+    if read.mapping_quality < MIN_QUALITY:
         if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [MAPQ] {} MIN={}\n".format(read.mapping_quality, MIN_QUALITY))
         return False
    
@@ -1227,6 +1228,9 @@ def parse_options():
     
     global MIN_BASE_QUALITY
     MIN_BASE_QUALITY = args.min_base_quality
+    
+    global DEFAULT_BASE_QUALITY
+    DEFAULT_BASE_QUALITY = 30 
     
     global MIN_BASE_POSITION
     MIN_BASE_POSITION = args.min_base_position
