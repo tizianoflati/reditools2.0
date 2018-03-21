@@ -507,7 +507,7 @@ def filter_read(read):
         return False
      
     # Se la read ha un MAPQ < di 30
-    if read.mapping_quality < MIN_QUALITY:
+    if read.mapping_quality is not None and read.mapping_quality < MIN_QUALITY:
         if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [MAPQ] {} MIN={}\n".format(read.mapping_quality, MIN_QUALITY))
         return False
    
@@ -530,7 +530,11 @@ def filter_read(read):
     # 99 = 1+2+32+64 = PAIRED+PROPER_PAIR+MREVERSE+READ1 (+-)
     if read.is_paired and not (f == 99 or f == 147 or f == 83 or f == 163):
         if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [NOT_PROPER]\n")
-        return False 
+        return False
+    
+    if read.has_tag('SA'):
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED FILTER [CHIMERIC_READ]\n")
+        return False
  
     return True
     
@@ -874,6 +878,10 @@ def analyze(options):
     print("[INFO] Narrowing REDItools to region {}".format(region))
     sys.stdout.flush()
     
+    reference_reader = None
+    if reference_file is not None: reference_reader = pysam.FastaFile(reference_file)
+#     chr_ref = None
+    
     iterator = init(samfile, region)
     
     next_read = next(iterator, LAST_READ)
@@ -933,6 +941,7 @@ def analyze(options):
                     tic = tac
 
                 last_chr = read.reference_name
+#                 chr_ref = reference_reader.fetch(region=last_chr)
                 
                 next_read = next(iterator, LAST_READ)
                 if next_read is not LAST_READ:
@@ -951,6 +960,9 @@ def analyze(options):
                 if not filter_read(read): continue
                 
                 ref_seq = read.get_reference_sequence()
+#                 ref_pos = [x[1] for x in read.get_aligned_pairs() if x[0] is not None and x[1] is not None]
+#                 ref_seq = chr_ref[min(ref_pos):max(ref_pos)]
+#                 raw_input()
                 
     #             if  len(ref_seq) != len(read.query_sequence) or len(pos) != len(read.query_sequence) or len(pos) != len(ref_seq):
     #                 print("=== DETAILS ===")
@@ -1104,6 +1116,7 @@ def analyze(options):
             # Remove old reads
             reads.pop(i-1, None)
     
+    if reference_reader is not None: reference_reader.close()
     samfile.close()
     writer.close()
     
