@@ -386,6 +386,8 @@ if __name__ == '__main__':
         time_data["periods"].append(parallel_time_section_data)
         print("[SYSTEM] [TIME] [MPI] [0] REDItools STARTED. MPI SIZE (PROCS): {} [now: {}]".format(size, datetime.now().time()))
         
+        intervals_done_writer = open(temp_dir + "/progress.txt", "w")
+        
         t1 = time.time()
         
         print("Loading chromosomes' sizes!")
@@ -435,6 +437,10 @@ if __name__ == '__main__':
             time_data["groups"][who][-1]["extra"]["done"] = done
             time_data["groups"][who][-1]["extra"]["total"] = total
             time_data["groups"][who][-1]["extra"]["total (%)"] = "{:.2f}%".format(100 * float(done)/total)
+            
+            interval = time_data["groups"][who][-1]["extra"]["interval"]
+            intervals_done_writer.write("{}\t{}\t{}\n".format(who, interval, temp_dir + "/" + interval.replace(":", "-") + ".gz"))
+            intervals_done_writer.flush()
   
             interval = homeworks.pop()
             print("[SYSTEM] [MPI] [SEND/RECV] [SEND] [0] Sending data "+ str(interval) +" to rank " + str(who))
@@ -464,11 +470,15 @@ if __name__ == '__main__':
             time_data["groups"][who][-1]["extra"]["total"] = total
             time_data["groups"][who][-1]["extra"]["total (%)"] = "{:.2f}%".format(100 * float(done)/total)
             
+            interval = time_data["groups"][who][-1]["extra"]["interval"]
+            intervals_done_writer.write("{}\t{}\t{}\n".format(who, interval, temp_dir + interval.replace(":", "-") + ".gz"))
+            
             print("[SYSTEM] [TIME] [MPI] [SEND/RECV] [RECV] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
             print("[SYSTEM] [MPI] [SEND/RECV] [SEND] [0] Sending DIE SIGNAL TO RANK " + str(who))
             comm.send(None, dest=who, tag=STOP_WORKING)
 
         parallel_time_section_data["end"] = str(datetime.now())
+        intervals_done_writer.close()
         
         #################################################
         ########### WRITE TIME DATA #####################
@@ -524,6 +534,7 @@ if __name__ == '__main__':
             if little_file.endswith("files.txt"): continue
             if little_file.endswith("intervals.txt"): continue
             if little_file.endswith("status.txt"): continue
+            if little_file.endswith("progress.txt"): continue
             if little_file.endswith("times.txt"): continue
             if little_file.endswith("groups.txt"): continue
             

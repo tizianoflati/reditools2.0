@@ -47,19 +47,10 @@ def update_reads(reads, i):
     
     pos_based_read_dictionary = {}
     
+    total = 0
+    
     for ending_position in reads:
         for read in reads[ending_position]:
-#             index = read["index"] - (read["length"] - read["reference_len"])
-
-#             print("ref_len=" +str(read["reference_len"]) + " len="+str(read["length"]) + " diff=" + str(read["reference_len"]-read["length"]));
-#             if read["positions"][index] < i:
-
-
-#             # Original
-#             if read["positions"][read["index"]] < i:
-#                 read["index"] += 1
-#                 read["alignment_index"] += 1
-#                 read["reference_index"] += 1
 
             cigar_list = read["cigar_list"]
             if len(cigar_list) == 0:
@@ -67,39 +58,17 @@ def update_reads(reads, i):
                 continue
             
             if read["pos"] >= i:
-                # print("READ POSITION " + str(read["pos"]) + " IS GREATER THAN i=" + str(i))
+                #print("READ POSITION " + str(read["pos"]) + " IS GREATER THAN i=" + str(i))
                 continue
             
-#             if read["alignment_index"] >= read["length"]:
-#                 print("READ FINISHED = " + read["sequence"])
+            total += 1
             
             block = cigar_list[0]
             op = block[1]
             
             if op == "S":
                 
-#                 print(read["object"].reference_start, read)
-                
                 del cigar_list[0]
-#                 if read["sequence"] == "TGGACTTTTCCTGAAATTTATTTTTATGTATGTATATCAAACATTGAATTTCTGTTTTCTTCTTTACTGGAATTGT":
-#                     print("[SOFT i="+str(i)+"] S=" + str(block[0])+ " Updating pos from " + str(read["pos"])+ " to " + str(read["pos"] + (block[0])), read["pos"], read)
-                
-#                 read["pos"] += block[0]
-                
-#                 if read["reference_index"] >= 0:
-#                     read["pos"] += block[0]
-#                 else:
-#                 read["pos"] += block[0]
-                
-#                 read["pos"] += block[0]-1
-#                 
-#                 read["alt"] = read["sequence"][read["alignment_index"]]
-#                 read["ref"] = None
-#                 #read["qual"] = None
-#                 read["qual"] = read["query_qualities"][read["alignment_index"]]
-#                 read["alignment_index"] += block[0]
-                
-                # continue
                 
                 if not cigar_list:
                     block = None
@@ -119,28 +88,15 @@ def update_reads(reads, i):
                 
                 continue
                 
-#                 if not cigar_list:
-#                     block = None
-#                 else:
-#                     block = cigar_list[0]
-#                     op = block[1]
-                    
-#             else:
-#                 if read["sequence"] == "ATTTTTCTGTTTCTCCCTCAATATCCACCTCATGGAAGTAGATATTCACTAGGTGATATTTTCTAGGCTCTCTTAA":
-#                     print("[NORMAL i="+str(i)+"] NORMAL=" + str(block[0])+ " Updating pos from " + str(read["pos"])+ " to " + str(read["pos"] + 1), read["pos"], read)
-#                 read["pos"] += 1
-
             if block is not None and op == "I":
                 n = block[0]
                 
 #                 if read["sequence"] == "GTTAATTTTAGAACATTATCATTCCAAAAAAGCAACTTCATAACATCTAGCAGTCACCTCCTTTCCCATTTCTAGC":
 #                     print("[INSERTION i="+str(i)+"] I=" + str(n)+ " Updating alignment_index from " + str(read["alignment_index"]) + " to " + str(read["alignment_index"] + n), read)
                     
-#                 read["pos"] += n
                 read["alignment_index"] += n
                 read["ref"] = None
                 read["alt"] = read["sequence"][read["alignment_index"]]
-#                 read["alt"] = None
                 del cigar_list[0]
                 
                 if not cigar_list:
@@ -166,7 +122,7 @@ def update_reads(reads, i):
                     
 #                     if DEBUG:
 #                         print(str(read["reference_index"]), read["reference"][read["reference_index"]], read)
-                    
+                    #if read["reference_index"] >= len(read["reference"]): print("i={} \nSEQ={} \nORG={}".format(read["reference_index"], read["reference"], read["object"].get_reference_sequence()))
                     read["ref"] = read["reference"][read["reference_index"]]
                     read["alt"] = read["sequence"][read["alignment_index"]]
     
@@ -180,7 +136,7 @@ def update_reads(reads, i):
 #                     if read["sequence"] == "GAAATTTGAAGGTAGAATTGAATACAGATGAACCTCCAATGGTATTCAAGGCTCAGCTGTTTGCGTTGACTGGAGT":
 #                         print("[DELETION i="+str(i)+"] D=" + str(n)+ " Updating reference_index from " + str(read["reference_index"])+ " to " + str(read["reference_index"] + n), read["pos"], read)
                     
-                    read["reference_index"] += n
+                    #read["reference_index"] += n # MODIFICATO E COMMENTATO IL 26/03/18
 
                     read["pos"] += n
 #                     read["alignment_index"] += 1
@@ -195,6 +151,9 @@ def update_reads(reads, i):
             p = read["pos"]
             if p not in pos_based_read_dictionary: pos_based_read_dictionary[p] = []
             pos_based_read_dictionary[p].append(read)
+    
+    if DEBUG:
+        print("[INFO] READS UPDATED IN POSITION " + str(i) + ":" + str(total))
                 
     return pos_based_read_dictionary
             
@@ -774,8 +733,6 @@ def create_omopolymeric_positions(reference_file, omopolymeric_file):
     writer.close()
     sys.stderr.write("Omopolymeric positions written into file: {}.\n".format(omopolymeric_file))
 
-    return positions
-
 def init(samfile, region):
     
     print("Opening bamfile within region=" + str(region))
@@ -830,7 +787,7 @@ def analyze(options):
     omopolymeric_positions = {}
     if create_omopolymeric_file is True:
         if omopolymeric_file is not None:
-            omopolymeric_positions = create_omopolymeric_positions(reference_file, omopolymeric_file)
+            create_omopolymeric_positions(reference_file, omopolymeric_file)
         else:
             print("[ERROR] You asked to create the omopolymeric file, but you did not specify any output file. Exiting.")
             return
@@ -881,7 +838,7 @@ def analyze(options):
     
     reference_reader = None
     if reference_file is not None: reference_reader = pysam.FastaFile(reference_file)
-#     chr_ref = None
+    chr_ref = None
     
     iterator = init(samfile, region)
     
@@ -936,13 +893,14 @@ def analyze(options):
                 
                 # When changing chromosome print some statistics
                 if read is not LAST_READ and read.reference_name != last_chr:
+                    chr_ref = reference_reader.fetch(region=read.reference_name)
+                    
                     tac = datetime.datetime.now()
                     print("[INFO] REFERENCE NAME=" + read.reference_name + " (" + str(tac) + ")\t["+delta(tac, tic)+"]")
                     sys.stdout.flush()
                     tic = tac
 
                 last_chr = read.reference_name
-#                 chr_ref = reference_reader.fetch(region=last_chr)
                 
                 next_read = next(iterator, LAST_READ)
                 if next_read is not LAST_READ:
@@ -960,9 +918,14 @@ def analyze(options):
                 # Check that the read passes the filters
                 if not filter_read(read): continue
                 
-                ref_seq = read.get_reference_sequence()
-#                 ref_pos = [x[1] for x in read.get_aligned_pairs() if x[0] is not None and x[1] is not None]
-#                 ref_seq = chr_ref[min(ref_pos):max(ref_pos)]
+#                 ref_seq = read.get_reference_sequence()
+
+                ref_pos = [x[1] for x in read.get_aligned_pairs() if x[0] is not None and x[1] is not None]
+                ref_seq = ''.join([chr_ref[x] for x in ref_pos]).upper()
+                
+#                 if ref_seq != read.get_reference_sequence().upper():
+#                     print("MY_REF={} \nPY_REF={} \nREAD_NAME={} \nPOSITIONS={} \nREAD={}\n--------------------------".format(ref_seq, read.get_reference_sequence().upper(), read.query_name, read.get_reference_positions(), read.query_sequence))
+                    
 #                 raw_input()
                 
     #             if  len(ref_seq) != len(read.query_sequence) or len(pos) != len(read.query_sequence) or len(pos) != len(ref_seq):
@@ -1122,6 +1085,7 @@ def analyze(options):
     writer.close()
     
     tac = datetime.datetime.now()
+    print("[INFO] ["+hostname_string+"] ["+str(region)+"] " + str(total) + " total reads read")
     print("[INFO] ["+hostname_string+"] ["+str(region)+"] END=" + str(tac) + "\t["+delta(tac, tic)+"]")
     print("[INFO] ["+hostname_string+"] ["+str(region).ljust(50)+"] FINAL END=" + str(tac) + " START="+ str(first_tic) + "\t"+ str(region) +"\t[TOTAL COMPUTATION="+delta(tac, first_tic)+"] [LAUNCH TIME:"+str(LAUNCH_TIME)+"] [TOTAL RUN="+delta(tac, LAUNCH_TIME)+"] [READS="+str(total)+"]")
 
