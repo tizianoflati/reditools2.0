@@ -893,7 +893,7 @@ def analyze(options):
                 
                 # When changing chromosome print some statistics
                 if read is not LAST_READ and read.reference_name != last_chr:
-                    chr_ref = reference_reader.fetch(region=read.reference_name)
+                    chr_ref = reference_reader.fetch(read.reference_name)
                     
                     tac = datetime.datetime.now()
                     print("[INFO] REFERENCE NAME=" + read.reference_name + " (" + str(tac) + ")\t["+delta(tac, tic)+"]")
@@ -964,6 +964,9 @@ def analyze(options):
                         if read.is_reverse: t='+'
                         else: t='-'                        
                 
+                qualities = read.query_qualities
+                if qualities is None: qualities = [DEFAULT_BASE_QUALITY for x in range(0, len(ref_seq))]
+                
                 item = {
     #                     "index": 0,
                         "pos": read.reference_start - 1,
@@ -978,8 +981,8 @@ def analyze(options):
                         "sequence": read.query_sequence,
 #                         "positions": pos,
                         "chromosome": read.reference_name,
-                        "query_qualities": read.query_qualities,
-                        "qualities_len": len(read.query_qualities),
+                        "query_qualities": qualities,
+                        "qualities_len": len(qualities),
                         "length": read.query_length,
                         "cigar": read.cigarstring,
                         "strand": t
