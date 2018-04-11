@@ -439,7 +439,7 @@ if __name__ == '__main__':
             time_data["groups"][who][-1]["extra"]["total (%)"] = "{:.2f}%".format(100 * float(done)/total)
             
             interval = time_data["groups"][who][-1]["extra"]["interval"]
-            intervals_done_writer.write("{}\t{}\t{}\n".format(who, interval, temp_dir + "/" + interval.replace(":", "-") + ".gz"))
+            intervals_done_writer.write("{}\t{}\t{}\n".format(who, interval, temp_dir + "/" + interval.replace(":", "#") + ".gz"))
             intervals_done_writer.flush()
   
             interval = homeworks.pop()
@@ -471,7 +471,8 @@ if __name__ == '__main__':
             time_data["groups"][who][-1]["extra"]["total (%)"] = "{:.2f}%".format(100 * float(done)/total)
             
             interval = time_data["groups"][who][-1]["extra"]["interval"]
-            intervals_done_writer.write("{}\t{}\t{}\n".format(who, interval, temp_dir + interval.replace(":", "-") + ".gz"))
+            intervals_done_writer.write("{}\t{}\t{}\n".format(who, interval, temp_dir + interval.replace(":", "#") + ".gz"))
+            intervals_done_writer.flush()
             
             print("[SYSTEM] [TIME] [MPI] [SEND/RECV] [RECV] [0] RECEIVED IM_FREE SIGNAL FROM RANK {} [now:{}] [elapsed:{}] [{}/{}][{:.2f}%] [Queue:{}]".format(str(who), now, elapsed, done, total, 100 * float(done)/total, queue))
             print("[SYSTEM] [MPI] [SEND/RECV] [SEND] [0] Sending DIE SIGNAL TO RANK " + str(who))
@@ -539,7 +540,7 @@ if __name__ == '__main__':
             if little_file.endswith("groups.txt"): continue
             
             print(little_file)
-            pieces = re.sub("\..*", "", os.path.basename(little_file)).split("-")
+            pieces = re.sub("\..*", "", os.path.basename(little_file)).split("#")
             pieces.insert(0, little_file)
             little_files.append(pieces)
 
@@ -620,7 +621,7 @@ if __name__ == '__main__':
 #                 elif strand == 2:
 #                     s = ['-t', '2', '-i', '2', '-c']
 
-                id = data[0] + "-" + str(data[1]) + "-" + str(data[2])
+                id = data[0] + "#" + str(data[1]) + "#" + str(data[2])
                 
                 options["region"] = [data[0], data[1], data[2]]
                 options["output"] = temp_dir + "/" + id + ".gz"
