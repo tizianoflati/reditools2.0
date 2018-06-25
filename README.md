@@ -30,14 +30,14 @@ or if you plan to use only the serial version:
 >
 > pip install -r requirements.txt
 
-Testing
+Testing the serial version:
 -------------
 
 REDItools2.0 can be tested by issuing the following command
 
 > ./test.sh
 
-Running
+Running the serial version:
 -------------
 
 In its most basic form, REDItools 2.0 can be invoked with an input BAM file and an output file:
@@ -46,16 +46,13 @@ In its most basic form, REDItools 2.0 can be invoked with an input BAM file and 
 If you want to restrict the analysis only to a certain region (e.g., only chr1), you can use the **-g** option :
 > python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -o table.txt -g chr1
 
-Parallel version
+Running the parallel version
 -------------
 
-1. Starting from the reference genome index file (.fai), create a two-column file containing chromosomes and their size.
-> ./create_chrom_sizes.sh \$GENOME.fai > \$CHROM_SIZE_FILE
-
-2. Open the parallel test file:
+1. Open the parallel test file:
 > ./parallel_test.sh 
 
-3. Modify the following variables:
+2. Modify the following variables:
 
 > **BASE_DIR**=\$CINECA_SCRATCH"/reditools/"
 > 
@@ -81,7 +78,7 @@ Parallel version
 > 
 > **strand**=0
 
-4. Launch the parallel test:
+3. Launch the parallel test:
 
 > ./parallel_test.sh
 
