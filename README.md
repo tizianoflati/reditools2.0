@@ -9,9 +9,25 @@ REDItools 2.0
 Installation
 -------------
 > git clone https://github.com/tflati/reditools2.0
-> 
+>
 > cd reditools2.0
-> 
+>
+> module load autoload python/2.7.12
+>
+> virtualenv ENV
+>
+> source ENV/bin/activate
+>
+> pip install -r requirements.txt
+>
+>deactivate
+
+or if you plan to use only the serial version:
+
+> git clone https://github.com/tflati/reditools2.0.git
+>
+> cd reditools2.0
+>
 > pip install -r requirements.txt
 
 Testing
