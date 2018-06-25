@@ -41,7 +41,7 @@ Testing the parallel version
 -------------
 
 1. Open the parallel test file:
-> ./parallel_test.sh 
+> nano ./parallel_test.sh 
 
 2. Modify the following variables:
 
