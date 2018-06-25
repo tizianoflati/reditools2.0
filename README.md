@@ -80,7 +80,7 @@ Running the parallel version
 
 3. Launch the parallel test:
 
-> ./parallel_test.sh
+> sbatch ./parallel_test.sh
 
 Alternatively, you can launch the raw command:
 
