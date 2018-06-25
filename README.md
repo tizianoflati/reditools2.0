@@ -37,16 +37,7 @@ REDItools2.0 can be tested by issuing the following command
 
 > ./test.sh
 
-Running the serial version:
--------------
-
-In its most basic form, REDItools 2.0 can be invoked with an input BAM file and an output file:
-> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -o table.txt
-
-If you want to restrict the analysis only to a certain region (e.g., only chr1), you can use the **-g** option :
-> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -o table.txt -g chr1
-
-Running the parallel version
+Testing the parallel version
 -------------
 
 1. Open the parallel test file:
@@ -86,7 +77,14 @@ Alternatively, you can launch the raw command:
 
 > mpirun src/cineca/parallel_reditools.py -f \$SOURCE_BAM_FILE -r \$REFERENCE -m \$OMOPOLYMER_FILE -o \$OUTPUT_DIR/\$SAMPLE_ID/table.gz -G \$COVERAGE_FILE -D \$COVERAGE_DIR -t \$TEMP_DIR -Z \$SIZE_FILE \$options | tee $SAMPLE_ID.log
 
+Running the serial version:
+-------------
 
+In its most basic form, REDItools 2.0 can be invoked with an input BAM file and an output file:
+> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -o table.txt
+
+If you want to restrict the analysis only to a certain region (e.g., only chr1), you can use the **-g** option :
+> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -o table.txt -g chr1
 
 Issues
 -------------
