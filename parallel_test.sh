@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --ntasks=136
+#SBATCH --ntasks=68
 #SBATCH --ntasks-per-node=68
-#SBATCH --time=24:00:00
-#SBATCH --account=Pra15_3924
+#SBATCH --time=00:20:00
+#SBATCH --account=cin_staff
 #SBATCH -p knl_usr_prod
 #SBATCH -e para-RT.e
 #SBATCH -o para-RT.o
@@ -10,13 +10,14 @@
 cd $SLURM_SUBMIT_DIR
 
 BASE_DIR=$CINECA_SCRATCH"/reditools/"
-INPUT_DIR="/marconi_scratch/userexternal/epicardi/PRJNA231202/SRR1047874/"
 OUTPUT_DIR=$BASE_DIR"/output/"
 
-SAMPLE_ID="SRR1047874"
-SOURCE_BAM_FILE=$INPUT_DIR$SAMPLE_ID".bam"
+SAMPLE_ID="SRR2135332"
+SOURCE_BAM_FILE="test/$SAMPLE_ID.bam"
 
-REFERENCE=$BASE_DIR"hg19.fa"
+module load profile/global
+module load ig_homo_sapiens/hg19
+REFERENCE=$IG_HG19_GENOME"/genome.fa"
 OMOPOLYMER_FILE=$BASE_DIR"omopolymeric_positions.txt"
 # SIZE_FILE=$BASE_DIR"hg19.chrom.sizes"
 SIZE_FILE=$REFERENCE".fai"
