@@ -1,13 +1,13 @@
 #!/bin/bash
 #SBATCH --ntasks=136
 #SBATCH --ntasks-per-node=68
-#SBATCH --time=24:00:00
+#SBATCH --time=4:00:00
 #SBATCH --account=Pra15_3924
 #SBATCH -p knl_usr_prod
-#SBATCH -e para-RT.e
-#SBATCH -o para-RT.o
+#SBATCH -e para-RT-MT.e
+#SBATCH -o para-RT-MT.o
 
-#cd $SLURM_SUBMIT_DIR
+cd $SLURM_SUBMIT_DIR
 
 BASE_DIR="/home/flati/data/reditools/reditools_paper/"
 OUTPUT_DIR=$BASE_DIR"/output/"
@@ -29,12 +29,12 @@ then
 fi
 
 # Environment setup
-#module load python/2.7.12
-#source ENV/bin/activate
-#module load autoload profile/global
-#module load autoload openmpi/1-10.3--gnu--6.1.0
-#module load autoload samtools
-#module load autoload htslib
+module load python/2.7.12
+source ENV/bin/activate
+module load autoload profile/global
+module load autoload openmpi/1-10.3--gnu--6.1.0
+module load autoload samtools
+module load autoload htslib
 
 for SOURCE_BAM_FILE in $(cat $SAMPLE_FILE)
 do
@@ -63,7 +63,7 @@ do
 			t1=$(date +%s)
 			t1_human=$(date)
 			echo "[STATS] [COVERAGE] [$SAMPLE_ID] START="$t1_human" ["$t1"]"
-			./extract_coverage.sh $SOURCE_BAM_FILE $COVERAGE_DIR $SIZE_FILE
+			./extract_coverage.sh $SOURCE_BAM_FILE $COVERAGE_DIR $SIZE_FILE &
 			t2=$(date +%s)
 			t2_human=$(date)
 			elapsed_time=$(($t2-$t1))
@@ -71,6 +71,7 @@ do
 			echo "[STATS] [COVERAGE] [$SAMPLE_ID] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
 	fi
 done
+wait
 
 # strand=0
 # options=""
@@ -107,7 +108,7 @@ do
 	TEMP_DIR=$BASE_DIR"/temp/"$SAMPLE_ID"/"
 	OUTPUT=$OUTPUT_DIR/$SAMPLE_ID/table.gz
 	
-	time ./merge.sh $TEMP_DIR $OUTPUT $NUM_CORES
+	time ./merge.sh $TEMP_DIR $OUTPUT $NUM_CORES &
 	t2=$(date +%s)
 	t2_human=$(date)
 	elapsed_time=$(($t2-$t1))
@@ -117,3 +118,4 @@ do
 	echo "[$SAMPLE_ID] END:"`date`
 	echo "OK" > $TEMP_DIR/status.txt
 done
+wait
