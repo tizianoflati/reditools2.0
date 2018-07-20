@@ -613,10 +613,7 @@ def load_omopolymeric_positions(positions, input_file, region):
     except IOError as e:
         sys.stderr.write("[{}] Omopolymeric positions file not found at {}. Error: {}\n".format(region, input_file, e))
     
-    if not positions:
-        sys.stderr.write("[{}] Omopolymeric positions file at {} seems to be empty!\n".format(region, input_file))
-    else:
-        sys.stderr.write("[{}] {} total omopolymeric positions found.\n".format(region, total))
+    sys.stderr.write("[{}] {} total omopolymeric positions found.\n".format(region, total))
 
 def load_chromosome_names(index_file):
     names = []
@@ -1150,7 +1147,7 @@ def parse_options():
     parser.add_argument('-H', '--remove-header', default=False, help='Do not include header in output file', action='store_true')
     
     args = parser.parse_known_args()[0]
-    print(args)
+#     print(args)
     
     global activate_debug
     activate_debug = args.debug
@@ -1240,7 +1237,7 @@ def parse_options():
         "remove_header": args.remove_header
         }
     
-    print("RUNNING REDItools 2.0 with the following options", options)
+#     print("RUNNING REDItools 2.0 with the following options", options)
     
     return options
 
