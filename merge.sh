@@ -2,6 +2,9 @@ TABLE_DIR=$1
 FINAL_TABLE=$2
 THREADS=$3
 
+t1=$(date +%s)
+t1_human=$(date)
+
 if [ ! -s $TABLE_DIR/files.txt ]
 then
     echo "FILE LIST NOT EXISTING OR EMPTY: "$TABLE_DIR/files.txt
@@ -18,6 +21,16 @@ else
     tabix -s 1 -b 2 -e 2 -c Region $FINAL_TABLE
     echo "Finished creating index file for file $FINAL_TABLE ["`date`"]"    
 fi
+
+t2=$(date +%s)
+t2_human=$(date)
+elapsed_time=$(($t2-$t1))
+elapsed_time_human=$(date -d@$elapsed_time -u +%H:%M:%S)
+
+FILE_ID=`basename $TABLE_DIR`
+
+echo "[STATS] [MERGE] [$FILE_ID] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human 1>&2
+echo -e "$FILE_ID\t$elapsed_time\t$elapsed_time_human" > $TABLE_DIR/merge-chronometer.txt
 
 # echo "Starting creating final table "`date`
 # 
