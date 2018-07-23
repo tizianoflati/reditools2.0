@@ -18,6 +18,7 @@ COVERAGE_DIR=$BASE_DIR"/cov-multisample-2/"
 #DATA_DIR="/home/flati/data/reditools/input/"
 DATA_DIR="$CINECA_SCRATCH/public/"
 
+module load autoload profile/global
 module load ig_homo_sapiens/hg19
 REFERENCE=$IG_HG19_GENOME"/genome.fa"
 #REFERENCE=$DATA_DIR"hg19m.fa"
@@ -27,7 +28,7 @@ SIZE_FILE=$REFERENCE".fai"
 
 SAMPLE_FILE=$BASE_DIR"samples.txt"
 
-NUM_CORES=4
+# NUM_CORES=68
 
 if [ ! -s $SAMPLE_FILE ]
 then
@@ -38,45 +39,40 @@ fi
 # Environment setup
 module load python/2.7.12
 source ENV/bin/activate
-module load autoload profile/global
 module load autoload openmpi/1-10.3--gnu--6.1.0
-module load autoload samtools
-module load autoload htslib
+# module load autoload samtools
+# module load autoload htslib
 
-for SOURCE_BAM_FILE in $(cat $SAMPLE_FILE)
-do
-	if [ ! -s $SOURCE_BAM_FILE ]
-	then
-		echo "File $SOURCE_BAM_FILE does not exists. Skipping."
-		continue
-	fi
-	
-	SAMPLE_ID=$(basename $SOURCE_BAM_FILE | sed 's/\.bam//g')
-	COV=$COVERAGE_DIR$SAMPLE_ID"/"
-	COV_FILE=$COV$SAMPLE_ID".cov"
-
-	date
-
-	if [ ! -d "$OUTPUT_DIR" ]; then
-		mkdir -p "$OUTPUT_DIR"
-	fi
-
-	if [ ! -f $COV_FILE ]
-	then
-			echo "Launching REDItool COVERAGE on $SAMPLE_ID (output_dir=$OUTPUT_DIR)";
-			
-			t1=$(date +%s)
-			t1_human=$(date)
-			echo "[STATS] [COVERAGE] [$SAMPLE_ID] START="$t1_human" ["$t1"]"
-			time ./extract_coverage.sh $SOURCE_BAM_FILE $COV $SIZE_FILE &
-			t2=$(date +%s)
-			t2_human=$(date)
-			elapsed_time=$(($t2-$t1))
-			elapsed_time_human=$(date -d@$elapsed_time -u +%H:%M:%S)
-			echo "[STATS] [COVERAGE] [$SAMPLE_ID] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
-	fi
-done
-wait
+# for SOURCE_BAM_FILE in $(cat $SAMPLE_FILE)
+# do
+# 	if [ ! -s $SOURCE_BAM_FILE ]
+# 	then
+# 		echo "File $SOURCE_BAM_FILE does not exists. Skipping."
+# 		continue
+# 	fi
+# 	
+# 	SAMPLE_ID=$(basename $SOURCE_BAM_FILE | sed 's/\.bam//g')
+# 	COV=$COVERAGE_DIR$SAMPLE_ID"/"
+# 	COV_FILE=$COV$SAMPLE_ID".cov"
+# 
+# 	date
+# 
+# 	if [ ! -f $COV_FILE ]
+# 	then
+# 			echo "Launching REDItool COVERAGE on $SAMPLE_ID (output_dir=$COV)";
+# 			
+# 			t1=$(date +%s)
+# 			t1_human=$(date)
+# 			echo "[STATS] [COVERAGE] [$SAMPLE_ID] START="$t1_human" ["$t1"]"
+# 			time ./extract_coverage.sh $SOURCE_BAM_FILE $COV $SIZE_FILE &
+# 			t2=$(date +%s)
+# 			t2_human=$(date)
+# 			elapsed_time=$(($t2-$t1))
+# 			elapsed_time_human=$(date -d@$elapsed_time -u +%H:%M:%S)
+# 			echo "[STATS] [COVERAGE] [$SAMPLE_ID] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
+# 	fi
+# done
+# wait
 
 # strand=0
 # options=""
@@ -102,27 +98,27 @@ elapsed_time=$(($t2-$t1))
 elapsed_time_human=$(date -d@$elapsed_time -u +%H:%M:%S)
 echo "[STATS] [PARALLEL] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
 
-export PATH=$HTSLIB_HOME/bin/:$PATH
-for SOURCE_BAM_FILE in $(cat $SAMPLE_FILE)
-do
-	t1=$(date +%s)
-	t1_human=$(date)
-	
-	SAMPLE_ID=$(basename $SOURCE_BAM_FILE | sed 's/\.bam//g')
-
-	COV=$COVERAGE_DIR$SAMPLE_ID"/"	
-	COV_FILE=$COV$SAMPLE_ID".cov"
-	TEMP=$TEMP_DIR$SAMPLE_ID"/"
-	OUTPUT=$OUTPUT_DIR/$SAMPLE_ID/table.gz
-
-	time ./merge.sh $TEMP $OUTPUT $NUM_CORES &
-	t2=$(date +%s)
-	t2_human=$(date)
-	elapsed_time=$(($t2-$t1))
-	elapsed_time_human=$(date -d@$elapsed_time -u +%H:%M:%S)
-	echo "[STATS] [MERGE] [$SAMPLE_ID] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
-
-	echo "[$SAMPLE_ID] END:"`date`
-	echo "OK" > $TEMP/status.txt
-done
-wait
+# export PATH=$HTSLIB_HOME/bin/:$PATH
+# for SOURCE_BAM_FILE in $(cat $SAMPLE_FILE)
+# do
+# 	t1=$(date +%s)
+# 	t1_human=$(date)
+# 	
+# 	SAMPLE_ID=$(basename $SOURCE_BAM_FILE | sed 's/\.bam//g')
+# 
+# 	COV=$COVERAGE_DIR$SAMPLE_ID"/"	
+# 	COV_FILE=$COV$SAMPLE_ID".cov"
+# 	TEMP=$TEMP_DIR$SAMPLE_ID"/"
+# 	OUTPUT=$OUTPUT_DIR/$SAMPLE_ID/table.gz
+# 
+# 	time ./merge.sh $TEMP $OUTPUT $NUM_CORES &
+# 	t2=$(date +%s)
+# 	t2_human=$(date)
+# 	elapsed_time=$(($t2-$t1))
+# 	elapsed_time_human=$(date -d@$elapsed_time -u +%H:%M:%S)
+# 	echo "[STATS] [MERGE] [$SAMPLE_ID] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
+# 
+# 	echo "[$SAMPLE_ID] END:"`date`
+# 	echo "OK" > $TEMP/status.txt
+# done
+# wait
