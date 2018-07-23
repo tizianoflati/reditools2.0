@@ -9,12 +9,19 @@
 
 cd $SLURM_SUBMIT_DIR
 
-BASE_DIR="/home/flati/data/reditools/reditools_paper/"
-OUTPUT_DIR=$BASE_DIR"/output/"
+BASE_DIR="/marconi_scratch/userexternal/tflati00/reditools_paper/"
 
-DATA_DIR="/home/flati/data/reditools/input/"
+OUTPUT_DIR=$BASE_DIR"/output-multisample-2/"
+TEMP_DIR=$BASE_DIR"/tmp-multisample-2/"
+COVERAGE_DIR=$BASE_DIR"/cov-multisample-2/"
 
-REFERENCE=$DATA_DIR"hg19.fa"
+#DATA_DIR="/home/flati/data/reditools/input/"
+DATA_DIR="$CINECA_SCRATCH/public/"
+
+module load ig_homo_sapiens/hg19
+REFERENCE=$IG_HG19_GENOME"/genome.fa"
+#REFERENCE=$DATA_DIR"hg19m.fa"
+
 OMOPOLYMER_FILE=$DATA_DIR"omopolymeric_positions.txt"
 SIZE_FILE=$REFERENCE".fai"
 
@@ -45,10 +52,8 @@ do
 	fi
 	
 	SAMPLE_ID=$(basename $SOURCE_BAM_FILE | sed 's/\.bam//g')
-	COVERAGE_DIR=$BASE_DIR"/cov/"$SAMPLE_ID"/"
-	COVERAGE_FILE=$COVERAGE_DIR$SAMPLE_ID".cov"
-	TEMP_DIR=$BASE_DIR"/temp/"$SAMPLE_ID"/"
-	OUTPUT=$OUTPUT_DIR/$SAMPLE_ID/table.gz
+	COV=$COVERAGE_DIR$SAMPLE_ID"/"
+	COV_FILE=$COV$SAMPLE_ID".cov"
 
 	date
 
@@ -56,14 +61,14 @@ do
 		mkdir -p "$OUTPUT_DIR"
 	fi
 
-	if [ ! -f $COVERAGE_FILE ]
+	if [ ! -f $COV_FILE ]
 	then
 			echo "Launching REDItool COVERAGE on $SAMPLE_ID (output_dir=$OUTPUT_DIR)";
 			
 			t1=$(date +%s)
 			t1_human=$(date)
 			echo "[STATS] [COVERAGE] [$SAMPLE_ID] START="$t1_human" ["$t1"]"
-			./extract_coverage.sh $SOURCE_BAM_FILE $COVERAGE_DIR $SIZE_FILE &
+			./extract_coverage.sh $SOURCE_BAM_FILE $COV $SIZE_FILE &
 			t2=$(date +%s)
 			t2_human=$(date)
 			elapsed_time=$(($t2-$t1))
@@ -81,8 +86,9 @@ wait
 # fi
 options=""
 
-COVERAGE_DIR=$BASE_DIR"/cov/"
-TEMP_DIR=$BASE_DIR"/temp/"
+COV_FILE=$COV$SAMPLE_ID".cov"
+TEMP=$TEMP_DIR$SAMPLE_ID"/"
+OUTPUT=$OUTPUT_DIR/$SAMPLE_ID/table.gz
 
 # Program launch
 echo "START:"`date`
@@ -103,12 +109,13 @@ do
 	t1_human=$(date)
 	
 	SAMPLE_ID=$(basename $SOURCE_BAM_FILE | sed 's/\.bam//g')
-	COVERAGE_DIR=$BASE_DIR"/cov/"$SAMPLE_ID"/"
-	COVERAGE_FILE=$COVERAGE_DIR$SAMPLE_ID".cov"
-	TEMP_DIR=$BASE_DIR"/temp/"$SAMPLE_ID"/"
+
+	COV=$COVERAGE_DIR$SAMPLE_ID"/"	
+	COV_FILE=$COV$SAMPLE_ID".cov"
+	TEMP=$TEMP_DIR$SAMPLE_ID"/"
 	OUTPUT=$OUTPUT_DIR/$SAMPLE_ID/table.gz
-	
-	time ./merge.sh $TEMP_DIR $OUTPUT $NUM_CORES &
+
+	time ./merge.sh $TEMP $OUTPUT $NUM_CORES &
 	t2=$(date +%s)
 	t2_human=$(date)
 	elapsed_time=$(($t2-$t1))
@@ -116,6 +123,6 @@ do
 	echo "[STATS] [MERGE] [$SAMPLE_ID] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
 
 	echo "[$SAMPLE_ID] END:"`date`
-	echo "OK" > $TEMP_DIR/status.txt
+	echo "OK" > $TEMP/status.txt
 done
 wait

@@ -70,11 +70,11 @@ def get_coverage(coverage_file, region = None):
     coverage = None
 
     coverages = sample_comm.gather(coverage_partial)
-    if rank == 0:
+    if sample_rank == 0:
         print("COVERAGES:", str(coverages))
         coverage = reduce(lambda x,y: x+y, coverages)
         
-    coverage = sample_comm.bcast(coverage, root=0)
+    coverage = sample_comm.bcast(coverage)
         
     # Return the total
     return coverage
@@ -247,7 +247,8 @@ if __name__ == '__main__':
             print("["+str(rank)+"] [S"+str(sample_index)+"] PRE-COVERAGE TIME " + str(datetime.now().time()))
         
         total_coverage = get_coverage(coverage_file, region)
-        
+        print("[{}] [{}] [S{}] [{}] [TOTAL_COVERAGE] {}".format(rank, sample_rank, sample_index, sample, total_coverage))
+
         if sample_rank == 0:
             now = datetime.now().time()
             elapsed = time.time() - t1
