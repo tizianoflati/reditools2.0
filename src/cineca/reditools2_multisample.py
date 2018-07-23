@@ -173,8 +173,8 @@ if __name__ == '__main__':
             sample = os.path.basename(sample)
             sample = ".".join(sample.split(".")[0:-1])
             chronometer[sample] = {
-                "coverage": 0,
-                "intervals": 0,
+#                 "coverage": 0,
+#                 "intervals": 0,
                 "parallel": 0
             }
         
@@ -523,13 +523,20 @@ if __name__ == '__main__':
             
             # Chronometer data
             chronometer_filename = args.temp_dir + "/" + "chronometer.txt"
-            f = open(chronometer_filename, "a")
+            f = open(chronometer_filename, "w")
             #f.write("\t".join(["SampleID", "Coverage", "Intervals", "Editing", "Coverage (human)", "Intervals (human)", "Coverage (human)"]))
             for s in chronometer:
-                coverage_duration = str(datetime.timedelta(seconds=chronometer[s]["coverage"]))
-                interval_duration = str(datetime.timedelta(seconds=chronometer[s]["intervals"]))
+#                 coverage_duration = str(datetime.timedelta(seconds=chronometer[s]["coverage"]))
+#                 interval_duration = str(datetime.timedelta(seconds=chronometer[s]["intervals"]))
                 parallel_duration = str(datetime.timedelta(seconds=chronometer[s]["parallel"]))
-                f.write("\t".join([s, str(chronometer[s]["coverage"]), str(chronometer[s]["intervals"]), str(chronometer[s]["parallel"]), coverage_duration, interval_duration, parallel_duration]) + "\n")
+                f.write("\t".join([
+                    s,
+#                     str(chronometer[s]["coverage"]),
+#                     str(chronometer[s]["intervals"]),
+                    str(chronometer[s]["parallel"]),
+#                     coverage_duration,
+#                     interval_duration,
+                    parallel_duration]) + "\n")
             f.close()
         
         t2 = time.time()
