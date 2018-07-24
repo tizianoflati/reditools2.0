@@ -1,20 +1,22 @@
 #!/bin/bash
-#SBATCH --ntasks=68
-#SBATCH --ntasks-per-node=68
+#SBATCH --ntasks=25
+#SBATCH --ntasks-per-node=25
 #SBATCH --time=02:00:00
 ##SBATCH --account=Pra15_3924
 #SBATCH --account=cin_staff
 #SBATCH -p knl_usr_prod
 
 # SAMPLE_ID
-# OUTPUT_DIR
 # SOURCE_BAM_FILE
 # COV
 # SIZE_FILE
 
 cd $SLURM_SUBMIT_DIR
 
-echo "Launching REDItool COVERAGE on $SAMPLE_ID (output_dir=$OUTPUT_DIR)";
+echo "Launching REDItool COVERAGE on $SAMPLE_ID";
+
+module load autoload profile/global
+module load autoload samtools
 
 t1=$(date +%s)
 t1_human=$(date)

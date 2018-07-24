@@ -41,7 +41,7 @@ module load python/2.7.12
 source ENV/bin/activate
 module load autoload openmpi/1-10.3--gnu--6.1.0
 # module load autoload samtools
-# module load autoload htslib
+module load autoload htslib
 
 # for SOURCE_BAM_FILE in $(cat $SAMPLE_FILE)
 # do

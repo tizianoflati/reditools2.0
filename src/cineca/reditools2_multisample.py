@@ -395,6 +395,7 @@ if __name__ == '__main__':
     # Wait for all intervals to be collected
     homeworks = comm.gather(homeworks)
     homeworks_by_sample = {}
+    homeworks_done = {}
     if rank == 0:
         homeworks = reduce(lambda x,y: x+y, homeworks)
         shuffle(homeworks)
@@ -404,6 +405,9 @@ if __name__ == '__main__':
             sample_id = homework[0]
             if sample_id not in homeworks_by_sample: homeworks_by_sample[sample_id] = []
             homeworks_by_sample[sample_id].append(homework)
+        
+        for sample_id in homeworks_by_sample:
+            homeworks_done[sample_id] = 0
                             
         print("[{}] [{}] [S{}] #TOTAL={} (all intervals)".format(rank, sample_rank, sample_index, len(homeworks)))
 
@@ -456,6 +460,9 @@ if __name__ == '__main__':
             print(response)
             duration = response[-1] - response[-2]
             chronometer[sample_done]["parallel"] += duration
+            homeworks_done[response[0]] += 1
+            if homeworks_done[response[0]] == len(homeworks_by_sample[response[0]]):
+                print("[SYSTEM] [MPI] [COMPLETE] [{}] [{}] [{}] now:{}".format(sample_done, chronometer[sample_done]["parallel"], str(datetime.timedelta(seconds=chronometer[sample_done]["parallel"])), now))
             
             interval = homeworks.pop()
             print("[SYSTEM] [MPI] [SEND/RECV] [SEND] [0] Sending data "+ str(interval) +" to rank " + str(who))
@@ -477,6 +484,9 @@ if __name__ == '__main__':
             sample_done = ".".join(sample_done.split(".")[0:-1])
             duration = response[-1] - response[-2]
             chronometer[sample_done]["parallel"] += duration
+            homeworks_done[response[0]] += 1
+            if homeworks_done[response[0]] == len(homeworks_by_sample[response[0]]):
+                print("[SYSTEM] [MPI] [COMPLETE] [{}] [{}] [{}] now:{}".format(sample_done, chronometer[sample_done]["parallel"], str(datetime.timedelta(seconds=chronometer[sample_done]["parallel"])), now))
             
             print("[SYSTEM] [MPI] [SEND/RECV] [SEND] [0] Sending DIE SIGNAL TO RANK " + str(who))
             comm.send(None, dest=who, tag=STOP_WORKING)
