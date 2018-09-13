@@ -515,6 +515,10 @@ def filter_base(read):
     
     # Se la qualita' e' < Q
     # if read["query_qualities"][read["alignment_index"]] < MIN_BASE_QUALITY:
+    if "qual" not in read:
+        if VERBOSE: sys.stderr.write("[DEBUG] APPLIED BASE FILTER [QUAL MISSING] {} {}\n".format(pos, read))
+        return False
+    
     if read["qual"] < MIN_BASE_QUALITY:
         if VERBOSE: sys.stderr.write("[DEBUG] APPLIED BASE FILTER [MIN_BASE_QUALITY] {} {} {} {} {}\n".format(str(read["query_qualities"]), pos, str(read["query_qualities"][pos]), MIN_BASE_QUALITY, read))
         return False
@@ -904,9 +908,9 @@ def analyze(options):
                     total += 1
 #                     next_pos = next_read.get_reference_positions()
                     
-                    if total % LOG_INTERVAL == 0:
-                        print("[{}] [{}] [{}] Total reads loaded: {} [{}] [RAM:{}MB]".format(hostname_string, last_chr, region, total, datetime.datetime.now(), psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024)))
-                        sys.stdout.flush()
+#                    if total % LOG_INTERVAL == 0:
+#                        print("[{}] [{}] [{}] Total reads loaded: {} [{}] [RAM:{}MB]".format(hostname_string, last_chr, region, total, datetime.datetime.now(), psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024)))
+#                        sys.stdout.flush()
                 
 #                 print("P2", next_read.query_name, next_read.get_reference_positions())
                     

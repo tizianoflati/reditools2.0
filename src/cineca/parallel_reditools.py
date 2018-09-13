@@ -266,6 +266,8 @@ if __name__ == '__main__':
             if file.startswith("."): continue
             if file.endswith(".cov"): continue
             if file == "chrM": continue
+            if file.endswith("chronometer.txt"): continue
+            
             files.append(file)
         files.sort()
     
