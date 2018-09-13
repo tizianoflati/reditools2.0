@@ -8,27 +8,30 @@ REDItools 2.0
 
 Installation
 -------------
-> git clone https://github.com/tflati/reditools2.0
->
+
+Clone this repository:
+
+> git clone https://github.com/tflati/reditools2.0.git
 > cd reditools2.0
->
+
+If you are running on a cluster, be sure to load your favourite Python module, e.g.:
 > module load autoload python/2.7.12
->
+
+If you can install Python dependencies in your home directory or globally, you can just issue the following commands:
+
+> pip install -r requirements.txt
+
+Otherwise, if you don't have the rights to install the necessary dependencies, you can create an isolated environment:
+(Note: if runnning on a cluster
+
 > virtualenv ENV
 >
 > source ENV/bin/activate
 >
 > pip install -r requirements.txt
 >
->deactivate
+> deactivate
 
-or if you plan to use only the serial version:
-
-> git clone https://github.com/tflati/reditools2.0.git
->
-> cd reditools2.0
->
-> pip install -r requirements.txt
 
 Testing the serial version:
 -------------
@@ -40,10 +43,7 @@ REDItools2.0 can be tested by issuing the following command
 Testing the parallel version
 -------------
 
-1. Open the parallel test file:
-> nano ./parallel_test.sh 
-
-2. Modify the following variables:
+By default, the parallel version writes output and temporary directories on the $SCRATCH area, under 'reditools' directory (it will be created if it does not exist). If you wish to modify this settings, open the parallel test file (parallel_test.sh) and modify the following variables as needed:
 
 > **BASE_DIR**=\$CINECA_SCRATCH"/reditools/"
 > 
@@ -69,11 +69,11 @@ Testing the parallel version
 > 
 > **strand**=0
 
-3. Launch the parallel test:
+To launch the parallel test on a SLURM-based cluster, just issue the following command:
 
 > sbatch ./parallel_test.sh
 
-Alternatively, you can launch the raw command:
+In case you are not running on a cluster, you can launch the raw parallel MPI command as follows:
 
 > mpirun src/cineca/parallel_reditools.py -f \$SOURCE_BAM_FILE -r \$REFERENCE -m \$OMOPOLYMER_FILE -o \$OUTPUT_DIR/\$SAMPLE_ID/table.gz -G \$COVERAGE_FILE -D \$COVERAGE_DIR -t \$TEMP_DIR -Z \$SIZE_FILE \$options | tee $SAMPLE_ID.log
 
