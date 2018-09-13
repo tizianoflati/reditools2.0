@@ -12,6 +12,7 @@ Installation
 Clone this repository:
 
 > git clone https://github.com/tflati/reditools2.0.git
+>
 > cd reditools2.0
 
 If you are running on a cluster, be sure to load your favourite Python module, e.g.:
