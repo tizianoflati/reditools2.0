@@ -75,7 +75,7 @@ To launch the parallel test on a SLURM-based cluster, just issue the following c
 
 In case you are not running on a cluster, you can launch the raw parallel MPI command as follows:
 
-> mpirun src/cineca/parallel_reditools.py -f \$SOURCE_BAM_FILE -r \$REFERENCE -m \$OMOPOLYMER_FILE -o \$OUTPUT_DIR/\$SAMPLE_ID/table.gz -G \$COVERAGE_FILE -D \$COVERAGE_DIR -t \$TEMP_DIR \$options | tee $SAMPLE_ID.log
+> mpirun src/cineca/parallel_reditools.py -f \$SOURCE_BAM_FILE -r \$REFERENCE -m \$OMOPOLYMER_FILE -o \$OUTPUT_DIR/\$SAMPLE_ID/table.gz -G \$COVERAGE_FILE -D \$COVERAGE_DIR -Z \$SIZE_FILE -t \$TEMP_DIR \$options | tee $SAMPLE_ID.log
 
 Running the serial version:
 -------------
