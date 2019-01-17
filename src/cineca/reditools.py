@@ -157,7 +157,7 @@ def update_reads(reads, i):
                 
     return pos_based_read_dictionary
             
-def get_column(pos_based_read_dictionary, reads, splice_positions, last_chr, omopolymeric_positions, i):
+def get_column(pos_based_read_dictionary, reads, splice_positions, last_chr, omopolymeric_positions, target_positions, i):
     
     if splice_positions:
         if i in splice_positions[last_chr]:
@@ -169,6 +169,12 @@ def get_column(pos_based_read_dictionary, reads, splice_positions, last_chr, omo
         if i in omopolymeric_positions[last_chr]:
             if VERBOSE:
                 sys.stderr.write("[DEBUG] [OMOPOLYMERIC] Discarding position ({}, {}) because omopolymeric\n".format(last_chr, i))
+            return None
+        
+    if target_positions:
+        if (last_chr in target_positions and i not in target_positions[last_chr]) or ("chr"+last_chr in target_positions and i not in target_positions["chr"+last_chr]):
+            if VERBOSE:
+                sys.stderr.write("[DEBUG] [TARGET POSITIONS] Discarding position ({}, {}) because not in target positions\n".format(last_chr, i))
             return None
 
 #     edits = {"T": [], "A": [], "C": [], "G": [], "N": []}    
@@ -270,23 +276,28 @@ def get_column(pos_based_read_dictionary, reads, splice_positions, last_chr, omo
                 
             r1r2distribution[("R1" if read["object"].is_read1 else "R2") + ("-REV" if read["object"].is_reverse else "")] += 1
     
-    vstrand = 2
-    if strand != 0:
-        vstrand = vstand(''.join(strand_column))
-        if vstrand == "+": vstrand = 1
-        elif vstrand == "-": vstrand = 0
-        elif vstrand == "*": vstrand = 2
-    
-    if vstrand == 0:
-        edits = complement_all(edits)
-        ref = complement(ref)
-    
-    if vstrand in [0, 1] and strand_correction:
-        edits, strand_column, qualities, qualities_positions = normByStrand(edits, strand_column, qualities, vstrand)
+    if not IS_DNA:
+        vstrand = 2
+        if strand != 0:
+            vstrand = vstand(''.join(strand_column))
+            if vstrand == "+": vstrand = 1
+            elif vstrand == "-": vstrand = 0
+            elif vstrand == "*": vstrand = 2
+        
+        if vstrand == 0:
+            edits = complement_all(edits)
+            ref = complement(ref)
+        
+        if vstrand in [0, 1] and strand_correction:
+            edits, strand_column, qualities, qualities_positions = normByStrand(edits, strand_column, qualities, vstrand)
+
+        if DEBUG:
+            print(vstrand, ''.join(strand_column))
+    else:
+        vstrand = "*"
     
     if DEBUG:
         print(r1r2distribution)
-        print(vstrand, ''.join(strand_column))
 #         counter = defaultdict(str)
 #         for e in edits: counter[e] += 1
 #         print(Counter(edits))
@@ -742,10 +753,16 @@ def init(samfile, region):
         return samfile.fetch()
     
     if len(region) == 1:
-        return samfile.fetch(region[0])
+        try:
+            return samfile.fetch(region[0])
+        except ValueError:
+            return samfile.fetch(region[0].replace("chr", ""))
     
     else:
-        return samfile.fetch(region[0], region[1], region[2])
+        try:
+            return samfile.fetch(region[0], region[1], region[2])
+        except ValueError:
+            return samfile.fetch(region[0].replace("chr", ""), region[1], region[2])
 
 def within_interval(i, region):
     
@@ -760,10 +777,74 @@ def within_interval(i, region):
 def get_header():
     return ["Region", "Position", "Reference", "Strand", "Coverage-q30", "MeanQ", "BaseCount[A,C,G,T]", "AllSubs", "Frequency", "gCoverage-q30", "gMeanQ", "gBaseCount[A,C,G,T]", "gAllSubs", "gFrequency"]
 
+from collections import Counter
+import pickle
+def load_target_positions(bed_file, region):
+    print("Loading target positions from file {} (region:{})".format(bed_file, region))
+    
+    if os.path.exists(bed_file + "save.p"):
+        return pickle.load(open( bed_file + "save.p", "rb" ))
+    
+    target_positions = {}
+
+    extension = os.path.splitext(bed_file)[1]
+    handler = None
+    if extension == ".gz":
+        handler = gzip.open(bed_file, "r")
+    else:
+        handler = open(bed_file, "r")
+    
+    read = 0
+    total_positions = 0
+    total = Counter()
+    with handler as file:
+        for line in file:
+            read += 1
+            fields = line.strip().split("\t")
+            chr = fields[0]
+            if read % 1000000 == 0: print("[{3}] {0}/{1} ({2:.2%}) total lines read. Total positions: {4}".format(read, 200000000, read / 200000000.0, datetime.datetime.now(), total_positions))
+            
+            if region != None and chr.replace("chr", "") != region[0].replace("chr", ""): continue
+            
+            start = int(fields[1])-1
+            
+            try:
+                end = int(fields[2])-1
+            except:
+                end = start # In case the file has 2 columns only or the third column is not an integer 
+            
+            intersection_start = max(region[1] if region is not None and len(region)>1 else 0, start)
+            intersection_end = min(region[2] if region is not None and len(region)>2 else sys.maxint, end)
+            
+            
+            # If the target region does not intersect the currently analyzed region
+            if intersection_end < intersection_start: continue
+
+#             print(line, chr, start, end, intersection_start, intersection_end, total)
+            
+            # Add target positions
+            if chr not in target_positions: target_positions[chr] = SortedSet()
+            for i in range(intersection_start, intersection_end+1):
+                    
+                target_positions[chr].add(i)
+                total[chr] += 1
+                total_positions += 1
+                
+    print("### TARGET POSITIONS ###")
+    print(total)
+    print("TOTAL POSITIONS:", sum(total.values()))
+    pickle.dump(target_positions, open( bed_file + "save.p", "wb" ) )
+#     raw_input()    
+    
+    return target_positions
+            
 def analyze(options):
     
     global DEBUG
     global activate_debug
+    
+    print("[SYSTEM]", "PYSAM VERSION", pysam.__version__)
+    print("[SYSTEM]", "PYSAM PATH", pysam.__path__)
     
     interface = 'ib0' if 'ib0' in netifaces.interfaces() else netifaces.interfaces()[0]
     hostname = socket.gethostbyaddr(netifaces.ifaddresses(interface)[netifaces.AF_INET][0]['addr'])
@@ -778,12 +859,17 @@ def analyze(options):
     omopolymeric_file = options["omopolymeric_file"]
     splicing_file = options["splicing_file"]
     create_omopolymeric_file = options["create_omopolymeric_file"]
-
+    bed_file = options["bed_file"] if "bed_file" in options else None
+    
     LAUNCH_TIME = datetime.datetime.now()
     print("[INFO] ["+str(region)+"] START=" + str(LAUNCH_TIME))
 
     print("[INFO] Opening BAM file="+bamfile)
     samfile = pysam.AlignmentFile(bamfile, "rb")
+
+    target_positions = {}
+    if bed_file is not None:
+        target_positions = load_target_positions(bed_file, region)
     
     omopolymeric_positions = {}
     if create_omopolymeric_file is True:
@@ -804,7 +890,7 @@ def analyze(options):
     
     # Constants
     LAST_READ = None
-    LOG_INTERVAL = 1000
+    LOG_INTERVAL = 500000
     
     # Take the time
     tic = datetime.datetime.now()
@@ -894,7 +980,11 @@ def analyze(options):
                 
                 # When changing chromosome print some statistics
                 if read is not LAST_READ and read.reference_name != last_chr:
-                    chr_ref = reference_reader.fetch(read.reference_name)
+                    
+                    try:
+                        chr_ref = reference_reader.fetch(read.reference_name)
+                    except KeyError:
+                        chr_ref = reference_reader.fetch("chr" + read.reference_name)
                     
                     tac = datetime.datetime.now()
                     print("[INFO] REFERENCE NAME=" + read.reference_name + " (" + str(tac) + ")\t["+delta(tac, tic)+"]")
@@ -908,9 +998,9 @@ def analyze(options):
                     total += 1
 #                     next_pos = next_read.get_reference_positions()
                     
-#                    if total % LOG_INTERVAL == 0:
-#                        print("[{}] [{}] [{}] Total reads loaded: {} [{}] [RAM:{}MB]".format(hostname_string, last_chr, region, total, datetime.datetime.now(), psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024)))
-#                        sys.stdout.flush()
+                    if total % LOG_INTERVAL == 0:
+                        print("[{}] [{}] [{}] Total reads loaded: {} [{}] [RAM:{}MB]".format(hostname_string, last_chr, region, total, datetime.datetime.now(), psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024)))
+                        sys.stdout.flush()
                 
 #                 print("P2", next_read.query_name, next_read.get_reference_positions())
                     
@@ -943,27 +1033,29 @@ def analyze(options):
     #                 print(read.query_qualities)
                 
                 t = "*"
-                if read.is_read1:
-                    if strand == 1:
-                        if read.is_reverse: t='-'
-                        else: t='+'
-                    else:
-                        if read.is_reverse: t='+'
-                        else: t='-'
-                elif read.is_read2:
-                    if strand == 2:
-                        if read.is_reverse: t='-'
-                        else: t='+'
-                    else:
-                        if read.is_reverse: t='+'
-                        else: t='-'
-                else: # for single ends
-                    if strand == 1:
-                        if read.is_reverse: t='-'
-                        else: t='+'
-                    else:
-                        if read.is_reverse: t='+'
-                        else: t='-'                        
+                
+                if not IS_DNA:
+                    if read.is_read1:
+                        if strand == 1:
+                            if read.is_reverse: t='-'
+                            else: t='+'
+                        else:
+                            if read.is_reverse: t='+'
+                            else: t='-'
+                    elif read.is_read2:
+                        if strand == 2:
+                            if read.is_reverse: t='-'
+                            else: t='+'
+                        else:
+                            if read.is_reverse: t='+'
+                            else: t='-'
+                    else: # for single ends
+                        if strand == 1:
+                            if read.is_reverse: t='-'
+                            else: t='+'
+                        else:
+                            if read.is_reverse: t='+'
+                            else: t='-'                        
                 
                 qualities = read.query_qualities
                 if qualities is None: qualities = [DEFAULT_BASE_QUALITY for x in range(0, len(ref_seq))]
@@ -1039,7 +1131,7 @@ def analyze(options):
         
             pos_based_read_dictionary = update_reads(reads, i)
             
-            column = get_column(pos_based_read_dictionary, reads, splice_positions, last_chr, omopolymeric_positions, i)
+            column = get_column(pos_based_read_dictionary, reads, splice_positions, last_chr, omopolymeric_positions, target_positions, i)
             
             # Debug purposes
             if DEBUG:
@@ -1064,6 +1156,7 @@ def analyze(options):
                 # mqua=meanq(qual,len(seq))
                 # line='\t'.join([chr,str(pileupcolumn.pos+1),ref,mystrand,str(cov),mqua,str(bcomp),subs,freq]+['-','-','-','-','-'])+'\n'
                 # [A,C,G,T]
+                
                 writer.write("\t".join([
                     last_chr,
                     str(i),
@@ -1140,15 +1233,17 @@ def parse_options():
     parser.add_argument('-mbp', '--min-base-position', type=int, default=0, help='The minimum base position. Bases which reside in a previous position (in the read) will not be included in the analysis.')
     parser.add_argument('-Mbp', '--max-base-position', type=int, default=0, help='The maximum base position. Bases which reside in a further position (in the read) will not be included in the analysis.')
     parser.add_argument('-l', '--min-column-length', type=int, default=1, help='The minimum length of editing column (per position). Positions whose columns have length below this value will not be included in the analysis.')
-    parser.add_argument('-men', '--min-edits-per-nucletide', type=int, default=1, help='The minimum number of editing for events each nucletide (per position). Positions whose columns have bases with less than min-edits-per-base edits will not be included in the analysis.')
+    parser.add_argument('-men', '--min-edits-per-nucleotide', type=int, default=1, help='The minimum number of editing for events each nucleotide (per position). Positions whose columns have bases with less than min-edits-per-base edits will not be included in the analysis.')
     parser.add_argument('-me', '--min-edits', type=int, default=0, help='The minimum number of editing events (per position). Positions whose columns have bases with less than \'min-edits-per-base edits\' will not be included in the analysis.')    
-    parser.add_argument('-Men', '--max-editing-nucletides', type=int, default=100, help='The maximum number of editing nucleotides, from 0 to 4 (per position). Positions whose columns have more than \'max-editing-nucletides\' will not be included in the analysis.')
+    parser.add_argument('-Men', '--max-editing-nucleotides', type=int, default=100, help='The maximum number of editing nucleotides, from 0 to 4 (per position). Positions whose columns have more than \'max-editing-nucleotides\' will not be included in the analysis.')
     parser.add_argument('-d', '--debug', default=False, help='REDItools is run in DEBUG mode.', action='store_true')
     parser.add_argument('-T', '--strand-confidence', default=1, help='Strand inference type 1:maxValue 2:useConfidence [1]; maxValue: the most prominent strand count will be used; useConfidence: strand is assigned if over a prefixed frequency confidence (-TV option)')
     parser.add_argument('-C', '--strand-correction', default=False, help='Strand correction. Once the strand has been inferred, only bases according to this strand will be selected.', action='store_true')
     parser.add_argument('-Tv', '--strand-confidence-value', type=float, default=0.7, help='Strand confidence [0.70]')    
     parser.add_argument('-V', '--verbose', default=False, help='Verbose information in stderr', action='store_true')
     parser.add_argument('-H', '--remove-header', default=False, help='Do not include header in output file', action='store_true')
+    parser.add_argument('-D', '--dna', default=False, help='Run REDItools 2.0 on DNA-Seq data', action='store_true')
+    parser.add_argument('-B', '--bed_file', help='Path of BED file containing target regions')
     
     args = parser.parse_known_args()[0]
 #     print(args)
@@ -1160,12 +1255,20 @@ def parse_options():
     VERBOSE = args.verbose
     
     bamfile = args.file
+    if bamfile is None:
+        print("[ERROR] An input bam file is mandatory. Please, provide one (-f|--file)")
+        exit(1)
+        
     omopolymeric_file = args.omopolymeric_file
     global OMOPOLYMERIC_SPAN
     OMOPOLYMERIC_SPAN = args.omopolymeric_span
     create_omopolymeric_file = args.create_omopolymeric_file
     
     reference_file = args.reference
+    if reference_file is None:
+        print("[ERROR] An input reference file is mandatory. Please, provide one (-r|--reference)")
+        exit(1)
+    
     output = args.output_file
     append = args.append_file
     
@@ -1210,13 +1313,22 @@ def parse_options():
     MIN_COLUMN_LENGTH = args.min_column_length
     
     global MIN_EDITS_SINGLE
-    MIN_EDITS_SINGLE = args.min_edits_per_nucletide
+    MIN_EDITS_SINGLE = args.min_edits_per_nucleotide
     
     global MIN_EDITS_NO
     MIN_EDITS_NO = args.min_edits
     
     global MAX_CHANGES
-    MAX_CHANGES = args.max_editing_nucletides
+    MAX_CHANGES = args.max_editing_nucleotides
+    
+    global IS_DNA
+    IS_DNA = args.dna
+    
+    bed_file = args.bed_file
+    
+    if IS_DNA and bed_file is None:
+        print("[ERROR] When analyzing DNA-Seq files it is mandatory to provide a BED file containing the positions of target regions (-B|--bed_file)")
+        exit(1)
     
     region = None
     
@@ -1238,7 +1350,8 @@ def parse_options():
         "omopolymeric_file": omopolymeric_file,
         "create_omopolymeric_file": create_omopolymeric_file,
         "splicing_file": splicing_file,
-        "remove_header": args.remove_header
+        "remove_header": args.remove_header,
+        "bed_file": bed_file
         }
     
 #     print("RUNNING REDItools 2.0 with the following options", options)
@@ -1257,9 +1370,6 @@ def parse_options():
 # -m /home/flati/data/reditools/omopolymeric_positions.txt
 if __name__ == '__main__':
 
-    print("[SYSTEM]", "PYSAM VERSION", pysam.__version__)
-    print("[SYSTEM]", "PYSAM PATH", pysam.__path__)
-    
     options = parse_options()
     
     analyze(options)
