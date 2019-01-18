@@ -2,6 +2,7 @@
 
 **REDItools 2.0** is the optimized, parallel multi-node version of [<i class="icon-link"></i> REDItools](http://srv00.recas.ba.infn.it/reditools/).
 
+`[TOC]`
 
 ## Installation
 
@@ -265,7 +266,7 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE3MjQ3MTgzOTksLTkxNjY3ODgyMSwxOD
-Y3MzQ1NjIzLDIwNDYwMjY1NzYsLTIwOTcwNDQyMDgsMTE1NDk3
-NTIxNCwtOTEzOTQ0ODIzXX0=
+eyJoaXN0b3J5IjpbMTg0NTY3NDg3MSwtOTE2Njc4ODIxLDE4Nj
+czNDU2MjMsMjA0NjAyNjU3NiwtMjA5NzA0NDIwOCwxMTU0OTc1
+MjE0LC05MTM5NDQ4MjNdfQ==
 -->
