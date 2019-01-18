@@ -28,7 +28,7 @@ The first step is to clone this repository (assumes you have *git* installed in 
 Move into the project main directory:
 > cd reditools2.0
 
----
+
 ### 3. Installing
 ---
 
@@ -66,7 +66,7 @@ When running the real commands, remember to wrap your commands between and activ
 >
 >deactivate
 
----
+
 ### 4. The two versions of REDItools 2.0
 ---
 
@@ -122,11 +122,11 @@ This script:
 - results are gathered and written into a single table (parameter *-o* provided in the command line)
 
 ### 5. Running REDItools 2.0 on your own data
-
+---
 You can now customize the input test scripts to your needs with your input, output and ad-hoc options.
 
 ### 6. REDItools 2.0 options
-
+---
 #### 6.1 Basic options
 In its most basic form, REDItools 2.0 can be invoked with an input BAM file, a reference genome and an output file:
 > python src/cineca/reditools.py -f \$INPUT_BAM_FILE -r $REFERENCE -o \$OUTPUT_FILE
@@ -262,10 +262,10 @@ The parallel version of REDItools 2.0 has also other 4 additional parameters, na
 
 
 Issues
--------------
+---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTE2NTk4OTkzNSwtOTE2Njc4ODIxLDE4Nj
-czNDU2MjMsMjA0NjAyNjU3NiwtMjA5NzA0NDIwOCwxMTU0OTc1
-MjE0LC05MTM5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbLTE3MjQ3MTgzOTksLTkxNjY3ODgyMSwxOD
+Y3MzQ1NjIzLDIwNDYwMjY1NzYsLTIwOTcwNDQyMDgsMTE1NDk3
+NTIxNCwtOTEzOTQ0ODIzXX0=
 -->
