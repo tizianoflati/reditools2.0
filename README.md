@@ -10,9 +10,11 @@ Installation
 -------------
 
 The first step is to clone this repository (assumes you have *git* installed in your system):
-
 > git clone https://github.com/tflati/reditools2.0.git
->
+
+(alternatively you can download a ZIP package of REDItools2.0 from [here](https://github.com/tflati/reditools2.0/archive/master.zip) and uncompress the archive).
+
+Move into the project main directory:
 > cd reditools2.0
 
 This guide assumes you have Python installed in your system. If you do not have Python, please read the [official Python webpage](https://www.python.org/).
@@ -103,6 +105,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEwODU5NjcyMjgsMTE1NDk3NTIxNCwtOT
-EzOTQ0ODIzXX0=
+eyJoaXN0b3J5IjpbLTcwMTE1OTcyNiwxMTU0OTc1MjE0LC05MT
+M5NDQ4MjNdfQ==
 -->
