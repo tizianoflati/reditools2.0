@@ -1,15 +1,13 @@
-REDItools 2.0
-===================
-
+# REDItools 2.0
 
 **REDItools 2.0** is the optimized, parallel multi-node version of [<i class="icon-link"></i> REDItools](http://srv00.recas.ba.infn.it/reditools/).
 
 ----------
 
-Installation
--------------
+## Installation
 
-== Python =
+### Python
+
 This guide assumes you have Python installed in your system. If you do not have Python, please read the [official Python webpage](https://www.python.org/).
 
 The first step is to clone this repository (assumes you have *git* installed in your system - see the [Git official page](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) otherwise):
@@ -106,6 +104,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE5Mjc3MjA2NTQsMTE1NDk3NTIxNCwtOT
-EzOTQ0ODIzXX0=
+eyJoaXN0b3J5IjpbNzYyNjQ1MTQ3LDExNTQ5NzUyMTQsLTkxMz
+k0NDgyM119
 -->
