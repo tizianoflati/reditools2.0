@@ -2,7 +2,16 @@
 
 **REDItools 2.0** is the optimized, parallel multi-node version of [<i class="icon-link"></i> REDItools](http://srv00.recas.ba.infn.it/reditools/).
 
-`[TOC]`
+# Index
+- [Installation](#installation)
+  - [Python setup](#1-python-setup)
+  - [Cloning / downloading](#2-cloning--downloading)
+  - [Installing](#3-installing)
+  - [The two versions of REDItools 2.0](#4-the-two-versions-of-reditools20)
+    - [Serial version](#41-serial_version-reditoolspy) 
+    - [Parallel version](#42-parallel_version--parallel-reditoolspy)
+  - [Running REDItools 2.0 on your own data](#5-running-reditools-20-on-your-own-data) 
+  - [REDItools 2.0 options](#) 
 
 ## Installation
 
@@ -266,7 +275,7 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTg0NTY3NDg3MSwtOTE2Njc4ODIxLDE4Nj
+eyJoaXN0b3J5IjpbLTMwNjcyODc4NCwtOTE2Njc4ODIxLDE4Nj
 czNDU2MjMsMjA0NjAyNjU3NiwtMjA5NzA0NDIwOCwxMTU0OTc1
 MjE0LC05MTM5NDQ4MjNdfQ==
 -->
