@@ -57,7 +57,11 @@ To install REDItools2.0 in this modality, run the following commands:
 
 These commands will create a new environment called *ENV* (you can choose any name you like) and will install all dependencies listed in the file *requirements.txt* into it). The commands *activate* and *deactivate* respectively activate (i.e., start/open) and deactivate (i.e., end/close) the virtual environment.
 
-##
+### The two versions of REDItools 2.0
+
+The software comes with two modalities:
+- Serial version: in this modality you benefit only from the optimization introduced after the first version. While being significantly faster (with a factor about 8)
+- Parallel version
 
 Testing the serial version:
 -------------
@@ -116,6 +120,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNzA5MzM5NjcwLDExNTQ5NzUyMTQsLTkxMz
-k0NDgyM119
+eyJoaXN0b3J5IjpbMTUzOTY5MDI3MywxMTU0OTc1MjE0LC05MT
+M5NDQ4MjNdfQ==
 -->
