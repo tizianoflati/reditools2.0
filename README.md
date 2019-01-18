@@ -16,7 +16,7 @@ If you are running on a cluster (where usually several versions are available) m
 
 Note: REDItools2.0 has been tested with Python 2.7.12. Although there should not be any problem in upgrading, the software comes with no guarantee of being compatible with other versions of Python (e.g., Python >=3).
 
----
+
 ### 2. Cloning / Downloading
 ---
 
@@ -265,7 +265,7 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNTgxODg2NDA2LC05MTY2Nzg4MjEsMTg2Nz
-M0NTYyMywyMDQ2MDI2NTc2LC0yMDk3MDQ0MjA4LDExNTQ5NzUy
-MTQsLTkxMzk0NDgyM119
+eyJoaXN0b3J5IjpbMTE2NTk4OTkzNSwtOTE2Njc4ODIxLDE4Nj
+czNDU2MjMsMjA0NjAyNjU3NiwtMjA5NzA0NDIwOCwxMTU0OTc1
+MjE0LC05MTM5NDQ4MjNdfQ==
 -->
