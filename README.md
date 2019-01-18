@@ -72,7 +72,15 @@ When running the real commands, remember to wrap your commands between and activ
 
 This repo includes test data and a test script for checking that dependencies have been installed properly and the basic REDItools command works.
 
-The software comes with two modalities.
+In order to have all the data you need, run the following commands:
+
+> cd test
+> ./prepare_test.sh
+
+This will download and index the chromosome 21 of the hg19 version of the human genome (from http://hgdownload.cse.ucsc.edu/downloads.html).
+Once the script has finished running, you have all you need to perform the tests.
+
+The software comes with two modalities. Feel free to choose the one which best fits your needs.
 
 ####  4.1 Serial version
 
@@ -122,6 +130,7 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTg2NzM0NTYyMywyMDQ2MDI2NTc2LC0yMD
-k3MDQ0MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
+eyJoaXN0b3J5IjpbLTkxNjY3ODgyMSwxODY3MzQ1NjIzLDIwND
+YwMjY1NzYsLTIwOTcwNDQyMDgsMTE1NDk3NTIxNCwtOTEzOTQ0
+ODIzXX0=
 -->
