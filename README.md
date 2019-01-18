@@ -55,6 +55,16 @@ pip install -r requirements.txt
 deactivate
 
 These commands will create a new environment called *ENV* (you can choose any name you like) and will install all dependencies listed in the file *requirements.txt* into it). The commands *activate* and *deactivate* respectively activate (i.e., start/open) and deactivate (i.e., end/close) the virtual environment.
+When running the real commands, remember to wrap your commands between and activate and deactivate commands:
+
+>source ENV/bin/activate
+>
+>command...
+>command...
+>command...
+>command...
+>
+>deactivate
 
 ---
 ### 4. The two versions of REDItools 2.0
@@ -112,6 +122,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTMxNzI0Mjk0NywyMDQ2MDI2NTc2LC0yMD
+eyJoaXN0b3J5IjpbMTg2NzM0NTYyMywyMDQ2MDI2NTc2LC0yMD
 k3MDQ0MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
 -->
