@@ -98,7 +98,7 @@ For a complete list of options and their usage and meaning, please type:
 #### 5.2 Parallel version
 The parallel version leverages on the existence of coverage information which reports for each position the number of supporting reads.
 
-##### <a name="coverage-data"></a>5.2.1 Producing coverage data
+##### 5.2.1 Producing coverage data
 In order to produce such coverage data, execute the script extract_coverage.sh:
 
 > extract_coverage.sh \$FILENAME \$COVERAGE_DIR \$SIZE_FILE
@@ -109,11 +109,12 @@ $FILENAME is the path of the BAM file to analyze
 \$SIZE_FILE is the .fai file containing the names of the chromosomes (e.g., hg19.fa.fai).
 
 ##### Testing
-If you have already produced the coverage data (see Section [5.2.1](#coverage-data)) can use mpi on your machine (e.g., you are not on a multi-user system and there are no limitations to the jobs you can submit to the system), you can try launching the parallel version of REDItools 2.0 as follows:
+Testing assumes you have already produced the coverage data (see Section [5.2.1](#521-producing-coverage-data)).
+If you can use mpi on your machine (e.g., you are not on a multi-user system and there are no limitations to the jobs you can submit to the system), you can try launching the parallel version of REDItools 2.0 as follows:
 
-> mpirun src/cineca/parallel_reditools.py -f \$SOURCE_BAM_FILE -o \$OUTPUT_DIR/\$SAMPLE_ID/table.gz -r \$REFERENCE -t \$TEMP_DIR -G \$COVERAGE_FILE -D \$COVERAGE_DIR -Z \$SIZE_FILE \$options | tee $SAMPLE_ID.log
+> mpirun src/cineca/parallel_reditools.py -f \$SOURCE_BAM_FILE -o \$OUTPUT_DIR/\$SAMPLE_ID/table.gz -r \$REFERENCE -t \$TEMP_DIR -G \$COVERAGE_FILE -D \$COVERAGE_DIR -Z \$SIZE_FILE
 
-This command runs the parallel version of REDItools 2.0 on the input BAM file identified by the variable \$SOURCE_BAM_FILE, saves the output to file \$OUTPUT_DIR/\$SAMPLE_ID/table.gz by using $REFERENCE as the reference genome and using \$TEMP_DIR as temporary directory. The options -G and -D provide the paths of the coverage file and directory, respectively (both created by the *extract_coverage.sh* script)
+This command runs the parallel version of REDItools 2.0 on the input BAM file identified by the variable \$SOURCE_BAM_FILE, saves the output to file \$OUTPUT_DIR/\$SAMPLE_ID/table.gz by using $REFERENCE as the reference genome and using \$TEMP_DIR as temporary directory. The options -G and -D provide the paths of the coverage file and directory, respectively (both created by the *extract_coverage.sh* script).
 
 By default, the parallel version writes output and temporary directories on the $SCRATCH area, under 'reditools' directory (it will be created if it does not exist). If you wish to modify this settings, open the parallel test file (parallel_test.sh) and modify the following variables as needed:
 
@@ -156,6 +157,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTk1NzgyOTI2NSwtMjA5NzA0NDIwOCwxMT
-U0OTc1MjE0LC05MTM5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbLTE3NjY2MDAyNzQsLTIwOTcwNDQyMDgsMT
+E1NDk3NTIxNCwtOTEzOTQ0ODIzXX0=
 -->
