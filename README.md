@@ -10,7 +10,7 @@
 
 This guide assumes you have Python installed in your system. If you do not have Python, please read the [official Python webpage](https://www.python.org/).
 
-Make sure you have you preferred Python version loaded. If you have a  Python already installed in your 
+Make sure you have you preferred Python version loaded. If you have a single Python version already installed in your system you should do nothing. If you have multiple versions, please be sure to point to a given version; in order to do so check your environmental variables (e.g., PATH)
 If you are running on a cluster, load a Python module, e.g.:
 > module load autoload python/2.7.12
 
@@ -110,6 +110,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTY1MTkzMDY1NSwxMTU0OTc1MjE0LC05MT
-M5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbLTE4MzM5NDY5ODksMTE1NDk3NTIxNCwtOT
+EzOTQ0ODIzXX0=
 -->
