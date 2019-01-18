@@ -23,7 +23,9 @@ Note: REDItools2.0 has been tested with Python 2.7.12. Although there should not
 REDItools 2.0 requires a few Python modules to be installed in the environment (e.g., pysam, sortedcontainers, mpi4py, etc.).
 It can be installed in two ways:
 
-- System-level: in this way the dependencies will be installed in your system and all users will see the modifications. In order to perform this type of installat
+- System level: in this way the dependencies will be installed in your system and all users will see the modifications. In order to perform this type of installation you need administrator rights.
+- User level: in this way the dependencies will be installed only for your current user, usually in your home directory. In order to perform this type of installation you need only to be logged as a normal u
+- Environment level: in this 
 In case you able to install Python dependencies (in your home directory or globally), you can just issue the following commands:
 
 > pip install -r requirements.txt
@@ -97,5 +99,5 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTYxNDE2Mzk1MF19
+eyJoaXN0b3J5IjpbNzEzNDc3NjNdfQ==
 -->
