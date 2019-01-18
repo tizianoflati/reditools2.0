@@ -20,9 +20,9 @@ If you are running on a cluster, load a Python module, e.g.:
 
 Note: REDItools2.0 has been tested with Python 2.7.12. Although there should not be any problem, the software comes with no guarantee of being compatible with Python 3.
 
-REDItools 2.0 requires a few Python modules to be installed in the environment (e.g., 
-
-If you can install Python dependencies in your home directory or globally, you can just issue the following commands:
+REDItools 2.0 requires a few Python modules to be installed in the environment (e.g., pysam, sortedcontainers, mpi4py, etc.).
+It can be installed in two
+In case you able to install Python dependencies (in your home directory or globally), you can just issue the following commands:
 
 > pip install -r requirements.txt
 
@@ -95,5 +95,5 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEzNjczOTY3MzRdfQ==
+eyJoaXN0b3J5IjpbLTYyMDQzMzUwOF19
 -->
