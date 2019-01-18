@@ -60,42 +60,23 @@ These commands will create a new environment called *ENV* (you can choose any na
 ### 4. The two versions of REDItools 2.0
 ---
 
+This repo includes test data and a test script for checking that dependencies have been installed properly and the basic REDItools command works.
+
 The software comes with two modalities:
 - **Serial version**: in this modality you benefit only from the optimization introduced after the first version. While being significantly faster (with about a 8x factor), you do not exploit the computational power of having multiple cores. On the other hand the setup and launch of REDItools is much easier.
 This might be the first modality you might want to give a try when using REDItools2.0 for the first time.
 
+The serial version of REDItools2.0 can be tested by issuing the following command:
+
+> serial_test.sh
+
+or, if you are in a SLURM-based cluster:
+
+> sbatch serial_test_slurm.sh
+
 - **Parallel version**: in this modality you benefit both from the serial optimization and from the parallel computation introduced in this brand new version which exploits the existence of multiple cores, also on multiple nodes, making it a perfect tool on High Performance Computing facilities.
 Using this modality requires you to perform a little bit more system setup, but it will definitely pay you off.
 
----
-### 5. Testing and running
----
-#### 5.1 Serial version
-
-##### 5.1.1 Testing
-This repo includes test data and a test script for checking that dependencies have been installed properly and the basic REDItools command works.
-The serial version of REDItools2.0 can be tested by issuing the following command:
-
-> python src/cineca/reditools.py -f test/SRR2135332.bam -r $REFERENCE -o table.txt -g chr1
-
-
-##### 5.1.2 Running
-In its most basic form, REDItools 2.0 can be invoked with an input BAM file, a reference genome and an output file:
-> python src/cineca/reditools.py -f \$INPUT_BAM_FILE -r $REFERENCE -o \$OUTPUT_FILE
-
-If you want, you can restrict the analysis only to a certain region (e.g., only chr1), by means of the **-g** option :
-> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -r $REFERENCE -o \$OUTPUT_FILE -g chr1
-> 
-or a specific interval:
-> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -r $REFERENCE -o \$OUTPUT_FILE -g chr1:1000-2000
-
-For a complete list of options and their usage and meaning, please type:
-
-> python src/cineca/reditools.py -h
-
----
-
-#### 5.2 Parallel version
 The parallel version leverages on the existence of coverage information which reports for each position the number of supporting reads.
 
 We assume you already have installed and correctly configured the following tools:
@@ -103,71 +84,29 @@ We assume you already have installed and correctly configured the following tool
 - **samtools** (http://www.htslib.org/)
 - **htslib** (http://www.htslib.org/)
 
-
-##### 5.2.1 Producing coverage data
-In order to produce such coverage data, execute the script extract_coverage.sh:
-
-> extract_coverage.sh \$FILENAME \$COVERAGE_DIR \$SIZE_FILE
-
-where
-$FILENAME is the path of the BAM file to analyze
-\$COVERAGE_DIR is the directory that will contain the coverage information
-\$SIZE_FILE is the .fai file containing the names of the chromosomes (e.g., hg19.fa.fai).
-
-##### 5.2.2 Testing
-This assumes you have already produced the coverage data (as described in Section [5.2.1](#521-producing-coverage-data)).
-
 If you can use *mpi* on your machine (e.g., you are not on a multi-user system and there are no limitations to the jobs you can submit to the system), you can try launching the parallel version of REDItools 2.0 as follows:
 
-> mpirun -np \$NUM_PROCS src/cineca/parallel_reditools.py -f \$SOURCE_BAM_FILE -o \$OUTPUT_FILE -r \$REFERENCE -t \$TEMP_DIR -Z \$SIZE_FILE -G \$COVERAGE_FILE -D \$COVERAGE_DIR
-
-where:
-\$NUM_PROCS is the number of cores to use for the parallel computation;
-\$SOURCE_BAM_FILE is the input BAM file to analyze;
-\$OUTPUT_FILE is the output where the REDItools will be saved;
-\$REFERENCE is the reference genome;
-\$TEMP_DIR is the temporary directory where temporary data will be saved;
-\$SIZE_FILE is the .fai file containing the meta information of chromosomes of the reference genome.
-Options -G and -D provide the paths of the coverage file and directory, respectively (both created by the *extract_coverage.sh* script).
+> ./parallel_test.sh
 
 If you are running on a SLURM-based cluster, instead, run the following command:
 
-> sbatch ./parallel_test.sh
+> sbatch ./parallel_test_slurm.sh
 
-The script first defines a bunch of variables which point to input, output and accessory files.
+This script:
+- first defines a bunch of variables which point to input, output and accessory files; then
+- launches the production of coverage data; then
+- REDItools 2.0 is launched in parallel, by using the specified number of cores; finally
+- results are gathered and written into a single table (parameter *-o* provided in the command line)
 
-> **BASE_DIR**=\$CINECA_SCRATCH"/reditools/"
-> 
-> **INPUT_DIR**="/marconi_scratch/userexternal/epicardi/PRJNA231202/SRR1047874/"
-> 
-> **OUTPUT_DIR**=\$BASE_DIR"/output/"
-> 
-> **SAMPLE_ID**="SRR1047874"
-> 
-> **SOURCE_BAM_FILE**=\$INPUT_DIR\$SAMPLE_ID".bam"
-> 
-> **REFERENCE**=\$BASE_DIR"hg19.fa"
-> 
-> **OMOPOLYMER_FILE**=\$BASE_DIR"omopolymeric_positions.txt"
-> 
-> **SIZE_FILE**=\$BASE_DIR"hg19.chrom.sizes"
-> 
-> **COVERAGE_DIR**=\$BASE_DIR"/cov/"\$SAMPLE_ID"/"
-> 
-> **COVERAGE_FILE**=\$COVERAGE_DIR\$SAMPLE_ID".cov"
-> 
-> **TEMP_DIR**=\$BASE_DIR"/temp/"\$SAMPLE_ID"/"
-> 
-> **strand**=0
+### 5. Running  on your own data
 
-##### 5.2.3 Running
-You can customize the input test scripts to your needs with your input, output and ad-hoc options.
+You can now customize the input test scripts to your needs with your input, output and ad-hoc options.
 
 
 Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE0NTgyNjcwMDQsMjA0NjAyNjU3NiwtMj
-A5NzA0NDIwOCwxMTU0OTc1MjE0LC05MTM5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbMTA5ODQxNDkyOSwyMDQ2MDI2NTc2LC0yMD
+k3MDQ0MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
 -->
