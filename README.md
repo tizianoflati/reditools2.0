@@ -84,27 +84,26 @@ In its most basic form, REDItools 2.0 can be invoked with an input BAM file, a r
 > python src/cineca/reditools.py -f \$INPUT_BAM_FILE -r $REFERENCE -o \$OUTPUT_FILE
 
 If you want, you can restrict the analysis only to a certain region (e.g., only chr1), by means of the **-g** option :
-> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -r $REFERENCE -o table.txt -g chr1
+> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -r $REFERENCE -o \$OUTPUT_FILE -g chr1
+> 
+or a specific interval:
+> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -r $REFERENCE -o \$OUTPUT_FILE -g chr1:1000-2000
+
+For a complete list of options and their usage and meaning, please type:
+
+> python src/cineca/reditools.py -h
 
 ---
 
 #### 5.2 Parallel version
-The parallel version leverages on the existence of coverage information.
-In order to produce such data you can either execute the script:
-extract_coverage.sh
-or 
+The parallel version leverages on the existence of coverage information which reports for each position the number of supporting reads.
 
-> for chrom in cat \$SIZE_FILE | cut -f 1`
-do
-        echo "Calculating coverage file for chromosome $chrom = \$COVERAGE_DIR$chrom"
-        samtools depth $1 -r ${chrom#chr} | grep -vP "\t0$" > \$COVERAGE_DIR$chrom
-done
+In order to produce such coverage data, execute the script extract_coverage.sh:
 
-> for chrom in cat \$SIZE_FILE | cut -f 1`
-do
-        cat \$COVERAGE_DIR$chrom >> \$COVERAGE_DIR$FILE_ID".cov"
-done
+> extract_coverage.sh \$FILENAME \$COVERAGE_DIR \$SIZE_FILE
 
+where
+$FILENAME
 
 ##### Testing
 If you can use mpi on your machine (e.g., you are not on a multi-user system and there are no limitations to the jobs you can submit to the system), you can try launching the parallel version of REDItools 2.0 as follows:
@@ -154,6 +153,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTMzOTA4ODQ5OCwtMjA5NzA0NDIwOCwxMT
+eyJoaXN0b3J5IjpbMTEwOTc1MTM1NSwtMjA5NzA0NDIwOCwxMT
 U0OTc1MjE0LC05MTM5NDQ4MjNdfQ==
 -->
