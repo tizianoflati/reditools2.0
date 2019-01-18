@@ -76,14 +76,15 @@ Using this modality requires you to perform a little bit more system setup, but 
 This repo includes test data and a test script for checking that dependencies have been installed properly and the basic REDItools command works.
 The serial version of REDItools2.0 can be tested by issuing the following command:
 
-> ./test.sh
+> python src/cineca/reditools.py -f test/SRR2135332.bam -r $REFERENCE -o table.txt -g chr1
+
 
 ##### Running
-In its most basic form, REDItools 2.0 can be invoked with an input BAM file and an output file:
-> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -o table.txt
+In its most basic form, REDItools 2.0 can be invoked with an input BAM file, a reference genome and an output file:
+> python src/cineca/reditools.py -f \$INPUT_BAM_FILE -r $REFERENCE -o \$OUTPUT_FILE
 
-If you want to restrict the analysis only to a certain region (e.g., only chr1), you can use the **-g** option :
-> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -o table.txt -g chr1
+If you want, you can restrict the analysis only to a certain region (e.g., only chr1), by means of the **-g** option :
+> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -r $REFERENCE -o table.txt -g chr1
 
 ---
 
@@ -153,6 +154,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNDQ4MDA1ODIyLC0yMDk3MDQ0MjA4LDExNT
-Q5NzUyMTQsLTkxMzk0NDgyM119
+eyJoaXN0b3J5IjpbLTMzOTA4ODQ5OCwtMjA5NzA0NDIwOCwxMT
+U0OTc1MjE0LC05MTM5NDQ4MjNdfQ==
 -->
