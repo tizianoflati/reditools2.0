@@ -42,7 +42,7 @@ To install REDItools2.0 in this modality, just run the following commands:
 >
 > deactivate
 
-These commands will create a new environment whose name is *ENV* (you can choose any name of your flavour) and will install all dependencies listed in the file *requirements.txt* into ENV). 
+These commands will create a new environment whose name is *ENV* (you can choose any name of your flavour) and will install all dependencies listed in the file *requirements.txt* into ENV). The commands *activate* and *deactivate* activate (i.e., start or open) and deactivate (i.e., end or close) the virtual environment respectively.
 
 Testing the serial version:
 -------------
@@ -101,6 +101,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEyNzkyNTE0MiwxMTU0OTc1MjE0LC05MT
-M5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbLTE4OTcyODY3MjYsMTE1NDk3NTIxNCwtOT
+EzOTQ0ODIzXX0=
 -->
