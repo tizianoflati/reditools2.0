@@ -116,25 +116,25 @@ $FILENAME is the path of the BAM file to analyze
 
 ##### 5.2.2 Testing
 This assumes you have already produced the coverage data (as described in Section [5.2.1](#521-producing-coverage-data)).
+
 If you can use *mpi* on your machine (e.g., you are not on a multi-user system and there are no limitations to the jobs you can submit to the system), you can try launching the parallel version of REDItools 2.0 as follows:
 
-> mpirun -np \$NUM_PROCS src/cineca/parallel_reditools.py -f \$SOURCE_BAM_FILE -o \$OUTPUT_FILE -r \$REFERENCE -t \$TEMP_DIR -G \$COVERAGE_FILE -D \$COVERAGE_DIR -Z \$SIZE_FILE
+> mpirun -np \$NUM_PROCS src/cineca/parallel_reditools.py -f \$SOURCE_BAM_FILE -o \$OUTPUT_FILE -r \$REFERENCE -t \$TEMP_DIR -Z \$SIZE_FILE -G \$COVERAGE_FILE -D \$COVERAGE_DIR
 
 where:
-\$NUM_PROCS is the number of cores to use for the parallel computation
-\$SOURCE_BAM_FILE is the input BAM file to analyze
-\$OUTPUT_FILE is the output where the REDItools will be saved
-\$REFERENCE is the reference genome
-\$TEMP_DIR is the temporary directory where temporary data will be saved.
+\$NUM_PROCS is the number of cores to use for the parallel computation;
+\$SOURCE_BAM_FILE is the input BAM file to analyze;
+\$OUTPUT_FILE is the output where the REDItools will be saved;
+\$REFERENCE is the reference genome;
+\$TEMP_DIR is the temporary directory where temporary data will be saved;
+\$SIZE_FILE is the .fai file containing the meta information of chromosomes of the reference genome.
 Options -G and -D provide the paths of the coverage file and directory, respectively (both created by the *extract_coverage.sh* script).
 
-##### 5.2.3 Running
-
-To launch the parallel test on a SLURM-based cluster, just issue the following command:
+If you are running on a SLURM-based cluster, instead, run the following command:
 
 > sbatch ./parallel_test.sh
 
-By default, the parallel version writes output and temporary directories on the $SCRATCH area, under 'reditools' directory (it will be created if it does not exist). If you wish to modify this settings, open the parallel test file (parallel_test.sh) and modify the following variables as needed:
+The script first defines a bunch of variables which point to input, output and accessory files.
 
 > **BASE_DIR**=\$CINECA_SCRATCH"/reditools/"
 > 
@@ -160,10 +160,14 @@ By default, the parallel version writes output and temporary directories on the 
 > 
 > **strand**=0
 
+##### 5.2.3 Running
+You can customize the input test scripts to your needs with your input, output and ad-hoc options.
+
+
 Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE1MjMxODE2MjksMjA0NjAyNjU3NiwtMj
+eyJoaXN0b3J5IjpbLTE0NTgyNjcwMDQsMjA0NjAyNjU3NiwtMj
 A5NzA0NDIwOCwxMTU0OTc1MjE0LC05MTM5NDQ4MjNdfQ==
 -->
