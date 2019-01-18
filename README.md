@@ -18,7 +18,9 @@ Clone this repository:
 If you are running on a cluster, load a Python module, e.g.:
 > module load autoload python/2.7.12
 
-REDItools2.0 has been tested with Python 2.7.12.
+Note: REDItools2.0 has been tested with Python 2.7.12. Although there should not be any problem, the software comes with no guarantee of being compatible with Python 3.
+
+
 If you can install Python dependencies in your home directory or globally, you can just issue the following commands:
 
 > pip install -r requirements.txt
@@ -92,5 +94,5 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE4ODA4NjY3OV19
+eyJoaXN0b3J5IjpbLTE0MDgwOTY3Nl19
 -->
