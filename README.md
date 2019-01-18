@@ -36,7 +36,7 @@ REDItools 2.0 requires a few Python modules to be installed in the environment (
 To install REDItools2.0 in this modality, just run the following command:
 > sudo pip install -r requirements.txt
 
-- **User-level**: in this way the dependencies will be installed only for your current user, usually in your home directory. In order to perform this type of installation you need only to be logged as a normal user. Note that this type of installation will install additional software in your local Python directory (usually $HOME/.local/lib/python2.7/site-packages/) and is the recommended installation if you do not care about altering your user environment. For example, assume you have already the *pysam* package installed (version 0.6); since REDItools 2.0 requires a version for *pysam* >= 0.9, the installation would uninstall the existing version of pysam and would install the version 0.9, thus altering the state of your environment. Any existing software which relied on version pysam 0.6 might break and do not work anymore. In conclusion, choose this modality at your own risk.
+- **User-level**: in this way the dependencies will be installed only for your current user, usually in your home directory. In order to perform this type of installation you need only to be logged as a normal user. Note that this type of installation will install additional software in your local Python directory (usually $HOME/.local/lib/python2.7/site-packages/, but it depends on your operating system and ) and is the recommended installation if you do not care about altering your user environment. For example, assume you have already the *pysam* package installed (version 0.6); since REDItools 2.0 requires a version for *pysam* >= 0.9, the installation would uninstall the existing version of pysam and would install the version 0.9, thus altering the state of your environment. Any existing software which relied on version pysam 0.6 might break and do not work anymore. In conclusion, choose this modality at your own risk.
 To install REDItools2.0 in this modality, just run the following command:
 > pip install -r requirements.txt --user
  
@@ -110,6 +110,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTk4NzcwODQ5MywxMTU0OTc1MjE0LC05MT
-M5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbLTQ1Mzc2MSwxMTU0OTc1MjE0LC05MTM5ND
+Q4MjNdfQ==
 -->
