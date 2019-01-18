@@ -11,7 +11,7 @@
     - [Serial version](#41-serial_version-reditoolspy) 
     - [Parallel version](#42-parallel_version--parallel-reditoolspy)
   - [Running REDItools 2.0 on your own data](#5-running-reditools-20-on-your-own-data) 
-  - [REDItools 2.0 options](#) 
+  - [REDItools 2.0 options](#6-reditools-20-options) 
 
 ## Installation
 
@@ -275,7 +275,7 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTMwNjcyODc4NCwtOTE2Njc4ODIxLDE4Nj
-czNDU2MjMsMjA0NjAyNjU3NiwtMjA5NzA0NDIwOCwxMTU0OTc1
-MjE0LC05MTM5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbLTE0NjM2MzY5NjAsLTkxNjY3ODgyMSwxOD
+Y3MzQ1NjIzLDIwNDYwMjY1NzYsLTIwOTcwNDQyMDgsMTE1NDk3
+NTIxNCwtOTEzOTQ0ODIzXX0=
 -->
