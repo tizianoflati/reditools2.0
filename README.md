@@ -21,13 +21,13 @@ If you are running on a cluster, load a Python module, e.g.:
 Note: REDItools2.0 has been tested with Python 2.7.12. Although there should not be any problem, the software comes with no guarantee of being compatible with Python 3.
 
 REDItools 2.0 requires a few Python modules to be installed in the environment (e.g., pysam, sortedcontainers, mpi4py, etc.).
-It can be installed in two ways:
+It can be installed in three ways:
 
 - **System level**: in this way the dependencies will be installed in your system and all users will see the modifications. In order to perform this type of installation you need administrator rights.
 
 - **User level**: in this way the dependencies will be installed only for your current user, usually in your home directory. In order to perform this type of installation you need only to be logged as a normal user. Note that this type of installation will install additional software in your local Python directory (usually $HOME/.local/lib/python2.7/site-packages/) and is the recommended installation if you do not have any incompatible packages (e.g., different versions of the packages required by REDItools2.0). For example, assume you have already the *pysam* package installed; since REDItools 2.0 requires a version for *pysam* >= 0.9, the installation would fail since the package is already installed in the system but with a different version.
  
-- **Environment level**: in this
+- **Environment level**: in this type of installation you create an isolated virtual environment (initially empty) which will contain any new required software, without creating conflict
 
 > pip install -r requirements.txt
 
@@ -100,5 +100,5 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNzM5NTEwNzY1XX0=
+eyJoaXN0b3J5IjpbLTQ0NTcyODUyXX0=
 -->
