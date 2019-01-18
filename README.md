@@ -24,7 +24,7 @@ REDItools 2.0 requires a few Python modules to be installed in the environment (
 It can be installed in two ways:
 
 - System level: in this way the dependencies will be installed in your system and all users will see the modifications. In order to perform this type of installation you need administrator rights.
-- User level: in this way the dependencies will be installed only for your current user, usually in your home directory. In order to perform this type of installation you need only to be logged as a normal user. Note that this type of installation will install additional software in your local Python directory (usually $HOME/.local/lib/python2.7/site-packages/) and is the recommended installation if you do not have any incompatible packages (e.g., different versions of the packages required by REDItools2.0). For example, assume you have alr
+- User level: in this way the dependencies will be installed only for your current user, usually in your home directory. In order to perform this type of installation you need only to be logged as a normal user. Note that this type of installation will install additional software in your local Python directory (usually $HOME/.local/lib/python2.7/site-packages/) and is the recommended installation if you do not have any incompatible packages (e.g., different versions of the packages required by REDItools2.0). For example, assume you have already the *pysam* package installed; since REDItools 2.0 requires a version for *pysam* >= 0.9, this type of installation would not install the new version, since the package is already installed)
 - Environment level: in this 
 In case you able to install Python dependencies (in your home directory or globally), you can just issue the following commands:
 
@@ -99,5 +99,5 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTU4MTA2NjU5OV19
+eyJoaXN0b3J5IjpbODM1MDIwNTM4XX0=
 -->
