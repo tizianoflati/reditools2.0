@@ -125,12 +125,154 @@ This script:
 
 You can now customize the input test scripts to your needs with your input, output and ad-hoc options.
 
+### 6. Common options
+
+In its most basic form, REDItools 2.0 can be invoked with an input BAM file, a reference genome and an output file:
+> python src/cineca/reditools.py -f \$INPUT_BAM_FILE -r $REFERENCE -o \$OUTPUT_FILE
+
+If you want, you can restrict the analysis only to a certain region (e.g., only chr1), by means of the **-g** option :
+> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -r $REFERENCE -o \$OUTPUT_FILE -g chr1
+> 
+or a specific interval:
+> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -r $REFERENCE -o \$OUTPUT_FILE -g chr1:1000-2000
+
+For a complete list of options and their usage and meaning, please type:
+
+> python src/cineca/reditools.py -h
+
+Here we report the principal options with a detailed explanation for each of them:
+
+> reditools.py [-h] [-f FILE] [-o OUTPUT_FILE] [-S] [-s STRAND] [-a]
+                    [-r REFERENCE] [-g REGION] [-m OMOPOLYMERIC_FILE] [-c]
+                    [-os OMOPOLYMERIC_SPAN] [-sf SPLICING_FILE]
+                    [-ss SPLICING_SPAN] [-mrl MIN_READ_LENGTH]
+                    [-q MIN_READ_QUALITY] [-bq MIN_BASE_QUALITY]
+                    [-mbp MIN_BASE_POSITION] [-Mbp MAX_BASE_POSITION]
+                    [-l MIN_COLUMN_LENGTH] [-men MIN_EDITS_PER_NUCLEOTIDE]
+                    [-me MIN_EDITS] [-Men MAX_EDITING_NUCLEOTIDES] [-d]
+                    [-T STRAND_CONFIDENCE] [-C] [-Tv STRAND_CONFIDENCE_VALUE]
+                    [-V] [-H] [-D] [-B BED_FILE]
+
+>optional arguments:
+  -h, --help            show this help message and exit
+  >
+  >-f FILE, --file FILE  The bam file to be analyzed
+  >
+  >-o OUTPUT_FILE, --output-file OUTPUT_FILE
+                          The output statistics file
+  >
+  >-S, --strict          Activate strict mode: only sites with edits will be
+                        included in the output
+  >
+  >-s STRAND, --strand STRAND
+                        Strand: this can be 0 (unstranded), 1 (secondstrand
+                        oriented) or 2 (firststrand oriented)
+  >
+  >-a, --append-file     Appends results to file (and creates if not existing)
+  >
+  >-r REFERENCE, --reference REFERENCE
+                        The reference FASTA file
+  >
+  >-g REGION, --region REGION
+                        The region of the bam file to be analyzed
+  >
+  >-m OMOPOLYMERIC_FILE, --omopolymeric-file OMOPOLYMERIC_FILE
+                        The file containing the omopolymeric positions
+  >
+  >-c, --create-omopolymeric-file
+                        Whether to create the omopolymeric span
+  >
+  >-os OMOPOLYMERIC_SPAN, --omopolymeric-span OMOPOLYMERIC_SPAN
+                        The omopolymeric span
+  >
+  >-sf SPLICING_FILE, --splicing-file SPLICING_FILE
+                        The file containing the splicing sites positions
+  >
+  >-ss SPLICING_SPAN, --splicing-span SPLICING_SPAN
+                        The splicing span
+  >
+  >-mrl MIN_READ_LENGTH, --min-read-length MIN_READ_LENGTH
+                        The minimum read length. Reads whose length is below
+                        this value will be discarded.
+  >
+  >-q MIN_READ_QUALITY, --min-read-quality MIN_READ_QUALITY
+                        The minimum read quality. Reads whose mapping quality
+                        is below this value will be discarded.
+  >
+  >-bq MIN_BASE_QUALITY, --min-base-quality MIN_BASE_QUALITY
+                        The minimum base quality. Bases whose quality is below
+                        this value will not be included in the analysis.
+  >
+  >-mbp MIN_BASE_POSITION, --min-base-position MIN_BASE_POSITION
+                        The minimum base position. Bases which reside in a
+                        previous position (in the read) will not be included
+                        in the analysis.
+  >
+  >-Mbp MAX_BASE_POSITION, --max-base-position MAX_BASE_POSITION
+                        The maximum base position. Bases which reside in a
+                        further position (in the read) will not be included in
+                        the analysis.
+  >
+  >-l MIN_COLUMN_LENGTH, --min-column-length MIN_COLUMN_LENGTH
+                        The minimum length of editing column (per position).
+                        Positions whose columns have length below this value
+                        will not be included in the analysis.
+  >
+  >-men MIN_EDITS_PER_NUCLEOTIDE, --min-edits-per-nucleotide MIN_EDITS_PER_NUCLEOTIDE
+                        The minimum number of editing for events each
+                        nucleotide (per position). Positions whose columns
+                        have bases with less than min-edits-per-base edits
+                        will not be included in the analysis.
+  >
+  >-me MIN_EDITS, --min-edits MIN_EDITS
+                        The minimum number of editing events (per position).
+                        Positions whose columns have bases with less than
+                        'min-edits-per-base edits' will not be included in the
+                        analysis.
+  >
+  >-Men MAX_EDITING_NUCLEOTIDES, --max-editing-nucleotides MAX_EDITING_NUCLEOTIDES
+                        The maximum number of editing nucleotides, from 0 to 4
+                        (per position). Positions whose columns have more than
+                        'max-editing-nucleotides' will not be included in the
+                        analysis.
+  >
+  >-d, --debug           REDItools is run in DEBUG mode.
+  >
+  >-T STRAND_CONFIDENCE, --strand-confidence STRAND_CONFIDENCE
+                        Strand inference type 1:maxValue 2:useConfidence [1];
+                        maxValue: the most prominent strand count will be
+                        used; useConfidence: strand is assigned if over a
+                        prefixed frequency confidence (-TV option)
+  >
+  >-C, --strand-correction
+                        Strand correction. Once the strand has been inferred,
+                        only bases according to this strand will be selected.
+  >
+  >-Tv STRAND_CONFIDENCE_VALUE, --strand-confidence-value STRAND_CONFIDENCE_VALUE
+                        Strand confidence [0.70]
+  >
+  >-V, --verbose         Verbose information in stderr
+  >
+  >-H, --remove-header   Do not include header in output file
+  >
+  >-D, --dna             Run REDItools 2.0 on DNA-Seq data
+  >
+  >-B BED_FILE, --bed_file BED_FILE
+                        Path of BED file containing target regions
+  >-G    --coverage-file    The coverage file of the sample to analyze
+  >
+  >-D    --coverage-dir    The coverage directory containing the coverage file of the sample to analyze divided by chromosome
+   >
+   >-t    --temp-dir    The temp directory where to store temporary data for this sample
+   >
+   >-Z    --chromosome-sizes    The file with the chromosome sizes
+    >-g    --region    The region of the bam file to be analyzed
 
 Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTkxNjY3ODgyMSwxODY3MzQ1NjIzLDIwND
-YwMjY1NzYsLTIwOTcwNDQyMDgsMTE1NDk3NTIxNCwtOTEzOTQ0
-ODIzXX0=
+eyJoaXN0b3J5IjpbLTEwMDc4MDcyMTYsLTkxNjY3ODgyMSwxOD
+Y3MzQ1NjIzLDIwNDYwMjY1NzYsLTIwOTcwNDQyMDgsMTE1NDk3
+NTIxNCwtOTEzOTQ0ODIzXX0=
 -->
