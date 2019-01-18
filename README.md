@@ -23,11 +23,11 @@ Note: REDItools2.0 has been tested with Python 2.7.12. Although there should not
 REDItools 2.0 requires a few Python modules to be installed in the environment (e.g., pysam, sortedcontainers, mpi4py, etc.).
 It can be installed in three ways:
 
-- **System level**: in this way the dependencies will be installed in your system and all users will see the modifications. In order to perform this type of installation you need administrator rights.
+- **System-level**: in this way the dependencies will be installed in your system and all users will see the modifications. In order to perform this type of installation you need administrator rights.
 
-- **User level**: in this way the dependencies will be installed only for your current user, usually in your home directory. In order to perform this type of installation you need only to be logged as a normal user. Note that this type of installation will install additional software in your local Python directory (usually $HOME/.local/lib/python2.7/site-packages/) and is the recommended installation if you do not care about altering your user environment. For example, assume you have already the *pysam* package installed (version 0.6); since REDItools 2.0 requires a version for *pysam* >= 0.9, the installation would uninstall the existing version of pysam and would install the version 0.9, thus altering the state of your environment. Any existing software which relied on version pysam 0.6 might break and do not work anymore. In conclusion, choose this modality at your own risk.
+- **User-level**: in this way the dependencies will be installed only for your current user, usually in your home directory. In order to perform this type of installation you need only to be logged as a normal user. Note that this type of installation will install additional software in your local Python directory (usually $HOME/.local/lib/python2.7/site-packages/) and is the recommended installation if you do not care about altering your user environment. For example, assume you have already the *pysam* package installed (version 0.6); since REDItools 2.0 requires a version for *pysam* >= 0.9, the installation would uninstall the existing version of pysam and would install the version 0.9, thus altering the state of your environment. Any existing software which relied on version pysam 0.6 might break and do not work anymore. In conclusion, choose this modality at your own risk.
  
-- **Environment level**: in this type of installation you create an isolated virtual environment (initially empty) which will contain any new required software, without creating conflicts with your user's existing environment and without any particular right. This modality will work regardless of the existing packages already installed in your system (both user and system levels). The downside of choosing this modality is a potential duplication of code with respect to other existing environments. For example, if you already have a given version of *sortedcontainers*, by installing REDItools2.0 in this fashion will download and install a new copy of that package inside a new isolated environment (with at least two copies of the same software, one inside and another one outside the virtual environment).
+- **Environment-level**: in this type of installation you create an isolated virtual environment (initially empty) which will contain any new required software, without creating conflicts with your user's existing environment and without any particular right. This modality will work regardless of the existing packages already installed in your system (both user and system levels). The downside of choosing this modality is a potential duplication of code with respect to other existing environments. For example, if you already have a given version of *sortedcontainers*, by installing REDItools2.0 in environment-level will download and install a new copy of *sortedcontainers* into a new isolated environment (ending up with two copies of the same software present in the system, one inside and one outside the virtual environment).
 
 > pip install -r requirements.txt
 
@@ -100,6 +100,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTk3ODQ4MDU3OCwxMTU0OTc1MjE0LC05MT
+eyJoaXN0b3J5IjpbMjA4NTAxODc5OCwxMTU0OTc1MjE0LC05MT
 M5NDQ4MjNdfQ==
 -->
