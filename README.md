@@ -66,15 +66,31 @@ This might be the first modality you might want to give a try when using REDItoo
 - **Parallel version**: in this modality you benefit both from the serial optimization and from the parallel computation introduced in this brand new version which exploits the existence of multiple cores, also on multiple nodes, making it a perfect tool on High Performance Computing facilities.
 Using this modality requires you to perform a little bit more system setup, but it will definitely pay you off.
 
-Testing the serial version:
--------------
+### Testing and running
 
-REDItools2.0 can be tested by issuing the following command
+#### Serial version
+
+##### Testing
+This repo includes test data and a test script for checking that dependencies have been installed properly and the basic REDItools command works.
+The serial version of REDItools2.0 can be tested by issuing the following command:
 
 > ./test.sh
 
-Testing the parallel version
--------------
+##### Running
+In its most basic form, REDItools 2.0 can be invoked with an input BAM file and an output file:
+> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -o table.txt
+
+If you want to restrict the analysis only to a certain region (e.g., only chr1), you can use the **-g** option :
+> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -o table.txt -g chr1
+
+#### Parallel version
+
+##### Testing
+If you can use mpi on your machine (e.g., you are not on a multi-user system and there are no limitations to the jobs you can submit to the system), you can try launching the parallel version of REDItools 2.0 as follows:
+
+> mpirun src/cineca/parallel_reditools.py -f \$SOURCE_BAM_FILE -r \$REFERENCE -m \$OMOPOLYMER_FILE -o \$OUTPUT_DIR/\$SAMPLE_ID/table.gz -G \$COVERAGE_FILE -D \$COVERAGE_DIR -Z \$SIZE_FILE -t \$TEMP_DIR \$options | tee $SAMPLE_ID.log
+
+This command 
 
 By default, the parallel version writes output and temporary directories on the $SCRATCH area, under 'reditools' directory (it will be created if it does not exist). If you wish to modify this settings, open the parallel test file (parallel_test.sh) and modify the following variables as needed:
 
@@ -102,27 +118,21 @@ By default, the parallel version writes output and temporary directories on the 
 > 
 > **strand**=0
 
+
+##### Running
+In case you are not running on a cluster, you can launch the raw parallel MPI command as follows:
+
+> 
+
 To launch the parallel test on a SLURM-based cluster, just issue the following command:
 
 > sbatch ./parallel_test.sh
 
-In case you are not running on a cluster, you can launch the raw parallel MPI command as follows:
-
-> mpirun src/cineca/parallel_reditools.py -f \$SOURCE_BAM_FILE -r \$REFERENCE -m \$OMOPOLYMER_FILE -o \$OUTPUT_DIR/\$SAMPLE_ID/table.gz -G \$COVERAGE_FILE -D \$COVERAGE_DIR -Z \$SIZE_FILE -t \$TEMP_DIR \$options | tee $SAMPLE_ID.log
-
-Running the serial version:
--------------
-
-In its most basic form, REDItools 2.0 can be invoked with an input BAM file and an output file:
-> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -o table.txt
-
-If you want to restrict the analysis only to a certain region (e.g., only chr1), you can use the **-g** option :
-> python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -o table.txt -g chr1
 
 Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTIwOTcwNDQyMDgsMTE1NDk3NTIxNCwtOT
-EzOTQ0ODIzXX0=
+eyJoaXN0b3J5IjpbMTg5Njg2NDc2NiwtMjA5NzA0NDIwOCwxMT
+U0OTc1MjE0LC05MTM5NDQ4MjNdfQ==
 -->
