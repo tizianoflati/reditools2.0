@@ -45,7 +45,7 @@ To install REDItools2.0 in this modality, just run the following command:
 This modality will work regardless of the existing packages already installed in your system (both user and system levels) and thus gives the maximum possible freedom to the final-end user.
 This is the recommended modality.
 The downside of choosing this modality is a potential duplication of code with respect to other existing environments. For example, assume you already have a given version of *sortedcontainers*; by installing REDItools2.0 at environment-level will download and install a *new* copy of *sortedcontainers* into a new isolated environment (ending up with two copies of the same software present in the system, one inside and one outside the virtual environment).
-To install REDItools2.0 in this modality, just run the following commands:
+To install REDItools2.0 in this modality, run the following commands:
 
 > virtualenv ENV
 >
@@ -114,6 +114,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE2OTk2OTI3MDksMTE1NDk3NTIxNCwtOT
-EzOTQ0ODIzXX0=
+eyJoaXN0b3J5IjpbMTc3NTQwMTgzMSwxMTU0OTc1MjE0LC05MT
+M5NDQ4MjNdfQ==
 -->
