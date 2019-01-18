@@ -60,9 +60,11 @@ These commands will create a new environment called *ENV* (you can choose any na
 ### The two versions of REDItools 2.0
 
 The software comes with two modalities:
-- Serial version: in this modality you benefit only from the optimization introduced after the first version. While being significantly faster (with about a 8x factor), you do not exploit the computational power of having multiple cores. On the other hand the setup and launch of REDItools is much easier. This might be the first modality you might want to try when using REDItools2.0 for the first time.
+- **Serial version**: in this modality you benefit only from the optimization introduced after the first version. While being significantly faster (with about a 8x factor), you do not exploit the computational power of having multiple cores. On the other hand the setup and launch of REDItools is much easier.
+This might be the first modality you might want to give a try when using REDItools2.0 for the first time.
 
-- Parallel version: in this modality you benefit both from the serial optimization and from the parallel computation introduced in this brand new version which . Using this modality requires you to perform a little bit more system setup, but it will definitely pay you off.
+- **Parallel version**: in this modality you benefit both from the serial optimization and from the parallel computation introduced in this brand new version which exploits the existence of multiple cores, also on multiple nodes, making it a perfect tool on High Performance Computing facilities.
+Using this modality requires you to perform a little bit more system setup, but it will definitely pay you off.
 
 Testing the serial version:
 -------------
@@ -121,6 +123,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTk1MTM0NDI4NywxMTU0OTc1MjE0LC05MT
-M5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbLTIwOTcwNDQyMDgsMTE1NDk3NTIxNCwtOT
+EzOTQ0ODIzXX0=
 -->
