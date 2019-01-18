@@ -27,7 +27,7 @@ It can be installed in three ways:
 
 - **User level**: in this way the dependencies will be installed only for your current user, usually in your home directory. In order to perform this type of installation you need only to be logged as a normal user. Note that this type of installation will install additional software in your local Python directory (usually $HOME/.local/lib/python2.7/site-packages/) and is the recommended installation if you do not have any incompatible packages (e.g., different versions of the packages required by REDItools2.0). For example, assume you have already the *pysam* package installed; since REDItools 2.0 requires a version for *pysam* >= 0.9, the installation would fail since the package is already installed in the system but with a different version.
  
-- **Environment level**: in this type of installation you create an isolated virtual environment (initially empty) which will contain any new required software, without creating conflicts with your user's existing environment and without any particular right. The downside is a potential duplication of code with regards of other environments. For example, if you already have a given version of *sortedcontainers* 
+- **Environment level**: in this type of installation you create an isolated virtual environment (initially empty) which will contain any new required software, without creating conflicts with your user's existing environment and without any particular right. The downside is a potential duplication of code with regards of other environments. For example, if you already have a given version of *sortedcontainers*, installing REDItools2.0 in this fashion will download and install a new copy of that package inside a new isolated environment (with at least two copies of the same software, one inside and another one outside the virtual environment).
 
 > pip install -r requirements.txt
 
@@ -100,5 +100,5 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEzOTcwNTk0NTZdfQ==
+eyJoaXN0b3J5IjpbLTkxMzk0NDgyM119
 -->
