@@ -15,6 +15,8 @@ Clone this repository:
 >
 > cd reditools2.0
 
+This guide assumes you have Python installed in your system. If you do not have Python, please read 
+
 If you are running on a cluster, load a Python module, e.g.:
 > module load autoload python/2.7.12
 
@@ -101,6 +103,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE4OTcyODY3MjYsMTE1NDk3NTIxNCwtOT
+eyJoaXN0b3J5IjpbLTE2ODczOTY2NDksMTE1NDk3NTIxNCwtOT
 EzOTQ0ODIzXX0=
 -->
