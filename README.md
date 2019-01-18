@@ -15,9 +15,10 @@ Clone this repository:
 >
 > cd reditools2.0
 
-If you are running on a cluster, be sure to load your favourite Python module, e.g.:
+If you are running on a cluster, load a Python module, e.g.:
 > module load autoload python/2.7.12
 
+REDItools2.0 has been tested with Python 2.7.12.
 If you can install Python dependencies in your home directory or globally, you can just issue the following commands:
 
 > pip install -r requirements.txt
@@ -90,3 +91,6 @@ If you want to restrict the analysis only to a certain region (e.g., only chr1),
 Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
+<!--stackedit_data:
+eyJoaXN0b3J5IjpbLTE4ODA4NjY3OV19
+-->
