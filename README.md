@@ -2,12 +2,11 @@
 
 **REDItools 2.0** is the optimized, parallel multi-node version of [<i class="icon-link"></i> REDItools](http://srv00.recas.ba.infn.it/reditools/).
 
-----------
 
 ## Installation
 
-### Python
-
+### 1. Python setup
+---
 This guide assumes you have Python installed in your system. If you do not have Python, please read the [official Python webpage](https://www.python.org/).
 
 Make sure you have you preferred Python version loaded. If you have a single Python version already installed in your system you should do nothing. If you have multiple versions, please be sure to point to a given version; in order to do so check your environmental variables (e.g., PATH).
@@ -17,8 +16,9 @@ If you are running on a cluster (where usually several versions are available) m
 
 Note: REDItools2.0 has been tested with Python 2.7.12. Although there should not be any problem in upgrading, the software comes with no guarantee of being compatible with other versions of Python (e.g., Python >=3).
 
-
-### Cloning / Downloading
+---
+### 2. Cloning / Downloading
+---
 
 The first step is to clone this repository (assumes you have *git* installed in your system - see the [Git official page](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) otherwise):
 > git clone https://github.com/tflati/reditools2.0.git
@@ -28,7 +28,9 @@ The first step is to clone this repository (assumes you have *git* installed in 
 Move into the project main directory:
 > cd reditools2.0
 
-### Installing
+---
+### 3. Installing
+---
 
 REDItools 2.0 requires a few Python modules to be installed in the environment (e.g., pysam, sortedcontainers, mpi4py, etc.). These can be installed in three ways:
 
@@ -48,16 +50,15 @@ The downside of choosing this modality is a potential duplication of code with r
 To install REDItools2.0 in this modality, run the following commands:
 
 > virtualenv ENV
->
-> source ENV/bin/activate
->
-> pip install -r requirements.txt
->
-> deactivate
+source ENV/bin/activate
+pip install -r requirements.txt
+deactivate
 
 These commands will create a new environment called *ENV* (you can choose any name you like) and will install all dependencies listed in the file *requirements.txt* into it). The commands *activate* and *deactivate* respectively activate (i.e., start/open) and deactivate (i.e., end/close) the virtual environment.
 
-### The two versions of REDItools 2.0
+---
+### 4. The two versions of REDItools 2.0
+---
 
 The software comes with two modalities:
 - **Serial version**: in this modality you benefit only from the optimization introduced after the first version. While being significantly faster (with about a 8x factor), you do not exploit the computational power of having multiple cores. On the other hand the setup and launch of REDItools is much easier.
@@ -66,9 +67,10 @@ This might be the first modality you might want to give a try when using REDItoo
 - **Parallel version**: in this modality you benefit both from the serial optimization and from the parallel computation introduced in this brand new version which exploits the existence of multiple cores, also on multiple nodes, making it a perfect tool on High Performance Computing facilities.
 Using this modality requires you to perform a little bit more system setup, but it will definitely pay you off.
 
-### Testing and running
-
-#### Serial version
+---
+### 5. Testing and running
+---
+#### 5.1 Serial version
 
 ##### Testing
 This repo includes test data and a test script for checking that dependencies have been installed properly and the basic REDItools command works.
@@ -83,11 +85,25 @@ In its most basic form, REDItools 2.0 can be invoked with an input BAM file and 
 If you want to restrict the analysis only to a certain region (e.g., only chr1), you can use the **-g** option :
 > python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -o table.txt -g chr1
 
-#### Parallel version
+---
+
+#### 5.2 Parallel version
 The parallel version leverages on the existence of coverage information.
 In order to produce such data you can either execute the script:
 extract_coverage.sh
 or 
+
+> for chrom in cat \$SIZE_FILE | cut -f 1`
+do
+        echo "Calculating coverage file for chromosome $chrom = \$COVERAGE_DIR$chrom"
+        samtools depth $1 -r ${chrom#chr} | grep -vP "\t0$" > \$COVERAGE_DIR$chrom
+done
+
+> for chrom in cat \$SIZE_FILE | cut -f 1`
+do
+        cat \$COVERAGE_DIR$chrom >> \$COVERAGE_DIR$FILE_ID".cov"
+done
+
 
 ##### Testing
 If you can use mpi on your machine (e.g., you are not on a multi-user system and there are no limitations to the jobs you can submit to the system), you can try launching the parallel version of REDItools 2.0 as follows:
@@ -137,6 +153,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTc4OTc2MDk1NiwtMjA5NzA0NDIwOCwxMT
-U0OTc1MjE0LC05MTM5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbNDQ4MDA1ODIyLC0yMDk3MDQ0MjA4LDExNT
+Q5NzUyMTQsLTkxMzk0NDgyM119
 -->
