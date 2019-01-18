@@ -62,8 +62,11 @@ These commands will create a new environment called *ENV* (you can choose any na
 
 This repo includes test data and a test script for checking that dependencies have been installed properly and the basic REDItools command works.
 
-The software comes with two modalities:
-- **Serial version**: in this modality you benefit only from the optimization introduced after the first version. While being significantly faster (with about a 8x factor), you do not exploit the computational power of having multiple cores. On the other hand the setup and launch of REDItools is much easier.
+The software comes with two modalities.
+
+####  4.1 Serial version
+
+In this modality you benefit only from the optimization introduced after the first version. While being significantly faster (with about a 8x factor), you do not exploit the computational power of having multiple cores. On the other hand the setup and launch of REDItools is much easier.
 This might be the first modality you might want to give a try when using REDItools2.0 for the first time.
 
 The serial version of REDItools2.0 can be tested by issuing the following command:
@@ -74,7 +77,9 @@ or, if you are in a SLURM-based cluster:
 
 > sbatch serial_test_slurm.sh
 
-- **Parallel version**: in this modality you benefit both from the serial optimization and from the parallel computation introduced in this brand new version which exploits the existence of multiple cores, also on multiple nodes, making it a perfect tool on High Performance Computing facilities.
+#### 4.2 Parallel version
+
+In this modality you benefit both from the serial optimization and from the parallel computation introduced in this brand new version which exploits the existence of multiple cores, also on multiple nodes, making it a perfect tool on High Performance Computing facilities.
 Using this modality requires you to perform a little bit more system setup, but it will definitely pay you off.
 
 The parallel version leverages on the existence of coverage information which reports for each position the number of supporting reads.
@@ -98,7 +103,7 @@ This script:
 - REDItools 2.0 is launched in parallel, by using the specified number of cores; finally
 - results are gathered and written into a single table (parameter *-o* provided in the command line)
 
-### 5. Running  on your own data
+### 5. Running REDItools 2.0 on your own data
 
 You can now customize the input test scripts to your needs with your input, output and ad-hoc options.
 
@@ -107,6 +112,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTA5ODQxNDkyOSwyMDQ2MDI2NTc2LC0yMD
+eyJoaXN0b3J5IjpbMTMxNzI0Mjk0NywyMDQ2MDI2NTc2LC0yMD
 k3MDQ0MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
 -->
