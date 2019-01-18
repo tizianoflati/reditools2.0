@@ -84,13 +84,17 @@ If you want to restrict the analysis only to a certain region (e.g., only chr1),
 > python src/cineca/reditools.py -f  \$INPUT_BAM_FILE -o table.txt -g chr1
 
 #### Parallel version
+The parallel version leverages on the existence of coverage information.
+In order to produce such data you can either execute the script:
+extract_coverage.sh
+or 
 
 ##### Testing
 If you can use mpi on your machine (e.g., you are not on a multi-user system and there are no limitations to the jobs you can submit to the system), you can try launching the parallel version of REDItools 2.0 as follows:
 
-> mpirun src/cineca/parallel_reditools.py -f \$SOURCE_BAM_FILE -r \$REFERENCE -m \$OMOPOLYMER_FILE -o \$OUTPUT_DIR/\$SAMPLE_ID/table.gz -G \$COVERAGE_FILE -D \$COVERAGE_DIR -Z \$SIZE_FILE -t \$TEMP_DIR \$options | tee $SAMPLE_ID.log
+> mpirun src/cineca/parallel_reditools.py -f \$SOURCE_BAM_FILE -o \$OUTPUT_DIR/\$SAMPLE_ID/table.gz -r \$REFERENCE -t \$TEMP_DIR -G \$COVERAGE_FILE -D \$COVERAGE_DIR -Z \$SIZE_FILE \$options | tee $SAMPLE_ID.log
 
-This command 
+This command runs the parallel version of REDItools 2.0 on the input BAM file identified by the variable \$SOURCE_BAM_FILE, saves the output to file \$OUTPUT_DIR/\$SAMPLE_ID/table.gz by using $REFERENCE as the reference genome and using \$TEMP_DIR as temporary directory. The options -G and -D provide the paths of the coverage file and directory, respectively (both created by the *extract_coverage.sh* script)
 
 By default, the parallel version writes output and temporary directories on the $SCRATCH area, under 'reditools' directory (it will be created if it does not exist). If you wish to modify this settings, open the parallel test file (parallel_test.sh) and modify the following variables as needed:
 
@@ -133,6 +137,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTg5Njg2NDc2NiwtMjA5NzA0NDIwOCwxMT
+eyJoaXN0b3J5IjpbLTc4OTc2MDk1NiwtMjA5NzA0NDIwOCwxMT
 U0OTc1MjE0LC05MTM5NDQ4MjNdfQ==
 -->
