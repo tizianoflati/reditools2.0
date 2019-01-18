@@ -32,11 +32,7 @@ To install REDItools2.0 in this modality, just run the following command:
 > pip install -r requirements.txt --user
  
 - **Environment-level**: in this type of installation you create an isolated virtual environment (initially empty) which will contain any new required software, without creating conflicts with your user's existing environment and without any particular right. This modality will work regardless of the existing packages already installed in your system (both user and system levels) and thus gives the maximum possible freedom to the final-end user. The downside of choosing this modality is a potential duplication of code with respect to other existing environments. For example, assume you already have a given version of *sortedcontainers*; by installing REDItools2.0 at environment-level will download and install a *new* copy of *sortedcontainers* into a new isolated environment (ending up with two copies of the same software present in the system, one inside and one outside the virtual environment).
-
-
-
-Otherwise, if you don't have the rights to install the necessary dependencies, you can create an isolated environment:
-(Note: if runnning on a cluster
+To install REDItools2.0 in this modality, just run the following commands:
 
 > virtualenv ENV
 >
@@ -46,6 +42,7 @@ Otherwise, if you don't have the rights to install the necessary dependencies, y
 >
 > deactivate
 
+These commands will create a new environment whose name is *ENV* (you can choose any name of your flavour) and will install all dependencies listed in the file *requirements.txt* into ENV). 
 
 Testing the serial version:
 -------------
@@ -104,6 +101,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTEwNTcwNzQyOCwxMTU0OTc1MjE0LC05MT
+eyJoaXN0b3J5IjpbLTEyNzkyNTE0MiwxMTU0OTc1MjE0LC05MT
 M5NDQ4MjNdfQ==
 -->
