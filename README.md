@@ -30,10 +30,9 @@ Move into the project main directory:
 
 ### Installing
 
-REDItools 2.0 requires a few Python modules to be installed in the environment (e.g., pysam, sortedcontainers, mpi4py, etc.).
-It can be installed in three ways:
+REDItools 2.0 requires a few Python modules to be installed in the environment (e.g., pysam, sortedcontainers, mpi4py, etc.). These can be installed in three ways:
 
-- **System-level**: in this way the dependencies will be installed in your system and all users in your system will see the modifications. In order to perform this type of installation you need administrator rights.
+- **System-level**: in this way the dependencies will be installed in your system and all users in your system will see changes. In order to perform this type of installation you need administrator rights.
 To install REDItools2.0 in this modality, just run the following command:
 > sudo pip install -r requirements.txt
 
@@ -111,6 +110,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEwNDU4MzIxMzAsMTE1NDk3NTIxNCwtOT
-EzOTQ0ODIzXX0=
+eyJoaXN0b3J5IjpbLTk4NzcwODQ5MywxMTU0OTc1MjE0LC05MT
+M5NDQ4MjNdfQ==
 -->
