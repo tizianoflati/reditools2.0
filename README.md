@@ -12,10 +12,10 @@ This guide assumes you have Python installed in your system. If you do not have 
 
 Make sure you have you preferred Python version loaded. If you have a single Python version already installed in your system you should do nothing. If you have multiple versions, please be sure to point to a given version; in order to do so check your environmental variables (e.g., PATH).
 
-If you are running on a cluster (where usually several versions are available) make sure to load a given Python version (also called module). For example (if running on CINECA Marconi super computer) the following command would load:
+If you are running on a cluster (where usually several versions are available) make sure to load a given Python version. For example (if running on CINECA Marconi super computer) the following command would load Python 2.7.12:
 > module load autoload python/2.7.12
 
-Note: REDItools2.0 has been tested with Python 2.7.12. Although there should not be any problem, the software comes with no guarantee of being compatible with Python 3.
+Note: REDItools2.0 has been tested with Python 2.7.12. Although there should not be any problem in upgrading, the software comes with no guarantee of being compatible with other versions of Python (e.g., Python >=3).
 
 
 ### Cloning / Downloading
@@ -111,6 +111,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNTAwOTY4MzQ5LDExNTQ5NzUyMTQsLTkxMz
-k0NDgyM119
+eyJoaXN0b3J5IjpbLTEwNDU4MzIxMzAsMTE1NDk3NTIxNCwtOT
+EzOTQ0ODIzXX0=
 -->
