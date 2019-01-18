@@ -10,6 +10,15 @@
 
 This guide assumes you have Python installed in your system. If you do not have Python, please read the [official Python webpage](https://www.python.org/).
 
+Make sure you have you preferred Python version loaded. If you have a  Python already installed in your 
+If you are running on a cluster, load a Python module, e.g.:
+> module load autoload python/2.7.12
+
+Note: REDItools2.0 has been tested with Python 2.7.12. Although there should not be any problem, the software comes with no guarantee of being compatible with Python 3.
+
+
+### Cloning / Downloading
+
 The first step is to clone this repository (assumes you have *git* installed in your system - see the [Git official page](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) otherwise):
 > git clone https://github.com/tflati/reditools2.0.git
 
@@ -18,10 +27,7 @@ The first step is to clone this repository (assumes you have *git* installed in 
 Move into the project main directory:
 > cd reditools2.0
 
-If you are running on a cluster, load a Python module, e.g.:
-> module load autoload python/2.7.12
-
-Note: REDItools2.0 has been tested with Python 2.7.12. Although there should not be any problem, the software comes with no guarantee of being compatible with Python 3.
+### Installing
 
 REDItools 2.0 requires a few Python modules to be installed in the environment (e.g., pysam, sortedcontainers, mpi4py, etc.).
 It can be installed in three ways:
@@ -104,6 +110,6 @@ Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNzYyNjQ1MTQ3LDExNTQ5NzUyMTQsLTkxMz
-k0NDgyM119
+eyJoaXN0b3J5IjpbMTY1MTkzMDY1NSwxMTU0OTc1MjE0LC05MT
+M5NDQ4MjNdfQ==
 -->
