@@ -82,7 +82,7 @@ Once the script has finished running, you have all you need to perform the tests
 
 The software comes with two modalities. Feel free to choose the one which best fits your needs.
 
-####  4.1 Serial version
+####  4.1 Serial version (reditools.py)
 
 In this modality you benefit only from the optimization introduced after the first version. While being significantly faster (with about a 8x factor), you do not exploit the computational power of having multiple cores. On the other hand the setup and launch of REDItools is much easier.
 This might be the first modality you might want to give a try when using REDItools2.0 for the first time.
@@ -95,7 +95,7 @@ or, if you are in a SLURM-based cluster:
 
 > sbatch serial_test_slurm.sh
 
-#### 4.2 Parallel version
+#### 4.2 Parallel version  (parallel_reditools.py)
 
 In this modality you benefit both from the serial optimization and from the parallel computation introduced in this brand new version which exploits the existence of multiple cores, also on multiple nodes, making it a perfect tool on High Performance Computing facilities.
 Using this modality requires you to perform a little bit more system setup, but it will definitely pay you off.
@@ -125,8 +125,9 @@ This script:
 
 You can now customize the input test scripts to your needs with your input, output and ad-hoc options.
 
-### 6. Common options
+### 6. REDItools 2.0 options
 
+#### 6.1 Basic options
 In its most basic form, REDItools 2.0 can be invoked with an input BAM file, a reference genome and an output file:
 > python src/cineca/reditools.py -f \$INPUT_BAM_FILE -r $REFERENCE -o \$OUTPUT_FILE
 
@@ -140,7 +141,10 @@ For a complete list of options and their usage and meaning, please type:
 
 > python src/cineca/reditools.py -h
 
-Here we report the principal options with a detailed explanation for each of them:
+#### 6.2 Other options
+
+Here we report the principal options with a detailed explanation for each of them.
+The following are the options accepted by the serial version of REDItools:
 
 > reditools.py [-h] [-f FILE] [-o OUTPUT_FILE] [-S] [-s STRAND] [-a]
                     [-r REFERENCE] [-g REGION] [-m OMOPOLYMERIC_FILE] [-c]
@@ -230,8 +234,7 @@ Here we report the principal options with a detailed explanation for each of the
   > useConfidence: strand is assigned if over a prefixed frequency confidence (-TV option)
   >
   >**-C**, --strand-correction
-  > Strand correction. Once the strand has been inferred,
-                        only bases according to this strand will be selected.
+  > Strand correction. Once the strand has been inferred, only bases according to this strand will be selected.
   >
   >**-Tv** STRAND_CONFIDENCE_VALUE, --strand-confidence-value STRAND_CONFIDENCE_VALUE
   >                        Strand confidence [0.70]
@@ -255,14 +258,14 @@ The parallel version of REDItools 2.0 has also other 4 additional parameters, na
    >
    >**-t**    --temp-dir    The temp directory where to store temporary data for this sample
    >
-   >*-Z*    --chromosome-sizes    The file with the chromosome sizes
+   >**-Z**    --chromosome-sizes    The file with the chromosome sizes
 
 
 Issues
 -------------
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTkwODQ1NTE2NywtOTE2Njc4ODIxLDE4Nj
-czNDU2MjMsMjA0NjAyNjU3NiwtMjA5NzA0NDIwOCwxMTU0OTc1
-MjE0LC05MTM5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbNTgxODg2NDA2LC05MTY2Nzg4MjEsMTg2Nz
+M0NTYyMywyMDQ2MDI2NTc2LC0yMDk3MDQ0MjA4LDExNTQ5NzUy
+MTQsLTkxMzk0NDgyM119
 -->
