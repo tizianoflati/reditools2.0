@@ -27,7 +27,7 @@ This version of REDItools shows an average 8x speed improvement over the previou
   - [REDItools 2.0 options](#6-reditools-20-options) 
   - [DNA-Seq annotation with REDItools 2.0](#7-dna-seq-annotation-with-reditools-20)
   - [Running REDItools 2.0 in multisample mode](#8-running-reditools-20-in-multisample-mode)
-  - [Displaying benchmarks with REDItools 2.0 (parallel version only)](#9-displaying-benchmarks-with-reditools-20-parallel-version-only)
+  - [Displaying benchmarks in HTML with REDItools 2.0 (parallel version only)](#9-displaying-benchmarks-with-reditools-20-parallel-version-only)
 
 
 ## Installation
@@ -337,7 +337,7 @@ If you wish to run REDItools 2.0 in multisample mode on a SLURM-based cluster, w
 First run *extract_coverage_slurm_all.sh* and then *multisample_test.sh*.
 
 ### 9. Displaying benchmarks with REDItools 2.0 (parallel version only)
-We also released simple scripts to generate HTML pages containing the snapshot of the amount of time REDItools 2.0 (parallel version) spends on each part of the overall computation (e.g., coverage computation, DIA algorithm, interval analysis, partial results recombination, etc).
+We also released simple scripts to generate HTML pages containing the snapshot of the amount of time REDItools 2.0 (parallel version) spends on each part of the overall computation for each process (e.g., coverage computation, DIA algorithm, interval analysis, partial results recombination, etc).
 
 All you have to do to create the HTML page is:
 > create_html.sh TEMP_DIR
@@ -354,8 +354,8 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTk2OTM2NTgyMiwyNzY3MTQ1MDcsMjEwOT
-E2MjU0OSwtOTE2Njc4ODIxLDE4NjczNDU2MjMsMjA0NjAyNjU3
-NiwtMjA5NzA0NDIwOCwxMTU0OTc1MjE0LC05MTM5NDQ4MjNdfQ
-==
+eyJoaXN0b3J5IjpbLTIwOTQ5OTA0MjMsLTk2OTM2NTgyMiwyNz
+Y3MTQ1MDcsMjEwOTE2MjU0OSwtOTE2Njc4ODIxLDE4NjczNDU2
+MjMsMjA0NjAyNjU3NiwtMjA5NzA0NDIwOCwxMTU0OTc1MjE0LC
+05MTM5NDQ4MjNdfQ==
 -->
