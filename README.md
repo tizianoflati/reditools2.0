@@ -276,8 +276,8 @@ This section assumes you already have analized your RNA-Seq data *rna.bam* with 
 
 - Run any version of REDItools on input file *rna.bam* and obtain the corresponding *rna_table.txt* output file (or *rna_table.txt.gz*);
 - Run REDItools 2.0 on *dna.bam* providing as input
-	1. The DNA-Seq file (*dna.bam*)
-	2. The output RNA-table output of the first step;
+	1. The DNA-Seq file (*dna.bam*) (option -;
+	2. The output RNA-table output of the first step.
 
 ![enter image description here](https://drive.google.com/uc?id=1PjTfd1Mh0QzOwqj668t3ItOwhSxpkQqL)
 
@@ -286,7 +286,7 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbODkyOTQ4NTk2LDIxMDkxNjI1NDksLTkxNj
-Y3ODgyMSwxODY3MzQ1NjIzLDIwNDYwMjY1NzYsLTIwOTcwNDQy
-MDgsMTE1NDk3NTIxNCwtOTEzOTQ0ODIzXX0=
+eyJoaXN0b3J5IjpbMTk0NjgxOTQ0MCwyMTA5MTYyNTQ5LC05MT
+Y2Nzg4MjEsMTg2NzM0NTYyMywyMDQ2MDI2NTc2LC0yMDk3MDQ0
+MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
 -->
