@@ -270,12 +270,16 @@ The parallel version of REDItools 2.0 has also other 4 additional parameters, na
    >
    >**-Z**    --chromosome-sizes    The file with the chromosome sizes
 
+### 7. DNA-Seq annotation with REDItools 2.0
+
+![xxxxxxxx](https://drive.google.com/open?id=1PjTfd1Mh0QzOwqj668t3ItOwhSxpkQqL)
+
 
 Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjEwOTE2MjU0OSwtOTE2Njc4ODIxLDE4Nj
-czNDU2MjMsMjA0NjAyNjU3NiwtMjA5NzA0NDIwOCwxMTU0OTc1
-MjE0LC05MTM5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbLTgwNjMxNjYwNCwyMTA5MTYyNTQ5LC05MT
+Y2Nzg4MjEsMTg2NzM0NTYyMywyMDQ2MDI2NTc2LC0yMDk3MDQ0
+MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
 -->
