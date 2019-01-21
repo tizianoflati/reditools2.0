@@ -27,6 +27,7 @@ This version of REDItools shows an average 8x speed improvement over the previou
   - [REDItools 2.0 options](#6-reditools-20-options) 
   - [DNA-Seq annotation with REDItools 2.0](#7-dna-seq-annotation-with-reditools-20)
   - [Running REDItools 2.0 in multisample mode](#8-running-reditools-20-in-multisample-mode)
+  - [Displaying benchmarks with REDItools 2.0 (parallel version only)](#9-displaying-benchmarks-with-reditools-20-parallel-version-only)
 
 
 ## Installation
@@ -341,11 +342,11 @@ We also released simple scripts to generate HTML pages containing the snapshot o
 All you have to do to create the HTML page is:
 > create_html.sh TEMP_DIR
 
-where TEMP_DIR is the directory you specified with the -t option; inside this directory in fact there are some auxiliary files (e.g., intervals.txt, progress.txt, times.txt and groups.txt) which serve exactly this purpose.
+where TEMP_DIR is the directory you specified with the -t option; this directory should contain in fact some auxiliary files (e.g., intervals.txt, progress.txt, times.txt and groups.txt) which serve exactly this purpose.
 Once created, the HTML page should display time information similar to the following:
 
 <p align="center">
-<img src="https://drive.google.com/uc?id=1KFIPN4Z9wgVEgCO99OH-UWQFDyezDLSrr" width="500px">
+<img src="https://drive.google.com/uc?id=1KFIPN4Z9wgVEgCO99OH-UWQFDyezDLSr" width="600px">
 </p>
 
 
@@ -353,7 +354,7 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTk1MDM5MDE3MywyNzY3MTQ1MDcsMjEwOT
+eyJoaXN0b3J5IjpbLTk2OTM2NTgyMiwyNzY3MTQ1MDcsMjEwOT
 E2MjU0OSwtOTE2Njc4ODIxLDE4NjczNDU2MjMsMjA0NjAyNjU3
 NiwtMjA5NzA0NDIwOCwxMTU0OTc1MjE0LC05MTM5NDQ4MjNdfQ
 ==
