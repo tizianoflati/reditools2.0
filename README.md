@@ -314,8 +314,8 @@ where
 
 In order to ease the annotation of RNA-Seq tables with DNA-Seq information, we also provided two sample scripts that you can customize with your own data:
 
-- serial_dna_test.sh
-- parallel_dna_test.sh
+- [TODO] serial_dna_test.sh
+- [TODO] parallel_dna_test.sh
 
 ### 8. Running REDItools 2.0 in multisample mode
 REDItools also supports the launch on multiple samples at the same time. This modality is extremely useful if you have a dataset (i.e., group of homogeneous samples) and wish to run the same analysis on all of them (i.e., with the same options).
@@ -330,16 +330,29 @@ where OPTIONS are the same options accepted by the parallel version of REDItools
  #### 8.1 Running in multisample mode on a SLURM-based cluster
 If you wish to run REDItools 2.0 in multisample mode on a SLURM-based cluster, we provided two scripts that will help you:
 
-- *extract_coverage_slurm_all.sh*: will calculate the coverage data for all the samples in parallel;
+-*extract_coverage_slurm_all.sh*: will calculate the coverage data for all the samples in parallel (by using the script *extract_coverage_dynamic.sh*);
 - *multisample_test.sh*: will calculate the RNA-editing events tables for all the samples in parallel using MPI.
 
 First run *extract_coverage_slurm_all.sh* and then *multisample_test.sh*.
- 
+
+### 9. Displaying benchmarks with REDItools 2.0 (parallel version only)
+We also released simple scripts to generate HTML pages containing the snapshot of the amount of time REDItools 2.0 (parallel version) spends on each part of the overall computation (e.g., coverage computation, DIA algorithm, interval analysis, partial results recombination, etc).
+
+All you have to do to create the HTML page is:
+> create_html.sh TEMP_DIR
+
+where TEMP_DIR is the directory you specified with the -t option.
+Inside this directory there are some aux
+times.txt
+groups.txt
+
+
 Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjc2NzE0NTA3LDIxMDkxNjI1NDksLTkxNj
-Y3ODgyMSwxODY3MzQ1NjIzLDIwNDYwMjY1NzYsLTIwOTcwNDQy
-MDgsMTE1NDk3NTIxNCwtOTEzOTQ0ODIzXX0=
+eyJoaXN0b3J5IjpbLTEwNjIyNDcwMTAsMjc2NzE0NTA3LDIxMD
+kxNjI1NDksLTkxNjY3ODgyMSwxODY3MzQ1NjIzLDIwNDYwMjY1
+NzYsLTIwOTcwNDQyMDgsMTE1NDk3NTIxNCwtOTEzOTQ0ODIzXX
+0=
 -->
