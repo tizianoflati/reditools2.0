@@ -2,6 +2,17 @@
 
 **REDItools 2.0** is the optimized, parallel multi-node version of [<i class="icon-link"></i> REDItools](http://srv00.recas.ba.infn.it/reditools/).
 
+REDItools takes in input a RNA-Seq or DNA-Seq BAM file and outputs
+This is the output of REDItools:
+![enter image description here](https://drive.google.com/uc?id=1ilGzbUKe16rt0iNQV-NzjohOBkx1hNHC)
+
+The following image explains the high-level architecture.
+
+![enter image description here](https://drive.google.com/uc?id=1rYaJstasxkBEkh7WGUAuQAQiL9c05q_f)
+This version of REDItools shows an average 8x speed improvement over the previous version even when using only the *serial-mode only*:
+
+![enter image description here](https://drive.google.com/uc?id=11jlXSCTeFaTSqOyRC66FaVyON1YfrhpH)
+
 # Index
 - [Installation](#installation)
   - [Python setup](#1-python-setup)
@@ -12,6 +23,7 @@
     - [Parallel version](#42-parallel-version--parallel_reditoolspy)
   - [Running REDItools 2.0 on your own data](#5-running-reditools-20-on-your-own-data) 
   - [REDItools 2.0 options](#6-reditools-20-options) 
+
 
 ## Installation
 
@@ -305,7 +317,7 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTE0MjgyOTYwNywyMTA5MTYyNTQ5LC05MT
+eyJoaXN0b3J5IjpbLTgyNDMwNzE5NSwyMTA5MTYyNTQ5LC05MT
 Y2Nzg4MjEsMTg2NzM0NTYyMywyMDQ2MDI2NTc2LC0yMDk3MDQ0
 MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
 -->
