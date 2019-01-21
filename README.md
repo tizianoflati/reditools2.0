@@ -7,7 +7,10 @@ REDItools takes in input a RNA-Seq (or DNA-Seq BAM) file and outputs a table of 
 
 The following image explains the high-level architecture.
 
-![enter image description here](https://drive.google.com/uc?id=1rYaJstasxkBEkh7WGUAuQAQiL9c05q_f )
+<p align="center">
+<img src="https://drive.google.com/uc?id=1rYaJstasxkBEkh7WGUAuQAQiL9c05q_f" width="500px">
+</p>
+
 This version of REDItools shows an average 8x speed improvement over the previous version even when using only the *serial-mode only*:
 
 ![enter image description here](https://drive.google.com/uc?id=11jlXSCTeFaTSqOyRC66FaVyON1YfrhpH)
@@ -316,7 +319,7 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTMwMjAyNTY4OCwyMTA5MTYyNTQ5LC05MT
-Y2Nzg4MjEsMTg2NzM0NTYyMywyMDQ2MDI2NTc2LC0yMDk3MDQ0
-MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
+eyJoaXN0b3J5IjpbMjk4ODUwMjk1LDIxMDkxNjI1NDksLTkxNj
+Y3ODgyMSwxODY3MzQ1NjIzLDIwNDYwMjY1NzYsLTIwOTcwNDQy
+MDgsMTE1NDk3NTIxNCwtOTEzOTQ0ODIzXX0=
 -->
