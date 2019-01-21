@@ -288,13 +288,24 @@ and
 ### 8. Running REDItools 2.0 in multisample mode
 REDItools also supports the launch on multiple samples at the same time. This modality is extremely useful if you have a dataset (i.e., group of homogeneous samples) and wish to run the same analysis on all of them (i.e., with the same options).
 
-In order to do this, we provided also the script called 
+In order to do this, we provided a second script analogous to parallel_reditools.py, called *reditools2_multisample.py* which supports the specification of an additional option -F [SAMPLE_FILE]. SAMPLE_FILE is a file containing the (absolute) path of samples to be analyzed.
+It can be launched in the following manner:
 
+> mpirun src/cineca/reditools2_multisample.py -F $SAMPLE_FILE [OPTIONS]
+
+where OPTIONS are the same options accepted by the parallel version of REDItools 2.0.
+
+ #### Running on a SLURM-based cluster
+If you wish to run REDItools 2.0 in multisample mode on a SLURM-based cluster, we provided two scripts that will help you:
+
+- *extract_coverage_slurm_all.sh*: will calculate the coverage data for all the samples in parallel;
+- *multisample_test.sh*: will calculate the RNA-editing events tables for all the samples in parallel using MPI.
+ 
 Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTkwODc4NDgyNCwyMTA5MTYyNTQ5LC05MT
+eyJoaXN0b3J5IjpbMTE0MjgyOTYwNywyMTA5MTYyNTQ5LC05MT
 Y2Nzg4MjEsMTg2NzM0NTYyMywyMDQ2MDI2NTc2LC0yMDk3MDQ0
 MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
 -->
