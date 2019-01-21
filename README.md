@@ -341,18 +341,20 @@ We also released simple scripts to generate HTML pages containing the snapshot o
 All you have to do to create the HTML page is:
 > create_html.sh TEMP_DIR
 
-where TEMP_DIR is the directory you specified with the -t option.
-Inside this directory there are some aux
-times.txt
-groups.txt
+where TEMP_DIR is the directory you specified with the -t option; inside this directory in fact there are some auxiliary files (e.g., intervals.txt, progress.txt, times.txt and groups.txt) which serve exactly this purpose.
+Once created, the HTML page should display time information similar to the following:
+
+<p align="center">
+<img src="https://drive.google.com/uc?id=1KFIPN4Z9wgVEgCO99OH-UWQFDyezDLSrr" width="500px">
+</p>
 
 
 Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEwNjIyNDcwMTAsMjc2NzE0NTA3LDIxMD
-kxNjI1NDksLTkxNjY3ODgyMSwxODY3MzQ1NjIzLDIwNDYwMjY1
-NzYsLTIwOTcwNDQyMDgsMTE1NDk3NTIxNCwtOTEzOTQ0ODIzXX
-0=
+eyJoaXN0b3J5IjpbLTk1MDM5MDE3MywyNzY3MTQ1MDcsMjEwOT
+E2MjU0OSwtOTE2Njc4ODIxLDE4NjczNDU2MjMsMjA0NjAyNjU3
+NiwtMjA5NzA0NDIwOCwxMTU0OTc1MjE0LC05MTM5NDQ4MjNdfQ
+==
 -->
