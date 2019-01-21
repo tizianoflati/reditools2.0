@@ -11,7 +11,7 @@ The following image explains the high-level architecture.
 <img src="https://drive.google.com/uc?id=1rYaJstasxkBEkh7WGUAuQAQiL9c05q_f" width="500px">
 </p>
 
-This version of REDItools shows an average 8x speed improvement over the previous version even when using only the *serial-mode only*:
+This version of REDItools shows an average 8x speed improvement over the previous version even when using only the serial-mode:
 
 ![enter image description here](https://drive.google.com/uc?id=11jlXSCTeFaTSqOyRC66FaVyON1YfrhpH)
 
@@ -25,6 +25,8 @@ This version of REDItools shows an average 8x speed improvement over the previou
     - [Parallel version](#42-parallel-version--parallel_reditoolspy)
   - [Running REDItools 2.0 on your own data](#5-running-reditools-20-on-your-own-data) 
   - [REDItools 2.0 options](#6-reditools-20-options) 
+  - [DNA-Seq annotation with REDItools 2.0](#7-dna-seq-annotation-with-reditools-2)
+  - [Running REDItools 2.0 in multisample mode](#8-running-reditools-20-in-multisample-mode)
 
 
 ## Installation
@@ -284,7 +286,7 @@ The parallel version of REDItools 2.0 has also other 4 additional parameters, na
    >
    >**-Z**    --chromosome-sizes    The file with the chromosome sizes
 
-### 7. DNA-Seq annotation with REDItools 2.
+### 7. DNA-Seq annotation with REDItools 2.0
 
 - Analyze your RNA-Seq data (e.g., file *rna.bam*) with any version of REDItools and obtain the corresponding output table (e.g., *rna_table.txt* or *rna_table.txt.gz*);
 - Analyze your DNA-Seq data (e.g., *dna.bam*) with REDItools 2.0, providing as input:
@@ -319,7 +321,7 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjk4ODUwMjk1LDIxMDkxNjI1NDksLTkxNj
-Y3ODgyMSwxODY3MzQ1NjIzLDIwNDYwMjY1NzYsLTIwOTcwNDQy
-MDgsMTE1NDk3NTIxNCwtOTEzOTQ0ODIzXX0=
+eyJoaXN0b3J5IjpbMTk1NTQ4Mjg0MywyMTA5MTYyNTQ5LC05MT
+Y2Nzg4MjEsMTg2NzM0NTYyMywyMDQ2MDI2NTc2LC0yMDk3MDQ0
+MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
 -->
