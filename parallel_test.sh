@@ -1,89 +1,19 @@
 #!/bin/bash
-#SBATCH --ntasks=68
-#SBATCH --ntasks-per-node=68
-#SBATCH --time=00:20:00
-#SBATCH --account=cin_staff
-#SBATCH -p knl_usr_prod
-#SBATCH -e para-RT.e
-#SBATCH -o para-RT.o
 
-cd $SLURM_SUBMIT_DIR
-
-BASE_DIR=$CINECA_SCRATCH"/reditools/"
-OUTPUT_DIR=$BASE_DIR"/output/"
-
-SAMPLE_ID="SRR2135332"
-SOURCE_BAM_FILE="test/$SAMPLE_ID.bam"
-
-module load profile/global
-module load ig_homo_sapiens/hg19
-REFERENCE=$IG_HG19_GENOME"/genome.fa"
-OMOPOLYMER_FILE=$BASE_DIR"omopolymeric_positions.txt"
-# SIZE_FILE=$BASE_DIR"hg19.chrom.sizes"
-SIZE_FILE=$REFERENCE".fai"
-
-COVERAGE_DIR=$BASE_DIR"/cov/"$SAMPLE_ID"/"
-COVERAGE_FILE=$COVERAGE_DIR$SAMPLE_ID".cov"
-TEMP_DIR=$BASE_DIR"/temp/"$SAMPLE_ID"/"
-
-OUTPUT=$OUTPUT_DIR/$SAMPLE_ID/table.gz
-NUM_CORES=68
-
-echo "Launching REDItool on $SAMPLE_ID (output_dir=$OUTPUT_DIR)";
-date
-
-if [ ! -d "$OUTPUT_DIR" ]; then
-    mkdir "$OUTPUT_DIR"
-fi
-
-# Environment setup
-module load python/2.7.12
+# Parallel test #
 source ENV/bin/activate
-module load autoload profile/global
-module load autoload openmpi/1-10.3--gnu--6.1.0
-module load autoload samtools
-module load autoload htslib
 
-if [ ! -f $COVERAGE_FILE ]
-then
-        t1=$(date +%s)
-        t1_human=$(date)
-        echo "[STATS] [COVERAGE] START="$t1_human" ["$t1"]"
-        ./extract_coverage.sh $SOURCE_BAM_FILE $COVERAGE_DIR $SIZE_FILE
-        t2=$(date +%s)
-        t2_human=$(date)
-        elapsed_time=$(($t2-$t1))
-        elapsed_time_human=$(date -d@$elapsed_time -u +%H:%M:%S)
-        echo "[STATS] [COVERAGE] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
-fi
+NUM_CORES=2
+SOURCE_BAM_FILE="test/SRR2135332.chr21.bam"
+OUTPUT_FILE="parallel_table.txt"
+REFERENCE="test/chr21.fa"
+TEMP_DIR="temp/"
+SIZE_FILE="test/chr21.fa.fai"
+COVERAGE_FILE="coverage/SRR2135332/SRR2135332.cov"
+COVERAGE_DIR="coverage/SRR2135332/"
 
-strand=0
-options=""
-if [ $strand != 0 ]
-then
-        options="-C -T 2 -s $strand"
-fi
+./extract_coverage.sh $SOURCE_BAM_FILE $COVERAGE_DIR $SIZE_FILE
+mpirun -np $NUM_CORES src/cineca/parallel_reditools.py -f $SOURCE_BAM_FILE -o $OUTPUT_FILE -r $REFERENCE -t $TEMP_DIR -Z $SIZE_FILE -G $COVERAGE_FILE -D $COVERAGE_DIR
+./merge.sh $TEMP_DIR $OUTPUT $NUM_CORES
 
-# Program launch
-echo "START:"`date`
-t1=$(date +%s)
-t1_human=$(date)
-time mpirun src/cineca/parallel_reditools.py -f $SOURCE_BAM_FILE -r $REFERENCE -m $OMOPOLYMER_FILE -G $COVERAGE_FILE -D $COVERAGE_DIR -t $TEMP_DIR -Z $SIZE_FILE $options 2>&1 | tee $SAMPLE_ID.log
-t2=$(date +%s)
-t2_human=$(date)
-elapsed_time=$(($t2-$t1))
-elapsed_time_human=$(date -d@$elapsed_time -u +%H:%M:%S)
-echo "[STATS] [PARALLEL] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
-
-t1=$(date +%s)
-t1_human=$(date)
-export PATH=$HTSLIB_HOME/bin/:$PATH
-time ./merge.sh $TEMP_DIR $OUTPUT $NUM_CORES
-t2=$(date +%s)
-t2_human=$(date)
-elapsed_time=$(($t2-$t1))
-elapsed_time_human=$(date -d@$elapsed_time -u +%H:%M:%S)
-echo "[STATS] [MERGE] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
-
-echo "END:"`date`
-echo "OK" > $TEMP_DIR/status.txt
+deactivate

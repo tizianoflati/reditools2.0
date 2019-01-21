@@ -782,8 +782,8 @@ import pickle
 def load_target_positions(bed_file, region):
     print("Loading target positions from file {} (region:{})".format(bed_file, region))
     
-    if os.path.exists(bed_file + "save.p"):
-        return pickle.load(open( bed_file + "save.p", "rb" ))
+#     if os.path.exists(bed_file + "save.p"):
+#         return pickle.load(open( bed_file + "save.p", "rb" ))
     
     target_positions = {}
 
@@ -802,7 +802,7 @@ def load_target_positions(bed_file, region):
             read += 1
             fields = line.strip().split("\t")
             chr = fields[0]
-            if read % 1000000 == 0: print("[{3}] {0}/{1} ({2:.2%}) total lines read. Total positions: {4}".format(read, 200000000, read / 200000000.0, datetime.datetime.now(), total_positions))
+            if read % 10000000 == 0: print("[{1}] {0} total lines read. Total positions: {2}".format(read, datetime.datetime.now(), total_positions))
             
             if region != None and chr.replace("chr", "") != region[0].replace("chr", ""): continue
             
@@ -833,8 +833,7 @@ def load_target_positions(bed_file, region):
     print("### TARGET POSITIONS ###")
     print(total)
     print("TOTAL POSITIONS:", sum(total.values()))
-    pickle.dump(target_positions, open( bed_file + "save.p", "wb" ) )
-#     raw_input()    
+#     pickle.dump(target_positions, open( bed_file + "save.p", "wb" ) )
     
     return target_positions
             
@@ -890,7 +889,7 @@ def analyze(options):
     
     # Constants
     LAST_READ = None
-    LOG_INTERVAL = 500000
+    LOG_INTERVAL = 10000000
     
     # Take the time
     tic = datetime.datetime.now()
