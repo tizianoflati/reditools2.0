@@ -2,13 +2,12 @@
 
 **REDItools 2.0** is the optimized, parallel multi-node version of [<i class="icon-link"></i> REDItools](http://srv00.recas.ba.infn.it/reditools/).
 
-REDItools takes in input a RNA-Seq or DNA-Seq BAM file and outputs
-This is the output of REDItools:
+REDItools takes in input a RNA-Seq (or DNA-Seq BAM) file and outputs a table of RNA-Seq editing events.  Here is an example of REDItools's output:
 ![enter image description here](https://drive.google.com/uc?id=1ilGzbUKe16rt0iNQV-NzjohOBkx1hNHC)
 
 The following image explains the high-level architecture.
 
-![enter image description here](https://drive.google.com/uc?id=1rYaJstasxkBEkh7WGUAuQAQiL9c05q_f)
+![High-level description of REDItools 2.0](https://drive.google.com/uc?id=1rYaJstasxkBEkh7WGUAuQAQiL9c05q_f =500x)
 This version of REDItools shows an average 8x speed improvement over the previous version even when using only the *serial-mode only*:
 
 ![enter image description here](https://drive.google.com/uc?id=11jlXSCTeFaTSqOyRC66FaVyON1YfrhpH)
@@ -317,7 +316,7 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTgyNDMwNzE5NSwyMTA5MTYyNTQ5LC05MT
-Y2Nzg4MjEsMTg2NzM0NTYyMywyMDQ2MDI2NTc2LC0yMDk3MDQ0
-MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
+eyJoaXN0b3J5IjpbOTQ2NDA0NDUwLDIxMDkxNjI1NDksLTkxNj
+Y3ODgyMSwxODY3MzQ1NjIzLDIwNDYwMjY1NzYsLTIwOTcwNDQy
+MDgsMTE1NDk3NTIxNCwtOTEzOTQ0ODIzXX0=
 -->
