@@ -296,7 +296,7 @@ This step will produce the output table (e.g., *dna_table.txt*);
 - Annotate the RNA-Seq table by means of the DNA-Seq table by running REDItools2.0 annotator with the two tables as input (e.g., *rna_table.txt* and *dna_table.txt*) which will produce the final annotated table (e.g., *final_table.txt*).
 
 <p align="center">
-<img src="https://drive.google.com/uc?id=1PjTfd1Mh0QzOwqj668t3ItOwhSxpkQqL" width="500px">
+<img src="https://drive.google.com/uc?id=1PjTfd1Mh0QzOwqj668t3ItOwhSxpkQqL" width="600px">
 </p>
 
 We provided two sample scripts you can customize with your own data:
@@ -324,7 +324,7 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMzc5NjE3NTkwLDIxMDkxNjI1NDksLTkxNj
+eyJoaXN0b3J5IjpbNDEyMDY2Mzg5LDIxMDkxNjI1NDksLTkxNj
 Y3ODgyMSwxODY3MzQ1NjIzLDIwNDYwMjY1NzYsLTIwOTcwNDQy
 MDgsMTE1NDk3NTIxNCwtOTEzOTQ0ODIzXX0=
 -->
