@@ -295,7 +295,10 @@ The parallel version of REDItools 2.0 has also other 4 additional parameters, na
 This step will produce the output table (e.g., *dna_table.txt*);
 - Annotate the RNA-Seq table by means of the DNA-Seq table by running REDItools2.0 annotator with the two tables as input (e.g., *rna_table.txt* and *dna_table.txt*) which will produce the final annotated table (e.g., *final_table.txt*).
 
-![enter image description here](https://drive.google.com/uc?id=1PjTfd1Mh0QzOwqj668t3ItOwhSxpkQqL)
+<p align="center">
+<img src="https://drive.google.com/uc?id=1PjTfd1Mh0QzOwqj668t3ItOwhSxpkQqL" width="500px">
+</p>
+
 We provided two sample scripts you can customize with your own data:
 - serial_dna_test.sh
 and
@@ -321,7 +324,7 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTk1NTQ4Mjg0MywyMTA5MTYyNTQ5LC05MT
-Y2Nzg4MjEsMTg2NzM0NTYyMywyMDQ2MDI2NTc2LC0yMDk3MDQ0
-MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
+eyJoaXN0b3J5IjpbMzc5NjE3NTkwLDIxMDkxNjI1NDksLTkxNj
+Y3ODgyMSwxODY3MzQ1NjIzLDIwNDYwMjY1NzYsLTIwOTcwNDQy
+MDgsMTE1NDk3NTIxNCwtOTEzOTQ0ODIzXX0=
 -->
