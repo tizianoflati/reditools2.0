@@ -272,21 +272,29 @@ The parallel version of REDItools 2.0 has also other 4 additional parameters, na
 
 ### 7. DNA-Seq annotation with REDItools 2.
 
-This section assumes you already have analized your RNA-Seq data *rna.bam* with any version of REDItools.
-
-- Run any version of REDItools on input file *rna.bam* and obtain the corresponding *rna_table.txt* output file (or *rna_table.txt.gz*);
-- Run REDItools 2.0 on *dna.bam* providing as input
-	1. The DNA-Seq file (*dna.bam*) (option -;
-	2. The output RNA-table output of the first step.
+- Analyze your RNA-Seq data (e.g., file *rna.bam*) with any version of REDItools and obtain the corresponding output table (e.g., *rna_table.txt* or *rna_table.txt.gz*);
+- Analyze your DNA-Seq data (e.g., *dna.bam*) with REDItools 2.0, providing as input:
+	1. The DNA-Seq file (*dna.bam*) (e.g., option *-f* *dna.bam*);
+	2. The output RNA-table output of the first step (e.g., option *-B* *rna_table.txt*)
+This step will produce the output table (e.g., *dna_table.txt*);
+- Annotate the RNA-Seq table by means of the DNA-Seq table by running REDItools2.0 annotator with the two tables as input (e.g., *rna_table.txt* and *dna_table.txt*) which will produce the final annotated table (e.g., *final_table.txt*).
 
 ![enter image description here](https://drive.google.com/uc?id=1PjTfd1Mh0QzOwqj668t3ItOwhSxpkQqL)
+We provided two sample scripts you can customize with your own data:
+- serial_dna_test.sh
+and
+- parallel_dna_test.sh
 
+### 8. Running REDItools 2.0 in multisample mode
+REDItools also supports the launch on multiple samples at the same time. This modality is extremely useful if you have a dataset (i.e., group of homogeneous samples) and wish to run the same analysis on all of them (i.e., with the same options).
+
+In order to do this, we provided also the script called 
 
 Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTk0NjgxOTQ0MCwyMTA5MTYyNTQ5LC05MT
+eyJoaXN0b3J5IjpbLTkwODc4NDgyNCwyMTA5MTYyNTQ5LC05MT
 Y2Nzg4MjEsMTg2NzM0NTYyMywyMDQ2MDI2NTc2LC0yMDk3MDQ0
 MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
 -->
