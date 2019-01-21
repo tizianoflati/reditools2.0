@@ -25,7 +25,7 @@ This version of REDItools shows an average 8x speed improvement over the previou
     - [Parallel version](#42-parallel-version--parallel_reditoolspy)
   - [Running REDItools 2.0 on your own data](#5-running-reditools-20-on-your-own-data) 
   - [REDItools 2.0 options](#6-reditools-20-options) 
-  - [DNA-Seq annotation with REDItools 2.0](#7-dna-seq-annotation-with-reditools-2)
+  - [DNA-Seq annotation with REDItools 2.0](#7-dna-seq-annotation-with-reditools-20)
   - [Running REDItools 2.0 in multisample mode](#8-running-reditools-20-in-multisample-mode)
 
 
@@ -299,9 +299,22 @@ This step will produce the output table (e.g., *dna_table.txt*);
 <img src="https://drive.google.com/uc?id=1PjTfd1Mh0QzOwqj668t3ItOwhSxpkQqL" width="600px">
 </p>
 
-We provided two sample scripts you can customize with your own data:
+When RNA-editing tables are big (e.g., greater than 1GB in gz format) reading the full table in parallel mode can be really a time-consuming task. In order to optimize the loading of target positions, we have provided a script to convert RNA-editing tables to BED files:
+
+> python src/cineca/reditools_table_to_bed.py -i RNA_TABLE -o BED_FILE
+
+This can be further optimized by creating the final BED in parallel:
+
+> extract_bed_dynamic.sh RNA_TABLE TEMP_DIR SIZE_FILE
+
+where
+- RNA_TABLE is the input RNA-editing table;
+- TEMP_DIR is the directory that will contain the output BED file;
+- SIZE_FILE is the file containing the chromosome information (e.g., the .fai file of your reference genome).
+
+In order to ease the annotation of RNA-Seq tables with DNA-Seq information, we also provided two sample scripts that you can customize with your own data:
+
 - serial_dna_test.sh
-and
 - parallel_dna_test.sh
 
 ### 8. Running REDItools 2.0 in multisample mode
@@ -314,17 +327,19 @@ It can be launched in the following manner:
 
 where OPTIONS are the same options accepted by the parallel version of REDItools 2.0.
 
- #### Running on a SLURM-based cluster
+ #### 8.1 Running in multisample mode on a SLURM-based cluster
 If you wish to run REDItools 2.0 in multisample mode on a SLURM-based cluster, we provided two scripts that will help you:
 
 - *extract_coverage_slurm_all.sh*: will calculate the coverage data for all the samples in parallel;
 - *multisample_test.sh*: will calculate the RNA-editing events tables for all the samples in parallel using MPI.
+
+First run *extract_coverage_slurm_all.sh* and then *multisample_test.sh*.
  
 Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNDEyMDY2Mzg5LDIxMDkxNjI1NDksLTkxNj
+eyJoaXN0b3J5IjpbMjc2NzE0NTA3LDIxMDkxNjI1NDksLTkxNj
 Y3ODgyMSwxODY3MzQ1NjIzLDIwNDYwMjY1NzYsLTIwOTcwNDQy
 MDgsMTE1NDk3NTIxNCwtOTEzOTQ0ODIzXX0=
 -->
