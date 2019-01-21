@@ -71,6 +71,9 @@ do
 	then
 		cat $TEMP_DIR$chrom".bed" >> $TEMP_DIR$FILE_ID".bed"
 	fi
+	
+	rm $TEMP_DIR$chrom".table"
+	rm $TEMP_DIR$chrom".bed"
 done
 
 t2=$(date +%s)
