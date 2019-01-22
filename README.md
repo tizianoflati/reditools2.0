@@ -273,7 +273,7 @@ The following are the options accepted by the serial version of REDItools:
   >**-H**, --remove-header
   >Do not include header in output file
   >
-  >**-D**, --dna
+  >**-N**, --dna
   >Run REDItools 2.0 on DNA-Seq data
   >
   >**-B** BED_FILE, --bed_file BED_FILE
@@ -366,8 +366,8 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEwMTY3NDQyNTEsLTIwOTQ5OTA0MjMsLT
-k2OTM2NTgyMiwyNzY3MTQ1MDcsMjEwOTE2MjU0OSwtOTE2Njc4
-ODIxLDE4NjczNDU2MjMsMjA0NjAyNjU3NiwtMjA5NzA0NDIwOC
-wxMTU0OTc1MjE0LC05MTM5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbLTY1MDI5Njk2NSwtMTAxNjc0NDI1MSwtMj
+A5NDk5MDQyMywtOTY5MzY1ODIyLDI3NjcxNDUwNywyMTA5MTYy
+NTQ5LC05MTY2Nzg4MjEsMTg2NzM0NTYyMywyMDQ2MDI2NTc2LC
+0yMDk3MDQ0MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
 -->
