@@ -2,6 +2,19 @@
 
 **REDItools 2.0** is the optimized, parallel multi-node version of [<i class="icon-link"></i> REDItools](http://srv00.recas.ba.infn.it/reditools/).
 
+REDItools takes in input a RNA-Seq (or DNA-Seq BAM) file and outputs a table of RNA-Seq editing events.  Here is an example of REDItools's output:
+![enter image description here](https://drive.google.com/uc?id=1ilGzbUKe16rt0iNQV-NzjohOBkx1hNHC)
+
+The following image explains the high-level architecture.
+
+<p align="center">
+<img src="https://drive.google.com/uc?id=1rYaJstasxkBEkh7WGUAuQAQiL9c05q_f" width="500px">
+</p>
+
+This version of REDItools shows an average 8x speed improvement over the previous version even when using only the serial-mode:
+
+![enter image description here](https://drive.google.com/uc?id=11jlXSCTeFaTSqOyRC66FaVyON1YfrhpH)
+
 # Index
 - [Installation](#installation)
   - [Python setup](#1-python-setup)
@@ -12,6 +25,10 @@
     - [Parallel version](#42-parallel-version--parallel_reditoolspy)
   - [Running REDItools 2.0 on your own data](#5-running-reditools-20-on-your-own-data) 
   - [REDItools 2.0 options](#6-reditools-20-options) 
+  - [DNA-Seq annotation with REDItools 2.0](#7-dna-seq-annotation-with-reditools-20)
+  - [Running REDItools 2.0 in multisample mode](#8-running-reditools-20-in-multisample-mode)
+  - [Displaying benchmarks in HTML with REDItools 2.0 (parallel version only)](#9-displaying-benchmarks-with-reditools-20-parallel-version-only)
+
 
 ## Installation
 
@@ -270,12 +287,75 @@ The parallel version of REDItools 2.0 has also other 4 additional parameters, na
    >
    >**-Z**    --chromosome-sizes    The file with the chromosome sizes
 
+### 7. DNA-Seq annotation with REDItools 2.0
+
+- Analyze your RNA-Seq data (e.g., file *rna.bam*) with any version of REDItools and obtain the corresponding output table (e.g., *rna_table.txt* or *rna_table.txt.gz*);
+- Analyze your DNA-Seq data (e.g., *dna.bam*) with REDItools 2.0, providing as input:
+	1. The DNA-Seq file (*dna.bam*) (e.g., option *-f* *dna.bam*);
+	2. The output RNA-table output of the first step (e.g., option *-B* *rna_table.txt*)
+This step will produce the output table (e.g., *dna_table.txt*);
+- Annotate the RNA-Seq table by means of the DNA-Seq table by running REDItools2.0 annotator with the two tables as input (e.g., *rna_table.txt* and *dna_table.txt*) which will produce the final annotated table (e.g., *final_table.txt*).
+
+<p align="center">
+<img src="https://drive.google.com/uc?id=1PjTfd1Mh0QzOwqj668t3ItOwhSxpkQqL" width="600px">
+</p>
+
+When RNA-editing tables are big (e.g., greater than 1GB in gz format) reading the full table in parallel mode can be really a time-consuming task. In order to optimize the loading of target positions, we have provided a script to convert RNA-editing tables to BED files:
+
+> python src/cineca/reditools_table_to_bed.py -i RNA_TABLE -o BED_FILE
+
+This can be further optimized by creating the final BED in parallel:
+
+> extract_bed_dynamic.sh RNA_TABLE TEMP_DIR SIZE_FILE
+
+where
+- RNA_TABLE is the input RNA-editing table;
+- TEMP_DIR is the directory that will contain the output BED file;
+- SIZE_FILE is the file containing the chromosome information (e.g., the .fai file of your reference genome).
+
+In order to ease the annotation of RNA-Seq tables with DNA-Seq information, we also provided two sample scripts that you can customize with your own data:
+
+- [TODO] serial_dna_test.sh
+- [TODO] parallel_dna_test.sh
+
+### 8. Running REDItools 2.0 in multisample mode
+REDItools also supports the launch on multiple samples at the same time. This modality is extremely useful if you have a dataset (i.e., group of homogeneous samples) and wish to run the same analysis on all of them (i.e., with the same options).
+
+In order to do this, we provided a second script analogous to parallel_reditools.py, called *reditools2_multisample.py* which supports the specification of an additional option -F [SAMPLE_FILE]. SAMPLE_FILE is a file containing the (absolute) path of samples to be analyzed.
+It can be launched in the following manner:
+
+> mpirun src/cineca/reditools2_multisample.py -F $SAMPLE_FILE [OPTIONS]
+
+where OPTIONS are the same options accepted by the parallel version of REDItools 2.0.
+
+ #### 8.1 Running in multisample mode on a SLURM-based cluster
+If you wish to run REDItools 2.0 in multisample mode on a SLURM-based cluster, we provided two scripts that will help you:
+
+-*extract_coverage_slurm_all.sh*: will calculate the coverage data for all the samples in parallel (by using the script *extract_coverage_dynamic.sh*);
+- *multisample_test.sh*: will calculate the RNA-editing events tables for all the samples in parallel using MPI.
+
+First run *extract_coverage_slurm_all.sh* and then *multisample_test.sh*.
+
+### 9. Displaying benchmarks with REDItools 2.0 (parallel version only)
+We also released simple scripts to generate HTML pages containing the snapshot of the amount of time REDItools 2.0 (parallel version) spends on each part of the overall computation for each process (e.g., coverage computation, DIA algorithm, interval analysis, partial results recombination, etc).
+
+All you have to do to create the HTML page is:
+> create_html.sh TEMP_DIR
+
+where TEMP_DIR is the directory you specified with the -t option; this directory should contain in fact some auxiliary files (e.g., intervals.txt, progress.txt, times.txt and groups.txt) which serve exactly this purpose.
+Once created, the HTML page should display time information similar to the following:
+
+<p align="center">
+<img src="https://drive.google.com/uc?id=1KFIPN4Z9wgVEgCO99OH-UWQFDyezDLSr" width="600px">
+</p>
+
 
 Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjEwOTE2MjU0OSwtOTE2Njc4ODIxLDE4Nj
-czNDU2MjMsMjA0NjAyNjU3NiwtMjA5NzA0NDIwOCwxMTU0OTc1
-MjE0LC05MTM5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbLTIwOTQ5OTA0MjMsLTk2OTM2NTgyMiwyNz
+Y3MTQ1MDcsMjEwOTE2MjU0OSwtOTE2Njc4ODIxLDE4NjczNDU2
+MjMsMjA0NjAyNjU3NiwtMjA5NzA0NDIwOCwxMTU0OTc1MjE0LC
+05MTM5NDQ4MjNdfQ==
 -->
