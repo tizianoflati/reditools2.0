@@ -77,9 +77,12 @@ The downside of choosing this modality is a potential duplication of code with r
 To install REDItools2.0 in this modality, run the following commands:
 
 > virtualenv ENV
-source ENV/bin/activate
-pip install -r requirements.txt
-deactivate
+> 
+> source ENV/bin/activate
+>
+> pip install -r requirements.txt
+> 
+>  deactivate
 
 These commands will create a new environment called *ENV* (you can choose any name you like) and will install all dependencies listed in the file *requirements.txt* into it). The commands *activate* and *deactivate* respectively activate (i.e., start/open) and deactivate (i.e., end/close) the virtual environment.
 When running the real commands, remember to wrap your commands between and activate and deactivate commands:
@@ -87,8 +90,11 @@ When running the real commands, remember to wrap your commands between and activ
 >source ENV/bin/activate
 >
 >command...
+>
 >command...
+>
 >command...
+>
 >command...
 >
 >deactivate
@@ -369,8 +375,9 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNDc1MjkwNjE2LC0xMDE2NzQ0MjUxLC0yMD
-k0OTkwNDIzLC05NjkzNjU4MjIsMjc2NzE0NTA3LDIxMDkxNjI1
-NDksLTkxNjY3ODgyMSwxODY3MzQ1NjIzLDIwNDYwMjY1NzYsLT
-IwOTcwNDQyMDgsMTE1NDk3NTIxNCwtOTEzOTQ0ODIzXX0=
+eyJoaXN0b3J5IjpbLTIxMzkwMjczOTAsNDc1MjkwNjE2LC0xMD
+E2NzQ0MjUxLC0yMDk0OTkwNDIzLC05NjkzNjU4MjIsMjc2NzE0
+NTA3LDIxMDkxNjI1NDksLTkxNjY3ODgyMSwxODY3MzQ1NjIzLD
+IwNDYwMjY1NzYsLTIwOTcwNDQyMDgsMTE1NDk3NTIxNCwtOTEz
+OTQ0ODIzXX0=
 -->
