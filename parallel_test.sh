@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parallel test #
-#source ENV/bin/activate
+source ENV/bin/activate
 
 SOURCE_BAM_FILE="test/SRR2135332.chr21.bam"
 REFERENCE="test/chr21.fa"
@@ -17,4 +17,4 @@ COVERAGE_DIR="test_results/coverage/"
 mpirun -np $NUM_CORES src/cineca/parallel_reditools.py -f $SOURCE_BAM_FILE -o $OUTPUT_FILE -r $REFERENCE -t $TEMP_DIR -Z $SIZE_FILE -G $COVERAGE_FILE -D $COVERAGE_DIR
 ./merge.sh $TEMP_DIR $OUTPUT_FILE $NUM_CORES
 
-#deactivate
+deactivate

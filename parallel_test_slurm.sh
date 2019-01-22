@@ -94,3 +94,5 @@ echo "[STATS] [MERGE] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED=
 
 echo "END:"`date`
 echo "OK" > $TEMP_DIR/status.txt
+
+deactivate
