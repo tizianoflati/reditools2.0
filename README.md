@@ -318,7 +318,7 @@ Finally run the script *src/cineca/annotate_with_DNA.py*:
 
 > python src/cineca/annotate_with_DNA.py -r RNA_TABLE -d DNA_TABLE [-Z]
 
-The option -Z (not mandatory) will exclude positions with multiple changes in DNA-Seq.
+The option -Z (not mandatory and without arguments) will exclude positions with multiple changes in DNA-Seq.
 
 #### 7.1 Useful scripts
 
@@ -366,7 +366,7 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTY1MDI5Njk2NSwtMTAxNjc0NDI1MSwtMj
+eyJoaXN0b3J5IjpbMjA4MDc0NzMzNCwtMTAxNjc0NDI1MSwtMj
 A5NDk5MDQyMywtOTY5MzY1ODIyLDI3NjcxNDUwNywyMTA5MTYy
 NTQ5LC05MTY2Nzg4MjEsMTg2NzM0NTYyMywyMDQ2MDI2NTc2LC
 0yMDk3MDQ0MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
