@@ -16,18 +16,18 @@ This version of REDItools shows an average 8x speed improvement over the previou
 ![enter image description here](https://drive.google.com/uc?id=11jlXSCTeFaTSqOyRC66FaVyON1YfrhpH)
 
 # Index
-- [Installation](#installation)
-  - [Python setup](#1-python-setup)
-  - [Cloning / downloading](#2-cloning--downloading)
-  - [Installing](#3-installing)
-  - [The two versions of REDItools 2.0](#4-the-two-versions-of-reditools-20)
-    - [Serial version](#41-serial-version-reditoolspy) 
-    - [Parallel version](#42-parallel-version--parallel_reditoolspy)
-  - [Running REDItools 2.0 on your own data](#5-running-reditools-20-on-your-own-data) 
-  - [REDItools 2.0 options](#6-reditools-20-options) 
-  - [DNA-Seq annotation with REDItools 2.0](#7-dna-seq-annotation-with-reditools-20)
-  - [Running REDItools 2.0 in multisample mode](#8-running-reditools-20-in-multisample-mode)
-  - [Displaying benchmarks in HTML with REDItools 2.0 (parallel version only)](#9-displaying-benchmarks-with-reditools-20-parallel-version-only)
+
+- [1. Python setup](#1-python-setup)
+- [2. Cloning / downloading](#2-cloning--downloading)
+- [3. Installing](#3-installing)
+- [4. The two versions of REDItools 2.0](#4-the-two-versions-of-reditools-20)
+  - [4.1 Serial version](#41-serial-version-reditoolspy) 
+  - [4.2 Parallel version](#42-parallel-version--parallel_reditoolspy)
+- [5. Running REDItools 2.0 on your own data](#5-running-reditools-20-on-your-own-data) 
+- [6. REDItools 2.0 options](#6-reditools-20-options) 
+- [7. DNA-Seq annotation with REDItools 2.0](#7-dna-seq-annotation-with-reditools-20)
+- [8. Running REDItools 2.0 in multisample mode](#8-running-reditools-20-in-multisample-mode)
+- [9. Displaying benchmarks in HTML with REDItools 2.0 (parallel version only)](#9-displaying-benchmarks-with-reditools-20-parallel-version-only)
 
 
 ## Installation
@@ -77,9 +77,12 @@ The downside of choosing this modality is a potential duplication of code with r
 To install REDItools2.0 in this modality, run the following commands:
 
 > virtualenv ENV
-source ENV/bin/activate
-pip install -r requirements.txt
-deactivate
+> 
+> source ENV/bin/activate
+>
+> pip install -r requirements.txt
+> 
+>  deactivate
 
 These commands will create a new environment called *ENV* (you can choose any name you like) and will install all dependencies listed in the file *requirements.txt* into it). The commands *activate* and *deactivate* respectively activate (i.e., start/open) and deactivate (i.e., end/close) the virtual environment.
 When running the real commands, remember to wrap your commands between and activate and deactivate commands:
@@ -87,12 +90,16 @@ When running the real commands, remember to wrap your commands between and activ
 >source ENV/bin/activate
 >
 >command...
+>
 >command...
+>
 >command...
+>
 >command...
 >
 >deactivate
 
+## Testing
 
 ### 4. The two versions of REDItools 2.0
 ---
@@ -148,6 +155,8 @@ This script:
 - launches the production of coverage data; then
 - REDItools 2.0 is launched in parallel, by using the specified number of cores; finally
 - results are gathered and written into a single table (parameter *-o* provided in the command line)
+
+## Running
 
 ### 5. Running REDItools 2.0 on your own data
 ---
@@ -273,7 +282,7 @@ The following are the options accepted by the serial version of REDItools:
   >**-H**, --remove-header
   >Do not include header in output file
   >
-  >**-D**, --dna
+  >**-N**, --dna
   >Run REDItools 2.0 on DNA-Seq data
   >
   >**-B** BED_FILE, --bed_file BED_FILE
@@ -318,7 +327,7 @@ Finally run the script *src/cineca/annotate_with_DNA.py*:
 
 > python src/cineca/annotate_with_DNA.py -r RNA_TABLE -d DNA_TABLE [-Z]
 
-The option -Z (not mandatory) will exclude positions with multiple changes in DNA-Seq.
+The option -Z (not mandatory and without arguments) will exclude positions with multiple changes in DNA-Seq.
 
 #### 7.1 Useful scripts
 
@@ -366,8 +375,9 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEwMTY3NDQyNTEsLTIwOTQ5OTA0MjMsLT
-k2OTM2NTgyMiwyNzY3MTQ1MDcsMjEwOTE2MjU0OSwtOTE2Njc4
-ODIxLDE4NjczNDU2MjMsMjA0NjAyNjU3NiwtMjA5NzA0NDIwOC
-wxMTU0OTc1MjE0LC05MTM5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbLTIxMzkwMjczOTAsNDc1MjkwNjE2LC0xMD
+E2NzQ0MjUxLC0yMDk0OTkwNDIzLC05NjkzNjU4MjIsMjc2NzE0
+NTA3LDIxMDkxNjI1NDksLTkxNjY3ODgyMSwxODY3MzQ1NjIzLD
+IwNDYwMjY1NzYsLTIwOTcwNDQyMDgsMTE1NDk3NTIxNCwtOTEz
+OTQ0ODIzXX0=
 -->
