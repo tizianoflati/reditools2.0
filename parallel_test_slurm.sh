@@ -7,15 +7,19 @@
 #SBATCH -e para-RT.e
 #SBATCH -o para-RT.o
 
+##########################
+### PARAMETER SETTING  ###
+##########################
 SAMPLE_ID="SRR2135332"
-NUM_CORES=2
 SOURCE_BAM_FILE="test/SRR2135332.chr21.bam"
-OUTPUT_FILE="parallel_table.txt"
 REFERENCE="test/chr21.fa"
-TEMP_DIR="temp/"
 SIZE_FILE="test/chr21.fa.fai"
-COVERAGE_FILE="coverage/SRR2135332/SRR2135332.cov"
-COVERAGE_DIR="coverage/SRR2135332/"
+
+NUM_CORES=2
+OUTPUT_FILE="test_results/output/parallel_table.txt.gz"
+TEMP_DIR="test_results/temp/"
+COVERAGE_FILE="test_results/coverage/SRR2135332.chr21.cov"
+COVERAGE_DIR="test_results/coverage/"
 OUTPUT_DIR=$(basename "$OUTPUT_FILE")
 
 module load profile/global
@@ -27,6 +31,7 @@ if [ ! -d "$OUTPUT_DIR" ]; then
     mkdir "$OUTPUT_DIR"
 fi
 
+
 # Environment setup
 module load python/2.7.12
 source ENV/bin/activate
@@ -35,12 +40,15 @@ module load autoload openmpi/1-10.3--gnu--6.1.0
 module load autoload samtools
 module load autoload htslib
 
+##########################
+### COVERAGE ANALYSIS  ###
+##########################
 if [ ! -f $COVERAGE_FILE ]
 then
         t1=$(date +%s)
         t1_human=$(date)
         echo "[STATS] [COVERAGE] START="$t1_human" ["$t1"]"
-        ./extract_coverage.sh $SOURCE_BAM_FILE $COVERAGE_DIR $SIZE_FILE
+        ./extract_coverage_dynamic.sh $SOURCE_BAM_FILE $COVERAGE_DIR $SIZE_FILE
         t2=$(date +%s)
         t2_human=$(date)
         elapsed_time=$(($t2-$t1))
@@ -48,6 +56,10 @@ then
         echo "[STATS] [COVERAGE] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
 fi
 
+
+############################
+### PARALLEL COMPUTATION ###
+############################
 strand=0
 options=""
 if [ $strand != 0 ]
@@ -66,6 +78,10 @@ elapsed_time=$(($t2-$t1))
 elapsed_time_human=$(date -d@$elapsed_time -u +%H:%M:%S)
 echo "[STATS] [PARALLEL] START="$t1_human" ["$t1"] END="$t2_human" ["$t2"] ELAPSED="$elapsed_time" HUMAN="$elapsed_time_human
 
+
+######################
+####### MERGE  #######
+######################
 t1=$(date +%s)
 t1_human=$(date)
 export PATH=$HTSLIB_HOME/bin/:$PATH

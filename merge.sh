@@ -2,6 +2,8 @@ TABLE_DIR=$1
 FINAL_TABLE=$2
 THREADS=$3
 
+echo "Merging files in $TABLE_DIR using $THREADS threads and writing to output=$FINAL_TABLE"
+
 t1=$(date +%s)
 t1_human=$(date)
 

@@ -11,6 +11,7 @@
 module load python/2.7.12
 
 source ENV/bin/activate
+
 python src/cineca/reditools.py -f test/SRR2135332.chr21.bam -r test/chr21.fa -o serial_table_slurm.txt
 
 deactivate

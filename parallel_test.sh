@@ -1,19 +1,20 @@
 #!/bin/bash
 
 # Parallel test #
-source ENV/bin/activate
+#source ENV/bin/activate
+
+SOURCE_BAM_FILE="test/SRR2135332.chr21.bam"
+REFERENCE="test/chr21.fa"
+SIZE_FILE="test/chr21.fa.fai"
 
 NUM_CORES=2
-SOURCE_BAM_FILE="test/SRR2135332.chr21.bam"
-OUTPUT_FILE="parallel_table.txt"
-REFERENCE="test/chr21.fa"
-TEMP_DIR="temp/"
-SIZE_FILE="test/chr21.fa.fai"
-COVERAGE_FILE="coverage/SRR2135332/SRR2135332.cov"
-COVERAGE_DIR="coverage/SRR2135332/"
+OUTPUT_FILE="test_results/output/parallel_table.txt.gz"
+TEMP_DIR="test_results/temp/"
+COVERAGE_FILE="test_results/coverage/SRR2135332.chr21.cov"
+COVERAGE_DIR="test_results/coverage/"
 
 ./extract_coverage.sh $SOURCE_BAM_FILE $COVERAGE_DIR $SIZE_FILE
 mpirun -np $NUM_CORES src/cineca/parallel_reditools.py -f $SOURCE_BAM_FILE -o $OUTPUT_FILE -r $REFERENCE -t $TEMP_DIR -Z $SIZE_FILE -G $COVERAGE_FILE -D $COVERAGE_DIR
-./merge.sh $TEMP_DIR $OUTPUT $NUM_CORES
+./merge.sh $TEMP_DIR $OUTPUT_FILE $NUM_CORES
 
-deactivate
+#deactivate

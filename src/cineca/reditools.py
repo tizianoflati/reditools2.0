@@ -1241,7 +1241,7 @@ def parse_options():
     parser.add_argument('-Tv', '--strand-confidence-value', type=float, default=0.7, help='Strand confidence [0.70]')    
     parser.add_argument('-V', '--verbose', default=False, help='Verbose information in stderr', action='store_true')
     parser.add_argument('-H', '--remove-header', default=False, help='Do not include header in output file', action='store_true')
-    parser.add_argument('-D', '--dna', default=False, help='Run REDItools 2.0 on DNA-Seq data', action='store_true')
+    parser.add_argument('-N', '--dna', default=False, help='Run REDItools 2.0 on DNA-Seq data', action='store_true')
     parser.add_argument('-B', '--bed_file', help='Path of BED file containing target regions')
     
     args = parser.parse_known_args()[0]

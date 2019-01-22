@@ -418,7 +418,7 @@ if __name__ == '__main__':
             homeworks.remove(hw)
 
         something_to_analyze = True
-        if len(homeworks) > 0:
+        if len(homeworks) == 0:
             something_to_analyze = False
         
         if something_to_analyze:

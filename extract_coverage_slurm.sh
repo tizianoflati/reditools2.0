@@ -19,7 +19,7 @@ module load autoload samtools
 t1=$(date +%s)
 t1_human=$(date)
 echo "[STATS] [COVERAGE] [$SAMPLE_ID] START="$t1_human" ["$t1"]"
-time ./extract_coverage.sh $SOURCE_BAM_FILE $COV $SIZE_FILE
+time ./extract_coverage_dynamic.sh $SOURCE_BAM_FILE $COV $SIZE_FILE
 t2=$(date +%s)
 t2_human=$(date)
 elapsed_time=$(($t2-$t1))

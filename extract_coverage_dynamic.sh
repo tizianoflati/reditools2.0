@@ -20,6 +20,9 @@ do
     CHROMOSOMES[${#CHROMOSOMES[@]}]=$chrom
 done
 
+###############################
+### PER-CHROMOSOME COVERAGE ###
+###############################
 NUM_CHROMS=$(cat $SIZE_FILE | cut -f 1 | wc -l)
 AVAILABLE_CPUS=$(nproc)
 CHUNK_SIZE=$(($NUM_CHROMS>$AVAILABLE_CPUS?$AVAILABLE_CPUS:$NUM_CHROMS))
@@ -34,8 +37,16 @@ do
         if [ $i -ge $NUM_CHROMS ]; then break; fi
         
         chrom=${CHROMOSOMES[$i]}
+
         echo "Calculating coverage file for chromosome $chrom = $COVERAGE_DIR$chrom"
-        samtools depth $1 -r $chrom | grep -vP "\t0$" > $COVERAGE_DIR$chrom &
+        
+        if [ $(samtools view $1 | cut -f 3 | grep -q $chrom) ]
+		then
+			samtools depth $1 -r ${chrom#chr} | grep -vP "\t0$" > $COVERAGE_DIR$chrom &
+		else
+			samtools depth $1 -r $chrom | grep -vP "\t0$" > $COVERAGE_DIR$chrom &
+		fi
+        
     done
     wait
     start=$(expr $start + $CHUNK_SIZE)
@@ -50,6 +61,9 @@ echo "[STATS] [COVERAGE CHR] [$FILE_ID] START="$t1_human" ["$t1"] END="$t2_human
 tmid=$(date +%s)
 tmid_human=$(date)
 
+############################
+### SINGLE COVERAGE FILE ###
+############################
 echo "[STATS] Creating complete file $COVERAGE_DIR$FILE_ID.cov ["`date`"]"
 rm $COVERAGE_DIR$FILE_ID".cov"
 for chrom in `cat $SIZE_FILE | cut -f 1`

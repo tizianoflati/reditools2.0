@@ -17,7 +17,14 @@ echo "[STATS] Creating single chromosome coverage files ["`date`"]"
 for chrom in `cat $SIZE_FILE | cut -f 1`
 do
 	echo "Calculating coverage file for chromosome $chrom = $COVERAGE_DIR$chrom"
-	samtools depth $1 -r ${chrom#chr} | grep -vP "\t0$" > $COVERAGE_DIR$chrom &
+	
+	if [ $(samtools view $1 | cut -f 3 | grep -q $chrom) ]
+	then
+		samtools depth $1 -r ${chrom#chr} | grep -vP "\t0$" > $COVERAGE_DIR$chrom &
+	else
+		samtools depth $1 -r $chrom | grep -vP "\t0$" > $COVERAGE_DIR$chrom &
+	fi
+	
 done
 wait
 
@@ -31,7 +38,11 @@ tmid=$(date +%s)
 tmid_human=$(date)
 
 echo "[STATS] Creating complete file $COVERAGE_DIR$FILE_ID.cov ["`date`"]"
-rm $COVERAGE_DIR$FILE_ID".cov"
+if [ -s $COVERAGE_DIR$FILE_ID".cov" ]
+then
+	rm $COVERAGE_DIR$FILE_ID".cov"
+fi
+
 for chrom in `cat $SIZE_FILE | cut -f 1`
 do  
         cat $COVERAGE_DIR$chrom >> $COVERAGE_DIR$FILE_ID".cov"
