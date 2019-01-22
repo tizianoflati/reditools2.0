@@ -93,6 +93,7 @@ When running the real commands, remember to wrap your commands between and activ
 >
 >deactivate
 
+## Testing
 
 ### 4. The two versions of REDItools 2.0
 ---
@@ -148,6 +149,8 @@ This script:
 - launches the production of coverage data; then
 - REDItools 2.0 is launched in parallel, by using the specified number of cores; finally
 - results are gathered and written into a single table (parameter *-o* provided in the command line)
+
+## Running
 
 ### 5. Running REDItools 2.0 on your own data
 ---
@@ -366,8 +369,8 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTc1OTg1Mjc4NywtMTAxNjc0NDI1MSwtMj
-A5NDk5MDQyMywtOTY5MzY1ODIyLDI3NjcxNDUwNywyMTA5MTYy
-NTQ5LC05MTY2Nzg4MjEsMTg2NzM0NTYyMywyMDQ2MDI2NTc2LC
-0yMDk3MDQ0MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
+eyJoaXN0b3J5IjpbNDc1MjkwNjE2LC0xMDE2NzQ0MjUxLC0yMD
+k0OTkwNDIzLC05NjkzNjU4MjIsMjc2NzE0NTA3LDIxMDkxNjI1
+NDksLTkxNjY3ODgyMSwxODY3MzQ1NjIzLDIwNDYwMjY1NzYsLT
+IwOTcwNDQyMDgsMTE1NDk3NTIxNCwtOTEzOTQ0ODIzXX0=
 -->
