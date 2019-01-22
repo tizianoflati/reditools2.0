@@ -11,8 +11,6 @@
 # COV
 # SIZE_FILE
 
-cd $SLURM_SUBMIT_DIR
-
 echo "Launching REDItool COVERAGE on $SAMPLE_ID";
 
 module load autoload profile/global
