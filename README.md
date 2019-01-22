@@ -295,7 +295,7 @@ The parallel version of REDItools 2.0 has also other 4 additional parameters, na
 	1. The DNA-Seq file (*dna.bam*) (e.g., option *-f* *dna.bam*);
 	2. The output RNA-table output of the first step (e.g., option *-B* *rna_table.txt*)
 This step will produce the output table (e.g., *dna_table.txt*);
-- Annotate the RNA-Seq table by means of the DNA-Seq table by running REDItools2.0 annotator with the two tables as input (e.g., *rna_table.txt* and *dna_table.txt*) which will produce the final annotated table (e.g., *final_table.txt*).
+- Annotate the RNA-Seq table by means of the DNA-Seq table by running REDItools2.0 annotator (script *src/cineca/annotate_with_DNA.py*) with the two tables as input (e.g., *rna_table.txt* and *dna_table.txt*) which will produce the final annotated table (e.g., *final_table.txt*).
 
 <p align="center">
 <img src="https://drive.google.com/uc?id=1PjTfd1Mh0QzOwqj668t3ItOwhSxpkQqL" width="600px">
@@ -313,6 +313,14 @@ where
 - RNA_TABLE is the input RNA-editing table;
 - TEMP_DIR is the directory that will contain the output BED file;
 - SIZE_FILE is the file containing the chromosome information (e.g., the .fai file of your reference genome).
+
+Finally run the script *src/cineca/annotate_with_DNA.py*:
+
+> python src/cineca/annotate_with_DNA.py -r RNA_TABLE -d DNA_TABLE [-Z]
+
+The option -Z (not mandatory) will exclude positions with multiple changes in DNA-Seq.
+
+#### 7.1 Scripts
 
 In order to ease the annotation of RNA-Seq tables with DNA-Seq information, we also provided two sample scripts that you can customize with your own data:
 
@@ -333,7 +341,7 @@ where OPTIONS are the same options accepted by the parallel version of REDItools
 If you wish to run REDItools 2.0 in multisample mode on a SLURM-based cluster, we provided two scripts that will help you:
 
 -*extract_coverage_slurm_multisample.sh*: will calculate the coverage data for all the samples in parallel (by using the script *extract_coverage_dynamic.sh*);
-- *multisample_test.sh*: will calculate the RNA-editing events tables for all the samples in parallel using MPI.
+- [**WORK IN PROGRESS**] *multisample_test.sh*: will calculate the RNA-editing events tables for all the samples in parallel using MPI.
 
 First run *extract_coverage_slurm_multisample.sh* and then *multisample_test.sh*.
 
@@ -350,12 +358,13 @@ Once created, the HTML page should display time information similar to the follo
 <img src="https://drive.google.com/uc?id=1KFIPN4Z9wgVEgCO99OH-UWQFDyezDLSr" width="600px">
 </p>
 
+By means of this visualization you can hover on slices to see more in details the statistics for each interval computation as well as zoom in and out by using the scroll wheel of your mouse.
 
 Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbOTUzODkyODA3LC0yMDk0OTkwNDIzLC05Nj
+eyJoaXN0b3J5IjpbNzMwNjU0MTYyLC0yMDk0OTkwNDIzLC05Nj
 kzNjU4MjIsMjc2NzE0NTA3LDIxMDkxNjI1NDksLTkxNjY3ODgy
 MSwxODY3MzQ1NjIzLDIwNDYwMjY1NzYsLTIwOTcwNDQyMDgsMT
 E1NDk3NTIxNCwtOTEzOTQ0ODIzXX0=
