@@ -93,9 +93,9 @@ import argparse
 if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(description='REDItools 2.0 annotator')
-	parser.add_argument('-r', '--rna-file', help='The RNA-editing events table to be annotated')
-	parser.add_argument('-d', '--dna-file', help='The RNA-editing events table as obtained from DNA-Seq data')
-	parser.add_argument('-R', '--reference', help='The .fai file of the reference genome containing the ordered chromosomes')
+	parser.add_argument('-r', '--rna-file', required=True, help='The RNA-editing events table to be annotated')
+	parser.add_argument('-d', '--dna-file', required=True, help='The RNA-editing events table as obtained from DNA-Seq data')
+	parser.add_argument('-R', '--reference', required=True, help='The .fai file of the reference genome containing the ordered chromosomes')
 	parser.add_argument('-Z', '--only-omozygotes', default=False, action='store_true', help='Exclude positions with multiple changes in DNA-Seq')
 	args = parser.parse_known_args()[0]
 
@@ -105,7 +105,7 @@ if __name__ == '__main__':
 	load_chromosomes(fai_file)
 	only_omozygotes = args.only_omozygotes
 	
-	sys.stderr.write("CHROMOSOMES LOADED\n")
+	sys.stderr.write("[INFO] {} CHROMOSOMES LOADED\n".format(len(chromosomes)))
 	
 	file1root, ext1 = os.path.splitext(file1)
 	file2root, ext2 = os.path.splitext(file2)
@@ -155,7 +155,7 @@ if __name__ == '__main__':
 				if not only_omozygotes or omozigote:
 					fd3.write("\t".join(fields1) + "\n")
 				else:
-					sys.stderr.write("[{}] Discarding {}:{} because DNA data is not omozygote from {}\n".format(last_chr, fields1[0], fields1[1], file1))
+					sys.stderr.write("[INFO] [{}] Discarding {}:{} because DNA data is not omozygote from {}\n".format(last_chr, fields1[0], fields1[1], file1))
 				
 			if f1_less_than_f2:
 				fields1 = read_line(fd1)
@@ -166,11 +166,11 @@ if __name__ == '__main__':
 				total2 += 1
 				
 			if total1 % LOG_INTERVAL == 0:
-				sys.stderr.write("[{}] {} lines read from {}\n".format(last_chr, total1, file1))
+				sys.stderr.write("[INFO] [{}] {} lines read from {}\n".format(last_chr, total1, file1))
 				
 			if total2 % LOG_INTERVAL == 0:
-				sys.stderr.write("[{}] {} lines read from {}\n".format(last_chr, total2, file2))
+				sys.stderr.write("[INFO] [{}] {} lines read from {}\n".format(last_chr, total2, file2))
 		
-	sys.stderr.write("{} lines read from {}\n".format(total1, file1))
-	sys.stderr.write("{} lines read from {}\n".format(total2, file2))
+	sys.stderr.write("[INFO] {} lines read from {}\n".format(total1, file1))
+	sys.stderr.write("[INFO] {} lines read from {}\n".format(total2, file2))
 	
