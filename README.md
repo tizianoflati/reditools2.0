@@ -102,6 +102,7 @@ This repo includes test data and a test script for checking that dependencies ha
 In order to have all the data you need, run the following commands:
 
 > cd test
+>
 > ./prepare_test.sh
 
 This will download and index the chromosome 21 of the hg19 version of the human genome (from http://hgdownload.cse.ucsc.edu/downloads.html).
@@ -294,7 +295,7 @@ The parallel version of REDItools 2.0 has also other 4 additional parameters, na
 	1. The DNA-Seq file (*dna.bam*) (e.g., option *-f* *dna.bam*);
 	2. The output RNA-table output of the first step (e.g., option *-B* *rna_table.txt*)
 This step will produce the output table (e.g., *dna_table.txt*);
-- Annotate the RNA-Seq table by means of the DNA-Seq table by running REDItools2.0 annotator with the two tables as input (e.g., *rna_table.txt* and *dna_table.txt*) which will produce the final annotated table (e.g., *final_table.txt*).
+- Annotate the RNA-Seq table by means of the DNA-Seq table by running REDItools2.0 annotator (script *src/cineca/annotate_with_DNA.py*) with the two tables as input (e.g., *rna_table.txt* and *dna_table.txt*) which will produce the final annotated table (e.g., *final_table.txt*).
 
 <p align="center">
 <img src="https://drive.google.com/uc?id=1PjTfd1Mh0QzOwqj668t3ItOwhSxpkQqL" width="600px">
@@ -313,12 +314,20 @@ where
 - TEMP_DIR is the directory that will contain the output BED file;
 - SIZE_FILE is the file containing the chromosome information (e.g., the .fai file of your reference genome).
 
+Finally run the script *src/cineca/annotate_with_DNA.py*:
+
+> python src/cineca/annotate_with_DNA.py -r RNA_TABLE -d DNA_TABLE [-Z]
+
+The option -Z (not mandatory) will exclude positions with multiple changes in DNA-Seq.
+
+#### 7.1 Useful scripts
+
 In order to ease the annotation of RNA-Seq tables with DNA-Seq information, we also provided two sample scripts that you can customize with your own data:
 
-- [TODO] serial_dna_test.sh
-- [TODO] parallel_dna_test.sh
+- [**WORK IN PROGRESS**] serial_dna_test.sh
+- [**WORK IN PROGRESS**] parallel_dna_test.sh
 
-### 8. Running REDItools 2.0 in multisample mode
+### 8. [**WORK IN PROGRESS**] Running REDItools 2.0 in multisample mode
 REDItools also supports the launch on multiple samples at the same time. This modality is extremely useful if you have a dataset (i.e., group of homogeneous samples) and wish to run the same analysis on all of them (i.e., with the same options).
 
 In order to do this, we provided a second script analogous to parallel_reditools.py, called *reditools2_multisample.py* which supports the specification of an additional option -F [SAMPLE_FILE]. SAMPLE_FILE is a file containing the (absolute) path of samples to be analyzed.
@@ -331,15 +340,17 @@ where OPTIONS are the same options accepted by the parallel version of REDItools
  #### 8.1 Running in multisample mode on a SLURM-based cluster
 If you wish to run REDItools 2.0 in multisample mode on a SLURM-based cluster, we provided two scripts that will help you:
 
--*extract_coverage_slurm_all.sh*: will calculate the coverage data for all the samples in parallel (by using the script *extract_coverage_dynamic.sh*);
-- *multisample_test.sh*: will calculate the RNA-editing events tables for all the samples in parallel using MPI.
+- [**WORK IN PROGRESS**] *extract_coverage_slurm_multisample.sh*: will calculate the coverage data for all the samples in parallel (by using the script *extract_coverage_dynamic.sh*);
+- [**WORK IN PROGRESS**] *multisample_test.sh*: will calculate the RNA-editing events tables for all the samples in parallel using MPI.
 
-First run *extract_coverage_slurm_all.sh* and then *multisample_test.sh*.
+First run *extract_coverage_slurm_multisample.sh* and then *multisample_test.sh*.
 
 ### 9. Displaying benchmarks with REDItools 2.0 (parallel version only)
 We also released simple scripts to generate HTML pages containing the snapshot of the amount of time REDItools 2.0 (parallel version) spends on each part of the overall computation for each process (e.g., coverage computation, DIA algorithm, interval analysis, partial results recombination, etc).
 
-All you have to do to create the HTML page is:
+**Note**: this command will work only when launched *after* the parallel computation has completed.
+
+All you have to do to create the HTML page is launching the following command:
 > create_html.sh TEMP_DIR
 
 where TEMP_DIR is the directory you specified with the -t option; this directory should contain in fact some auxiliary files (e.g., intervals.txt, progress.txt, times.txt and groups.txt) which serve exactly this purpose.
@@ -349,13 +360,14 @@ Once created, the HTML page should display time information similar to the follo
 <img src="https://drive.google.com/uc?id=1KFIPN4Z9wgVEgCO99OH-UWQFDyezDLSr" width="600px">
 </p>
 
+By means of this visualization you can *hover* on slices to see more in details the statistics for each interval computation as well as *zoom in* and *zoom out* by using the scroll wheel of your mouse.
 
 Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTIwOTQ5OTA0MjMsLTk2OTM2NTgyMiwyNz
-Y3MTQ1MDcsMjEwOTE2MjU0OSwtOTE2Njc4ODIxLDE4NjczNDU2
-MjMsMjA0NjAyNjU3NiwtMjA5NzA0NDIwOCwxMTU0OTc1MjE0LC
-05MTM5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbLTEwMTY3NDQyNTEsLTIwOTQ5OTA0MjMsLT
+k2OTM2NTgyMiwyNzY3MTQ1MDcsMjEwOTE2MjU0OSwtOTE2Njc4
+ODIxLDE4NjczNDU2MjMsMjA0NjAyNjU3NiwtMjA5NzA0NDIwOC
+wxMTU0OTc1MjE0LC05MTM5NDQ4MjNdfQ==
 -->
