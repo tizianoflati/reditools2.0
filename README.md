@@ -102,6 +102,7 @@ This repo includes test data and a test script for checking that dependencies ha
 In order to have all the data you need, run the following commands:
 
 > cd test
+>
 > ./prepare_test.sh
 
 This will download and index the chromosome 21 of the hg19 version of the human genome (from http://hgdownload.cse.ucsc.edu/downloads.html).
@@ -331,10 +332,10 @@ where OPTIONS are the same options accepted by the parallel version of REDItools
  #### 8.1 Running in multisample mode on a SLURM-based cluster
 If you wish to run REDItools 2.0 in multisample mode on a SLURM-based cluster, we provided two scripts that will help you:
 
--*extract_coverage_slurm_all.sh*: will calculate the coverage data for all the samples in parallel (by using the script *extract_coverage_dynamic.sh*);
+-*extract_coverage_slurm_multisample.sh*: will calculate the coverage data for all the samples in parallel (by using the script *extract_coverage_dynamic.sh*);
 - *multisample_test.sh*: will calculate the RNA-editing events tables for all the samples in parallel using MPI.
 
-First run *extract_coverage_slurm_all.sh* and then *multisample_test.sh*.
+First run *extract_coverage_slurm_multisample.sh* and then *multisample_test.sh*.
 
 ### 9. Displaying benchmarks with REDItools 2.0 (parallel version only)
 We also released simple scripts to generate HTML pages containing the snapshot of the amount of time REDItools 2.0 (parallel version) spends on each part of the overall computation for each process (e.g., coverage computation, DIA algorithm, interval analysis, partial results recombination, etc).
@@ -354,8 +355,8 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTIwOTQ5OTA0MjMsLTk2OTM2NTgyMiwyNz
-Y3MTQ1MDcsMjEwOTE2MjU0OSwtOTE2Njc4ODIxLDE4NjczNDU2
-MjMsMjA0NjAyNjU3NiwtMjA5NzA0NDIwOCwxMTU0OTc1MjE0LC
-05MTM5NDQ4MjNdfQ==
+eyJoaXN0b3J5IjpbOTUzODkyODA3LC0yMDk0OTkwNDIzLC05Nj
+kzNjU4MjIsMjc2NzE0NTA3LDIxMDkxNjI1NDksLTkxNjY3ODgy
+MSwxODY3MzQ1NjIzLDIwNDYwMjY1NzYsLTIwOTcwNDQyMDgsMT
+E1NDk3NTIxNCwtOTEzOTQ0ODIzXX0=
 -->
