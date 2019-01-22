@@ -387,8 +387,17 @@ if __name__ == '__main__':
         parallel_time_section_data = {"id": "ANALYSIS", "content": "Parallel", "start": str(datetime.now()), "type": "background"}
         time_data["periods"].append(parallel_time_section_data)
         print("[SYSTEM] [TIME] [MPI] [0] REDItools STARTED. MPI SIZE (PROCS): {} [now: {}]".format(size, datetime.now().time()))
-        
-        intervals_done_writer = open(temp_dir + "/progress.txt", "w")
+
+        intervals_done = set()
+        progress_file = temp_dir + "/progress.txt"
+        if os.path.exists(progress_file):
+            with open(progress_file, "r") as file:
+                for line in file:
+                    pieces = line.strip().split()
+                    chromosome = pieces[1].split(":")[0]
+                    start, end = pieces[1].split(":")[1].split("-")
+                    interval_done = (chr, start, end)
+                    intervals_done.add(interval_done)
         
         t1 = time.time()
         
@@ -399,9 +408,22 @@ if __name__ == '__main__':
             chromosomes[key] = int(val)
         print("Sizes:")
         print(chromosomes)
-  
-        #homeworks = get_intervals(chromosomes, STEP)
-  
+
+        homeworks_to_remove = set()
+        for hw in homeworks:
+            interval = (hw[0], hw[1], hw[2])
+            if interval in intervals_done:
+                homeworks_to_remove.add(hw)
+        for hw in homeworks_to_remove:
+            homeworks.remove(hw)
+
+        something_to_analyze = True
+        if len(homeworks) > 0:
+            something_to_analyze = False
+        
+        if something_to_analyze:
+            intervals_done_writer = open(progress_file, "w")
+        
         total = len(homeworks)
         print("[SYSTEM] [MPI] [0] HOMEWORKS", total, homeworks)
         #shuffle(homeworks)
@@ -481,7 +503,8 @@ if __name__ == '__main__':
             comm.send(None, dest=who, tag=STOP_WORKING)
 
         parallel_time_section_data["end"] = str(datetime.now())
-        intervals_done_writer.close()
+        if something_to_analyze:
+            intervals_done_writer.close()
         
         #################################################
         ########### WRITE TIME DATA #####################
@@ -614,37 +637,15 @@ if __name__ == '__main__':
                 # Command REDItools2.0: reditools2.0/src/cineca/reditools.py -f /gss/gss_work/DRES_HAIdA/gtex/SRR1413602/SRR1413602.bam
                 #                          -r ../../hg19.fa -g chr18:14237-14238
 
-#                 s = []
-# 
-#                 if strand == 0:
-#                     s = []
-#                 elif strand == 1:
-#                     s = ['-t', '1', '-i', '2', '-c']
-#                 elif strand == 2:
-#                     s = ['-t', '2', '-i', '2', '-c']
-
                 id = data[0] + "#" + str(data[1]) + "#" + str(data[2])
                 
                 options["region"] = [data[0], data[1], data[2]]
                 options["output"] = temp_dir + "/" + id + ".gz"
                 
-#                 command_line = ['time', 'python', 'reditools.py',
-#                                 '-f', input,
-#                                 '-r', reference,
-#                                 '-g', data[0] + ":" + str(data[1]) + "-" + str(data[2]),
-#                                 '-m', '/marconi_scratch/userexternal/tflati00/test_picardi/scalability/run/omopolymeric_positions.txt',
-#                                 '-o', output + "/" + "-".join([str(rank), data[0], str(data[1]), str(data[2])]) + "." + format]
-#                 command_line.extend(s)
-
-#                 print("[MPI] [" + str(rank) + "] COMMAND-LINE:" + ' '.join(command_line))
                 print("[MPI] [" + str(rank) + "] COMMAND-LINE:", options)
                 
                 gc.collect()
                 reditools.analyze(options)
-
-#                 with open(output+"/logs/error-"+id+".txt","w") as stderr_file:
-#                     pid = Popen(command_line, stderr=stderr_file)
-#                     pid.wait()
 
                 time_end = time.time()
                 print("[SYSTEM] [TIME] [MPI] [{}] REDItools: FINISHED {} [{}][{}] [TOTAL:{:5.2f}]".format(str(rank), str(data), time_s, datetime.now().time(), time_end - time_start))
