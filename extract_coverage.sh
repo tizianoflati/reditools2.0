@@ -17,7 +17,7 @@ echo "[STATS] Creating single chromosome coverage files ["`date`"]"
 for chrom in `cat $SIZE_FILE | cut -f 1`
 do
 	echo "Calculating coverage file for chromosome $chrom = $COVERAGE_DIR$chrom"
-	samtools depth $1 -r $chrom | grep -vP "\t0$" > $COVERAGE_DIR$chrom &
+	samtools depth $1 -r ${chrom#chr} | grep -vP "\t0$" > $COVERAGE_DIR$chrom &
 done
 wait
 
