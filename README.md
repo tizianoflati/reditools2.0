@@ -16,18 +16,18 @@ This version of REDItools shows an average 8x speed improvement over the previou
 ![enter image description here](https://drive.google.com/uc?id=11jlXSCTeFaTSqOyRC66FaVyON1YfrhpH)
 
 # Index
-- [Installation](#installation)
-  - [Python setup](#1-python-setup)
-  - [Cloning / downloading](#2-cloning--downloading)
-  - [Installing](#3-installing)
-  - [The two versions of REDItools 2.0](#4-the-two-versions-of-reditools-20)
-    - [Serial version](#41-serial-version-reditoolspy) 
-    - [Parallel version](#42-parallel-version--parallel_reditoolspy)
-  - [Running REDItools 2.0 on your own data](#5-running-reditools-20-on-your-own-data) 
-  - [REDItools 2.0 options](#6-reditools-20-options) 
-  - [DNA-Seq annotation with REDItools 2.0](#7-dna-seq-annotation-with-reditools-20)
-  - [Running REDItools 2.0 in multisample mode](#8-running-reditools-20-in-multisample-mode)
-  - [Displaying benchmarks in HTML with REDItools 2.0 (parallel version only)](#9-displaying-benchmarks-with-reditools-20-parallel-version-only)
+
+- [1. Python setup](#1-python-setup)
+- [2. Cloning / downloading](#2-cloning--downloading)
+- [3. Installing](#3-installing)
+- [4. The two versions of REDItools 2.0](#4-the-two-versions-of-reditools-20)
+  - [4.1 Serial version](#41-serial-version-reditoolspy) 
+  - [4.2 Parallel version](#42-parallel-version--parallel_reditoolspy)
+- [5. Running REDItools 2.0 on your own data](#5-running-reditools-20-on-your-own-data) 
+- [6. REDItools 2.0 options](#6-reditools-20-options) 
+- [7. DNA-Seq annotation with REDItools 2.0](#7-dna-seq-annotation-with-reditools-20)
+- [8. Running REDItools 2.0 in multisample mode](#8-running-reditools-20-in-multisample-mode)
+- [9. Displaying benchmarks in HTML with REDItools 2.0 (parallel version only)](#9-displaying-benchmarks-with-reditools-20-parallel-version-only)
 
 
 ## Installation
@@ -366,7 +366,7 @@ Issues
 ---
 No issues are known so far. For any problem, write to t.flati@cineca.it.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjA4MDc0NzMzNCwtMTAxNjc0NDI1MSwtMj
+eyJoaXN0b3J5IjpbMTc1OTg1Mjc4NywtMTAxNjc0NDI1MSwtMj
 A5NDk5MDQyMywtOTY5MzY1ODIyLDI3NjcxNDUwNywyMTA5MTYy
 NTQ5LC05MTY2Nzg4MjEsMTg2NzM0NTYyMywyMDQ2MDI2NTc2LC
 0yMDk3MDQ0MjA4LDExNTQ5NzUyMTQsLTkxMzk0NDgyM119
