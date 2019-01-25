@@ -557,6 +557,7 @@ if __name__ == '__main__':
         little_files = []
         print("Scanning all files in "+temp_dir+" matching " + ".*")
         for little_file in glob.glob(temp_dir + "/*"):
+            if little_file.endswith("chronometer.txt"): continue
             if little_file.endswith("files.txt"): continue
             if little_file.endswith("intervals.txt"): continue
             if little_file.endswith("status.txt"): continue
