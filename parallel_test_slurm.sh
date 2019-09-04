@@ -11,7 +11,7 @@
 ### PARAMETER SETTING  ###
 ##########################
 SAMPLE_ID="SRR2135332"
-SOURCE_BAM_FILE="test/SRR2135332.chr21.bam"
+SOURCE_BAM_FILE="test/SRR2135332.bam"
 REFERENCE="test/chr21.fa"
 SIZE_FILE="test/chr21.fa.fai"
 
@@ -71,7 +71,7 @@ fi
 echo "START:"`date`
 t1=$(date +%s)
 t1_human=$(date)
-time mpirun src/cineca/parallel_reditools.py -f $SOURCE_BAM_FILE -r $REFERENCE -G $COVERAGE_FILE -D $COVERAGE_DIR -t $TEMP_DIR -Z $SIZE_FILE $options 2>&1 | tee $SAMPLE_ID.log
+time mpirun src/cineca/parallel_reditools.py -g chr21 -f $SOURCE_BAM_FILE -r $REFERENCE -G $COVERAGE_FILE -D $COVERAGE_DIR -t $TEMP_DIR -Z $SIZE_FILE $options 2>&1 | tee $SAMPLE_ID.log
 t2=$(date +%s)
 t2_human=$(date)
 elapsed_time=$(($t2-$t1))
