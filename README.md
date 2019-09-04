@@ -18,33 +18,45 @@ This version of REDItools shows an average 8x speed improvement over the previou
 # Index
 
 - [1. Python setup](#1-python-setup)
-- [2. Cloning / downloading](#2-cloning--downloading)
-- [3. Installing](#3-installing)
-- [4. The two versions of REDItools 2.0](#4-the-two-versions-of-reditools-20)
-  - [4.1 Serial version](#41-serial-version-reditoolspy) 
-  - [4.2 Parallel version](#42-parallel-version--parallel_reditoolspy)
-- [5. Running REDItools 2.0 on your own data](#5-running-reditools-20-on-your-own-data) 
-- [6. REDItools 2.0 options](#6-reditools-20-options) 
-- [7. DNA-Seq annotation with REDItools 2.0](#7-dna-seq-annotation-with-reditools-20)
-- [8. Running REDItools 2.0 in multisample mode](#8-running-reditools-20-in-multisample-mode)
-- [9. Displaying benchmarks in HTML with REDItools 2.0 (parallel version only)](#9-displaying-benchmarks-with-reditools-20-parallel-version-only)
+- [2. Environment setup](#2-environment-setup)
+- [3. Cloning / downloading](#3-cloning--downloading)
+- [4. Installing](#4-installing)
+- [5. The two versions of REDItools 2.0](#5-the-two-versions-of-reditools-20)
+  - [5.1 Serial version](#51-serial-version-reditoolspy) 
+  - [5.2 Parallel version](#52-parallel-version--parallel_reditoolspy)
+- [6. Running REDItools 2.0 on your own data](#6-running-reditools-20-on-your-own-data) 
+- [7. REDItools 2.0 options](#7-reditools-20-options) 
+- [8. DNA-Seq annotation with REDItools 2.0](#8-dna-seq-annotation-with-reditools-20)
+- [9. Running REDItools 2.0 in multisample mode](#9-running-reditools-20-in-multisample-mode)
+- [10. Displaying benchmarks in HTML with REDItools 2.0 (parallel version only)](#10-displaying-benchmarks-with-reditools-20-parallel-version-only)
 
 
 ## Installation
 
 ### 1. Python setup
 ---
-This guide assumes you have Python installed in your system. If you do not have Python, please read the [official Python webpage](https://www.python.org/).
+This guide assumes you have Python <= 2.7 installed in your system. If you do not have Python, please read the [official Python webpage](https://www.python.org/).
+
+Make sure to have the following packages installed:
+
+> sudo apt-get install python-dev build-essential libssl-dev libffi-dev libxml2-dev libxslt1-dev zlib1g-dev python-pip zlib-devel zlib zlib1g zlib1g-devel libbz2-dev zlib1g-dev libncurses5-dev libncursesw5-dev liblzma-dev
 
 Make sure you have you preferred Python version loaded. If you have a single Python version already installed in your system you should do nothing. If you have multiple versions, please be sure to point to a given version; in order to do so check your environmental variables (e.g., PATH).
 
 If you are running on a cluster (where usually several versions are available) make sure to load a given Python version. For example (if running on CINECA Marconi super computer) the following command would load Python 2.7.12:
 > module load autoload python/2.7.12
 
-Note: REDItools2.0 has been tested with Python 2.7.12. Although there should not be any problem in upgrading, the software comes with no guarantee of being compatible with other versions of Python (e.g., Python >=3).
+Note: REDItools2.0 has been tested with Python 2.7.12. The software comes with no guarantee of being compatible with other versions of Python (e.g., Python >=3).
 
+### 2. Environment setup
+---
+Make sure the following libraries are installed:
 
-### 2. Cloning / Downloading
+- htslib and samtools (see http://www.htslib.org/download/ and https://www.biostars.org/p/328831/ for instructions)
+- an MPI implementation. We suggest OpenMPI, but you can choose whatever you like the most. For installing OpenMPI, try the following command:
+> sudo apt-get install openmpi-common libopenmpi-dev
+
+### 3. Cloning / Downloading
 ---
 
 The first step is to clone this repository (assumes you have *git* installed in your system - see the [Git official page](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) otherwise):
@@ -56,7 +68,7 @@ Move into the project main directory:
 > cd reditools2.0
 
 
-### 3. Installing
+### 4. Installing
 ---
 
 REDItools 2.0 requires a few Python modules to be installed in the environment (e.g., pysam, sortedcontainers, mpi4py, etc.). These can be installed in three ways:
@@ -101,7 +113,7 @@ When running the real commands, remember to wrap your commands between and activ
 
 ## Testing
 
-### 4. The two versions of REDItools 2.0
+### 5. The two versions of REDItools 2.0
 ---
 
 This repo includes test data and a test script for checking that dependencies have been installed properly and the basic REDItools command works.
@@ -117,7 +129,7 @@ Once the script has finished running, you have all you need to perform the tests
 
 The software comes with two modalities. Feel free to choose the one which best fits your needs.
 
-####  4.1 Serial version (reditools.py)
+####  5.1 Serial version (reditools.py)
 
 In this modality you benefit only from the optimization introduced after the first version. While being significantly faster (with about a 8x factor), you do not exploit the computational power of having multiple cores. On the other hand the setup and launch of REDItools is much easier.
 This might be the first modality you might want to give a try when using REDItools2.0 for the first time.
@@ -130,7 +142,7 @@ or, if you are in a SLURM-based cluster:
 
 > sbatch serial_test_slurm.sh
 
-#### 4.2 Parallel version  (parallel_reditools.py)
+#### 5.2 Parallel version  (parallel_reditools.py)
 
 In this modality you benefit both from the serial optimization and from the parallel computation introduced in this brand new version which exploits the existence of multiple cores, also on multiple nodes, making it a perfect tool on High Performance Computing facilities.
 Using this modality requires you to perform a little bit more system setup, but it will definitely pay you off.
@@ -158,13 +170,13 @@ This script:
 
 ## Running
 
-### 5. Running REDItools 2.0 on your own data
+### 6. Running REDItools 2.0 on your own data
 ---
 You can now customize the input test scripts to your needs with your input, output and ad-hoc options.
 
-### 6. REDItools 2.0 options
+### 7. REDItools 2.0 options
 ---
-#### 6.1 Basic options
+#### 7.1 Basic options
 In its most basic form, REDItools 2.0 can be invoked with an input BAM file, a reference genome and an output file:
 > python src/cineca/reditools.py -f \$INPUT_BAM_FILE -r $REFERENCE -o \$OUTPUT_FILE
 
@@ -178,7 +190,7 @@ For a complete list of options and their usage and meaning, please type:
 
 > python src/cineca/reditools.py -h
 
-#### 6.2 Other options
+#### 7.2 Other options
 
 Here we report the principal options with a detailed explanation for each of them.
 The following are the options accepted by the serial version of REDItools:
@@ -297,7 +309,7 @@ The parallel version of REDItools 2.0 has also other 4 additional parameters, na
    >
    >**-Z**    --chromosome-sizes    The file with the chromosome sizes
 
-### 7. DNA-Seq annotation with REDItools 2.0
+### 8. DNA-Seq annotation with REDItools 2.0
 
 - Analyze your RNA-Seq data (e.g., file *rna.bam*) with any version of REDItools and obtain the corresponding output table (e.g., *rna_table.txt* or *rna_table.txt.gz*);
 - Analyze your DNA-Seq data (e.g., *dna.bam*) with REDItools 2.0, providing as input:
@@ -329,14 +341,14 @@ Finally run the script *src/cineca/annotate_with_DNA.py*:
 
 The option -Z (not mandatory and without arguments) will exclude positions with multiple changes in DNA-Seq.
 
-#### 7.1 Useful scripts
+#### 8.1 Useful scripts
 
 In order to ease the annotation of RNA-Seq tables with DNA-Seq information, we also provided two sample scripts that you can customize with your own data:
 
 - [**WORK IN PROGRESS**] serial_dna_test.sh
 - [**WORK IN PROGRESS**] parallel_dna_test.sh
 
-### 8. [**WORK IN PROGRESS**] Running REDItools 2.0 in multisample mode
+### 9. [**WORK IN PROGRESS**] Running REDItools 2.0 in multisample mode
 REDItools also supports the launch on multiple samples at the same time. This modality is extremely useful if you have a dataset (i.e., group of homogeneous samples) and wish to run the same analysis on all of them (i.e., with the same options).
 
 In order to do this, we provided a second script analogous to parallel_reditools.py, called *reditools2_multisample.py* which supports the specification of an additional option -F [SAMPLE_FILE]. SAMPLE_FILE is a file containing the (absolute) path of samples to be analyzed.
@@ -346,7 +358,7 @@ It can be launched in the following manner:
 
 where OPTIONS are the same options accepted by the parallel version of REDItools 2.0.
 
- #### 8.1 Running in multisample mode on a SLURM-based cluster
+ #### 9.1 Running in multisample mode on a SLURM-based cluster
 If you wish to run REDItools 2.0 in multisample mode on a SLURM-based cluster, we provided two scripts that will help you:
 
 - [**WORK IN PROGRESS**] *extract_coverage_slurm_multisample.sh*: will calculate the coverage data for all the samples in parallel (by using the script *extract_coverage_dynamic.sh*);
@@ -354,7 +366,7 @@ If you wish to run REDItools 2.0 in multisample mode on a SLURM-based cluster, w
 
 First run *extract_coverage_slurm_multisample.sh* and then *multisample_test.sh*.
 
-### 9. Displaying benchmarks with REDItools 2.0 (parallel version only)
+### 10. Displaying benchmarks with REDItools 2.0 (parallel version only)
 We also released simple scripts to generate HTML pages containing the snapshot of the amount of time REDItools 2.0 (parallel version) spends on each part of the overall computation for each process (e.g., coverage computation, DIA algorithm, interval analysis, partial results recombination, etc).
 
 **Note**: this command will work only when launched *after* the parallel computation has completed.
