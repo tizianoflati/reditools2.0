@@ -57,6 +57,10 @@ Make sure the following libraries are installed:
 
 > sudo apt-get install samtools
 
+- tabix:
+
+> sudo apt-get install tabix
+
 - an MPI implementation. We suggest OpenMPI, but you can choose whatever you like the most. For installing OpenMPI, try the following command:
 > sudo apt-get install openmpi-common libopenmpi-dev
 
