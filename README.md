@@ -52,7 +52,11 @@ Note: REDItools2.0 has been tested with Python 2.7.12. The software comes with n
 ---
 Make sure the following libraries are installed:
 
-- htslib and samtools (see http://www.htslib.org/download/ and https://www.biostars.org/p/328831/ for instructions)
+- htslib (see http://www.htslib.org/download/ and https://www.biostars.org/p/328831/ for instructions)
+- samtools:
+
+> sudo apt-get install samtools
+
 - an MPI implementation. We suggest OpenMPI, but you can choose whatever you like the most. For installing OpenMPI, try the following command:
 > sudo apt-get install openmpi-common libopenmpi-dev
 
