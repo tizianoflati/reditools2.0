@@ -390,7 +390,7 @@ where TEMP_DIR is the directory you specified with the -t option; this directory
 Once created, the HTML page should display time information similar to the following:
 
 <p align="center">
-<img src="https://github.com/BioinfoUNIBA/REDItools/blob/master/Images/Fig5.png" width="500px">
+<img src="https://github.com/BioinfoUNIBA/REDItools/blob/master/Images/Fig 5.png" width="500px">
 </p>
 
 By means of this visualization you can *hover* on slices to see more in details the statistics for each interval computation as well as *zoom in* and *zoom out* by using the scroll wheel of your mouse.
