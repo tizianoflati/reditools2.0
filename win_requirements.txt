@@ -1,0 +1,6 @@
+bamnostic
+faidx
+sortedcontainers
+psutil
+netifaces
+mpi4py
