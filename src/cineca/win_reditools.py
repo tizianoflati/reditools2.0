@@ -983,7 +983,7 @@ def analyze(options):
                     try:
                         chr_ref = reference_reader[read.reference_name]
                     except KeyError:
-                        chr_ref = reference_reacer["chr" + read.reference_name]
+                        chr_ref = reference_reader["chr" + read.reference_name]
                     
                     tac = datetime.datetime.now()
                     print("[INFO] REFERENCE NAME=" + read.reference_name + " (" + str(tac) + ")\t["+delta(tac, tic)+"]")
