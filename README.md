@@ -124,10 +124,10 @@ When running the real commands, remember to wrap your commands between and activ
 >
 >deactivate
 
-## Testing
+## SPACK
 <div><img src="https://hpc.llnl.gov/sites/default/files/spack.png"/></div>
 
-#### 4.1 Spack Installation Protocol (Thanx to Silvia Gioiosa PhD, CINECA ROME)							
+#### 4.1 Spack Installation Protocol (Thanks to Silvia Gioiosa PhD, CINECA ROME)							
 
 -Spack module loading
 >module load autoload spack
@@ -184,12 +184,12 @@ When running the real commands, remember to wrap your commands between and activ
 
 -With a text editor modify the two slurm directives (queue -p and account) of serial_test_slurm.sh: 
 
-#SBATCH --account= (inserisca qui il suo account)
-#SBATCH -p m100_all_serial
+>#SBATCH --account= (insert here your account)<br>
+>#SBATCH -p m100_all_serial
 
->Launch the run test:
+-Launch the run test:
 
-sbatch serial_test_slurm.sh
+>sbatch serial_test_slurm.sh
 
 ### 5. The two versions of REDItools 2.0
 ---
