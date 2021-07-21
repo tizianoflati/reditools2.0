@@ -125,6 +125,71 @@ When running the real commands, remember to wrap your commands between and activ
 >deactivate
 
 ## Testing
+<div><img src="https://hpc.llnl.gov/sites/default/files/spack.png"/></div>
+
+#### 4.1 Spack Installation Protocol (Thanx to Silvia Gioiosa PhD, CINECA ROME)							
+
+-Spack module loading
+>module load autoload spack
+
+-Installation of python required version (when prompted with ['Do yoy want to proceed?'], answer always y):
+
+>spack install python@2.7.16 #@ builds a specific version of python. If u want more verbosity, use -d
+
+>spack module tcl refresh python@2.7.16
+
+>spack install py-mpi4py^python@2.7.16
+
+>spack module tcl refresh py-mpi4py^python@2.7.16
+
+>spack install py-virtualenv^python@2.7.16
+
+>spack module tcl refresh py-virtualenv^python@2.7.16
+
+-Installation of REDItools 2.0 required modules
+
+>module load python/2.7.16--gcc--8.4.0-bgv
+
+>module load autoload py-mpi4py/3.0.3--gcc--8.4.0-spectrmpi-ac2
+
+>module load py-virtualenv/16.7.6--gcc--8.4.0-4ut
+
+>module load profile/global
+
+>module load samtools/1.12
+
+-Download of REDItols 2.0 from this repo
+
+> git clone https://github.com/BioinfoUNIBA/REDItools2.git
+
+> cd REDItools2
+
+-Virtualenv activation and dependencies download 
+
+>virtualenv ENV
+
+>source ENV/bin/activate
+
+>pip install pysam
+
+>pip install sortedcontainers
+
+>pip install psutil 
+
+>pip install netifaces
+
+-Data test preparation:
+
+>./prepare_test.sh
+
+-With a text editor modify the two slurm directives (queue -p and account) of serial_test_slurm.sh: 
+
+#SBATCH --account= (inserisca qui il suo account)
+#SBATCH -p m100_all_serial
+
+>Launch the run test:
+
+sbatch serial_test_slurm.sh
 
 ### 5. The two versions of REDItools 2.0
 ---
