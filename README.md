@@ -25,7 +25,7 @@ This version of REDItools shows an average 8x speed improvement over the previou
 - [2. Environment setup](#2-environment-setup)
 - [3. Cloning / downloading](#3-cloning--downloading)
 - [4. Installing](#4-installing)
-   - [4.1 Spack Installation Protocol](#41-spack installing)
+  - [4.1 Spack Installation Protocol](#41-spack)
 - [5. The two versions of REDItools 2.0](#5-the-two-versions-of-reditools-20)
   - [5.1 Serial version](#51-serial-version-reditoolspy) 
   - [5.2 Parallel version](#52-parallel-version--parallel_reditoolspy)
@@ -124,10 +124,8 @@ When running the real commands, remember to wrap your commands between and activ
 >
 >deactivate
 
-## SPACK
+#### 4.1 Spack (Thanks to Silvia Gioiosa PhD, CINECA ROME)
 <div><img src="https://hpc.llnl.gov/sites/default/files/spack.png"/></div>
-
-#### 4.1 Spack Installation Protocol (Thanks to Silvia Gioiosa PhD, CINECA ROME)							
 
 -Spack module loading
 >module load autoload spack
