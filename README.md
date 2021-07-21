@@ -124,7 +124,8 @@ When running the real commands, remember to wrap your commands between and activ
 >
 >deactivate
 
-#### 4.1 Spack (Thanks to Silvia Gioiosa PhD, CINECA ROME)
+#### 4.1 Spack 
+(Thanks to Silvia Gioiosa PhD, CINECA ROME)
 <div><img src="https://hpc.llnl.gov/sites/default/files/spack.png"/></div>
 
 -Spack module loading
