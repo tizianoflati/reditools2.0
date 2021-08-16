@@ -4,19 +4,19 @@
 
 REDItools takes in input a RNA-Seq (or DNA-Seq BAM) file and outputs a table of RNA-Seq editing events.  Here is an example of REDItools's output:
 <p align="center">
-<img src="https://github.com/BioinfoUNIBA/REDItools/blob/master/Images/Fig1.png" width="600px">
+<img src="Images/Fig1.png" width="700px">
 </p>
 
 The following image explains the high-level architecture.
 
 <p align="center">
-<img src="https://github.com/BioinfoUNIBA/REDItools/blob/master/Images/Fig2.png" width="500px">
+<img src="Images/Fig2.png" width="500px">
 </p>
 
 This version of REDItools shows an average 8x speed improvement over the previous version even when using only the serial-mode:
 
 <p align="center">
-<img src="https://github.com/BioinfoUNIBA/REDItools/blob/master/Images/Fig3.png" width="600px">
+<img src="Images/Fig3.png" width="800px">
 </p>
 
 # Index
@@ -25,7 +25,6 @@ This version of REDItools shows an average 8x speed improvement over the previou
 - [2. Environment setup](#2-environment-setup)
 - [3. Cloning / downloading](#3-cloning--downloading)
 - [4. Installing](#4-installing)
-  - [4.1 Spack](#41-spack)
 - [5. The two versions of REDItools 2.0](#5-the-two-versions-of-reditools-20)
   - [5.1 Serial version](#51-serial-version-reditoolspy) 
   - [5.2 Parallel version](#52-parallel-version--parallel_reditoolspy)
@@ -124,71 +123,7 @@ When running the real commands, remember to wrap your commands between and activ
 >
 >deactivate
 
-#### 4.1 Spack 
-(Thanks to Silvia Gioiosa PhD, CINECA ROME)
-<div><img src="https://hpc.llnl.gov/sites/default/files/spack.png"/></div>
-
--Spack module loading
->module load autoload spack
-
--Installation of python required version (when prompted with ['Do yoy want to proceed?'], answer always y):
-
->spack install python@2.7.16 #@ builds a specific version of python. If u want more verbosity, use -d
-
->spack module tcl refresh python@2.7.16
-
->spack install py-mpi4py^python@2.7.16
-
->spack module tcl refresh py-mpi4py^python@2.7.16
-
->spack install py-virtualenv^python@2.7.16
-
->spack module tcl refresh py-virtualenv^python@2.7.16
-
--Installation of REDItools 2.0 required modules
-
->module load python/2.7.16--gcc--8.4.0-bgv
-
->module load autoload py-mpi4py/3.0.3--gcc--8.4.0-spectrmpi-ac2
-
->module load py-virtualenv/16.7.6--gcc--8.4.0-4ut
-
->module load profile/global
-
->module load samtools/1.12
-
--Download of REDItols 2.0 from this repo
-
-> git clone https://github.com/BioinfoUNIBA/REDItools2.git
-
-> cd REDItools2
-
--Virtualenv activation and dependencies download 
-
->virtualenv ENV
-
->source ENV/bin/activate
-
->pip install pysam
-
->pip install sortedcontainers
-
->pip install psutil 
-
->pip install netifaces
-
--Data test preparation:
-
->./prepare_test.sh
-
--With a text editor modify the two slurm directives (queue -p and account) of serial_test_slurm.sh: 
-
->#SBATCH --account= (insert here your account)<br>
->#SBATCH -p m100_all_serial
-
--Launch the run test:
-
->sbatch serial_test_slurm.sh
+## Testing
 
 ### 5. The two versions of REDItools 2.0
 ---
@@ -396,7 +331,7 @@ This step will produce the output table (e.g., *dna_table.txt*);
 - Annotate the RNA-Seq table by means of the DNA-Seq table by running REDItools2.0 annotator (script *src/cineca/annotate_with_DNA.py*) with the two tables as input (e.g., *rna_table.txt* and *dna_table.txt*) which will produce the final annotated table (e.g., *final_table.txt*).
 
 <p align="center">
-<img src="https://github.com/BioinfoUNIBA/REDItools/blob/master/Images/Fig4.png" width="600px">
+<img src="Images/Fig4.png" width="600px">
 </p>
 
 When RNA-editing tables are big (e.g., greater than 1GB in gz format) reading the full table in parallel mode can be really a time-consuming task. In order to optimize the loading of target positions, we have provided a script to convert RNA-editing tables to BED files:
@@ -455,7 +390,7 @@ where TEMP_DIR is the directory you specified with the -t option; this directory
 Once created, the HTML page should display time information similar to the following:
 
 <p align="center">
-<img src="https://github.com/BioinfoUNIBA/REDItools/blob/master/Images/Fig 5.png" width="600px">
+<img src="Images/Fig 5.png" width="600px">
 </p>
 
 By means of this visualization you can *hover* on slices to see more in details the statistics for each interval computation as well as *zoom in* and *zoom out* by using the scroll wheel of your mouse.
